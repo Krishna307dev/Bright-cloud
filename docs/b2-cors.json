@@ -1,0 +1,30 @@
+[
+  {
+    "corsRuleName": "brightCloudBrowserAccess",
+    "allowedOrigins": [
+      "http://localhost:5173",
+      "http://localhost:4173",
+      "https://*.netlify.app"
+    ],
+    "allowedOperations": [
+      "b2_download_file_by_id",
+      "b2_download_file_by_name",
+      "b2_upload_file",
+      "b2_delete_file_version",
+      "s3_get",
+      "s3_put",
+      "s3_delete",
+      "s3_head"
+    ],
+    "allowedHeaders": [
+      "*"
+    ],
+    "exposeHeaders": [
+      "ETag",
+      "Content-Length",
+      "Content-Range",
+      "x-amz-meta-*"
+    ],
+    "maxAgeSeconds": 86400
+  }
+]

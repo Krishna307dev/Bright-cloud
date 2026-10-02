@@ -1,0 +1,665 @@
+<!DOCTYPE html><html lang="en" style="width: 1280px; height: 1024px; overflow: hidden; position: relative;"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Bright Cloud - Friend &amp; Viewer Access Management</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "status-error": "#DC2626",
+            "outline-variant": "#e0c0b1",
+            "surface-tint": "#9d4300",
+            "secondary-container": "#dae2fd",
+            "on-tertiary": "#ffffff",
+            "on-primary-fixed-variant": "#783200",
+            "inverse-primary": "#ffb690",
+            "surface-bright": "#f8f9ff",
+            "on-surface": "#0b1c30",
+            "primary-fixed": "#ffdbca",
+            "text-secondary": "#475569",
+            "primary-container": "#f97316",
+            "surface-dim": "#cbdbf5",
+            "secondary": "#565e74",
+            "secondary-fixed": "#dae2fd",
+            "border-strong": "#CBD5E1",
+            "primary": "#9d4300",
+            "on-error": "#ffffff",
+            "status-info": "#2563EB",
+            "surface-container": "#e5eeff",
+            "surface-subtle": "#F1F5F9",
+            "accent-orange-hover": "#EA580C",
+            "on-primary-container": "#582200",
+            "on-secondary": "#ffffff",
+            "on-tertiary-fixed-variant": "#003ea8",
+            "accent-orange-subtle": "#FFF7ED",
+            "error-container": "#ffdad6",
+            "primary-fixed-dim": "#ffb690",
+            "on-tertiary-container": "#002c7c",
+            "on-error-container": "#93000a",
+            "on-secondary-fixed": "#131b2e",
+            "surface-container-high": "#dce9ff",
+            "tertiary-container": "#7296ff",
+            "surface-variant": "#d3e4fe",
+            "on-primary": "#ffffff",
+            "tertiary-fixed-dim": "#b4c5ff",
+            "status-warning": "#D97706",
+            "surface-container-lowest": "#ffffff",
+            "inverse-surface": "#213145",
+            "text-muted": "#64748B",
+            "on-secondary-fixed-variant": "#3f465c",
+            "on-primary-fixed": "#341100",
+            "surface-panel": "#FFFFFF",
+            "background": "#f8f9ff",
+            "surface-container-low": "#eff4ff",
+            "text-primary": "#0F172A",
+            "surface-container-highest": "#d3e4fe",
+            "tertiary": "#0053db",
+            "surface-canvas": "#F8FAFC",
+            "outline": "#8c7164",
+            "status-success": "#16A34A",
+            "tertiary-fixed": "#dbe1ff",
+            "on-tertiary-fixed": "#00174b",
+            "on-surface-variant": "#584237",
+            "secondary-fixed-dim": "#bec6e0",
+            "border-hairline": "#E2E8F0",
+            "surface": "#f8f9ff",
+            "on-background": "#0b1c30",
+            "inverse-on-surface": "#eaf1ff",
+            "on-secondary-container": "#5c647a",
+            "error": "#ba1a1a"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-xl": "1.5rem",
+            "space-sm": "0.75rem",
+            "space-md": "1rem",
+            "gutter": "1rem",
+            "space-3xl": "2.5rem",
+            "space-lg": "1.25rem",
+            "gutter-desktop": "1.5rem",
+            "space-2xl": "2rem",
+            "margin": "1rem",
+            "margin-desktop": "1.5rem",
+            "space-2xs": "0.25rem",
+            "space-xs": "0.5rem",
+            "space-4xl": "3rem"
+          },
+          "fontFamily": {
+            "body-md": ["Inter"],
+            "body-sm": ["Inter"],
+            "table-header": ["Inter"],
+            "label-sm": ["Inter"],
+            "code-inline": ["Inter"],
+            "headline-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "headline-lg-mobile": ["Inter"],
+            "metadata": ["Inter"],
+            "headline-sm": ["Inter"],
+            "headline-md": ["Inter"],
+            "body-lg": ["Inter"]
+          },
+          "fontSize": {
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "table-header": ["12px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+            "code-inline": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "headline-lg-mobile": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "metadata": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 20px;
+      line-height: 1;
+      display: inline-block;
+      text-transform: none;
+      letter-spacing: normal;
+      word-wrap: normal;
+      white-space: nowrap;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body class="bg-surface-canvas text-text-primary antialiased font-body-md text-body-md min-h-screen flex selection:bg-accent-orange-subtle selection:text-primary-container">
+<!-- SIDEBAR (SideNavBar: desktop_drawer, fixed w-60, active: Shared) -->
+<aside class="fixed top-0 left-0 h-screen w-60 bg-surface-canvas border-r border-border-hairline z-30 select-none">
+<div class="flex flex-col justify-between h-full w-60 py-space-md px-space-sm">
+<!-- Top Brand Anchor & Navigation -->
+<div class="space-y-space-md">
+<!-- Vault Shield Branding -->
+<div class="flex items-center gap-space-sm px-space-md py-space-xs">
+<div class="w-8 h-8 rounded bg-primary-container text-white flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px]" data-icon="shield">shield</span>
+</div>
+<div class="overflow-hidden">
+<div class="font-headline-sm text-headline-sm font-semibold text-text-primary tracking-tight truncate">Bright Cloud</div>
+<div class="font-metadata text-metadata text-text-muted truncate">Personal Vault v2.4</div>
+</div>
+</div>
+<!-- Add Source Action Anchor from JSON -->
+<div class="px-space-xs">
+<button class="w-full flex items-center justify-center gap-space-xs h-9 px-space-md rounded bg-surface-panel border border-border-hairline text-text-primary font-label-md text-label-md hover:bg-surface-subtle transition-colors duration-150 ease-in-out">
+<span class="material-symbols-outlined text-text-muted" data-icon="add_circle">add_circle</span>
+<span class="">Add Source</span>
+</button>
+</div>
+<!-- Primary Navigation Items -->
+<nav class="space-y-1">
+<!-- Dashboard (Inactive) -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-text-muted" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<!-- Files (Inactive) -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-text-muted" data-icon="folder">folder</span>
+<span class="font-label-md text-label-md">Files</span>
+</a>
+<!-- Sources (Inactive) -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-text-muted" data-icon="usb">usb</span>
+<span class="font-label-md text-label-md">Sources</span>
+</a>
+<!-- Shared (ACTIVE ITEM per JSON style_active_navigation) -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded bg-accent-orange-subtle text-primary-container font-semibold border-l-2 border-primary-container transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-primary-container" data-icon="share">share</span>
+<span class="font-label-md text-label-md">Shared</span>
+</a>
+<!-- Activity (Inactive) -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-text-muted" data-icon="history">history</span>
+<span class="font-label-md text-label-md">Activity</span>
+</a>
+<!-- Settings (Inactive) -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-text-muted" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+</div>
+<!-- Footer Anchor from JSON -->
+<div class="pt-space-sm border-t border-border-hairline">
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-text-muted" data-icon="shield_person">shield_person</span>
+<span class="font-label-md text-label-md">Security Profile</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- TOP APP BAR (TopNavBar: docked full-width top-0 h-14 ml-60 w-[calc(100%-15rem)]) -->
+<header class="fixed top-0 right-0 h-14 ml-60 w-[calc(100%-15rem)] bg-surface-panel border-b border-border-hairline flex items-center justify-between px-space-xl z-20">
+<!-- Breadcrumb & Search Section -->
+<div class="flex items-center gap-space-lg">
+<!-- Breadcrumb Hierarchy -->
+<nav class="flex items-center gap-space-xs font-label-md text-label-md select-none">
+<span class="text-text-muted hover:text-primary-container cursor-pointer transition-colors duration-150">Vault: Personal Vault</span>
+<span class="text-text-muted">/</span>
+<span class="text-text-muted hover:text-primary-container cursor-pointer transition-colors duration-150">Access Management</span>
+<span class="text-text-muted">/</span>
+<span class="text-text-primary font-semibold">Friends &amp; Viewers</span>
+</nav>
+<!-- Fast Access Filter Bar -->
+<div class="relative w-64 hidden xl:block">
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted text-[18px]" data-icon="search">search</span>
+<input class="w-full h-8 pl-8 pr-3 text-body-sm font-body-sm bg-surface-subtle border border-border-hairline rounded focus:outline-none focus:border-border-strong focus:bg-surface-panel transition-colors" placeholder="Search identities or emails..." type="text">
+</div>
+</div>
+<!-- Trailing Actions from JSON -->
+<div class="flex items-center gap-space-sm">
+<!-- Icon Actions -->
+<div class="flex items-center gap-1 text-text-muted border-r border-border-hairline pr-space-sm mr-space-xs">
+<button class="w-8 h-8 rounded flex items-center justify-center hover:bg-surface-subtle hover:text-text-primary transition-colors" title="Sync Ledger">
+<span class="material-symbols-outlined text-[20px]" data-icon="sync">sync</span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center hover:bg-surface-subtle hover:text-text-primary transition-colors" title="Notifications">
+<span class="material-symbols-outlined text-[20px]" data-icon="notifications">notifications</span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center hover:bg-surface-subtle hover:text-text-primary transition-colors" title="Help &amp; Architecture Docs">
+<span class="material-symbols-outlined text-[20px]" data-icon="help">help</span>
+</button>
+</div>
+<!-- JSON Action: Authorize Device -->
+
+<!-- JSON Action: Download All -->
+<button class="h-8 px-space-md rounded bg-primary-container hover:bg-accent-orange-hover text-white font-label-md text-label-md transition-colors duration-150">
+        Download All
+      </button>
+<!-- Security Avatar -->
+<div class="w-8 h-8 rounded bg-surface-subtle border border-border-hairline flex items-center justify-center ml-space-xs" title="Root Administrator">
+<span class="material-symbols-outlined text-text-secondary text-[20px]" data-icon="account_circle">account_circle</span>
+</div>
+</div>
+</header>
+<!-- MAIN VIEWPORT (Offset for Fixed Sidebar and TopNavBar) -->
+<main class="ml-60 pt-14 w-[calc(100%-15rem)] min-h-screen flex flex-col">
+<div class="p-space-xl max-w-7xl w-full mx-auto space-y-space-xl flex-1">
+<!-- View Header & Actions -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md pb-space-sm border-b border-border-hairline">
+<div>
+<div class="flex items-center gap-space-sm">
+<h1 class="font-headline-lg text-headline-lg text-text-primary tracking-tight">Dedicated Friend Management</h1>
+<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-accent-orange-subtle text-primary-container border border-primary-container/20">Strict Isolation</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-muted mt-1">
+            Grant granular file and folder read access to verified Google Identities without exposing storage credentials.
+          </p>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="h-9 px-space-md rounded bg-primary-container hover:bg-accent-orange-hover text-white font-label-md text-label-md flex items-center gap-space-xs transition-colors shadow-sm" onclick="document.getElementById('authorize-drawer').scrollIntoView({behavior: 'smooth'})">
+<span class="material-symbols-outlined text-[18px]" data-icon="person_add">person_add</span>
+<span class="">Add Friend</span>
+</button>
+</div>
+</div>
+<!-- Bento Metric Summary Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+<!-- Metric 1: Authorized Friends -->
+<div class="bg-surface-panel p-space-md rounded border border-border-hairline flex items-center justify-between">
+<div>
+<div class="font-metadata text-metadata text-text-muted">Total Authorized Friends</div>
+<div class="font-headline-lg text-headline-lg text-text-primary mt-1 font-semibold">4</div>
+<div class="font-label-sm text-label-sm text-status-success flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="verified_user">verified_user</span>
+<span class="">All 4 verified</span>
+</div>
+</div>
+<div class="w-10 h-10 rounded bg-surface-subtle flex items-center justify-center text-text-secondary">
+<span class="material-symbols-outlined text-[22px]" data-icon="group">group</span>
+</div>
+</div>
+<!-- Metric 2: Active File Grants -->
+<div class="bg-surface-panel p-space-md rounded border border-border-hairline flex items-center justify-between">
+<div>
+<div class="font-metadata text-metadata text-text-muted">Active File Grants</div>
+<div class="font-headline-lg text-headline-lg text-text-primary mt-1 font-semibold">8</div>
+<div class="font-label-sm text-label-sm text-text-muted flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="lock">lock</span>
+<span class="">SHA-256 verified</span>
+</div>
+</div>
+<div class="w-10 h-10 rounded bg-surface-subtle flex items-center justify-center text-text-secondary">
+<span class="material-symbols-outlined text-[22px]" data-icon="description">description</span>
+</div>
+</div>
+<!-- Metric 3: Direct Folder Grants -->
+<div class="bg-surface-panel p-space-md rounded border border-border-hairline flex items-center justify-between">
+<div>
+<div class="font-metadata text-metadata text-text-muted">Direct Folder Grants</div>
+<div class="font-headline-lg text-headline-lg text-text-primary mt-1 font-semibold">3</div>
+<div class="font-label-sm text-label-sm text-text-muted flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="drive_folder_upload">drive_folder_upload</span>
+<span class="">Recursive read</span>
+</div>
+</div>
+<div class="w-10 h-10 rounded bg-surface-subtle flex items-center justify-center text-text-secondary">
+<span class="material-symbols-outlined text-[22px]" data-icon="folder_shared">folder_shared</span>
+</div>
+</div>
+<!-- Metric 4: Enforced Policy Level -->
+<div class="bg-surface-panel p-space-md rounded border border-border-hairline flex items-center justify-between">
+<div>
+<div class="font-metadata text-metadata text-text-muted">Global Access Level</div>
+<div class="font-headline-lg text-headline-lg text-text-primary mt-1 font-semibold truncate text-[22px] leading-tight">Strict Viewer</div>
+<div class="font-label-sm text-label-sm text-text-secondary flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="block">block</span>
+<span class="">Uploads prohibited</span>
+</div>
+</div>
+<div class="w-10 h-10 rounded bg-surface-subtle flex items-center justify-center text-text-secondary">
+<span class="material-symbols-outlined text-[22px]" data-icon="policy">policy</span>
+</div>
+</div>
+</div>
+<!-- Authorization Panel (Authorize Google User Form) -->
+<section class="bg-surface-panel rounded border border-border-hairline p-space-lg" id="authorize-drawer">
+<div class="flex items-center justify-between pb-space-sm border-b border-border-hairline mb-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary-container" data-icon="key">key</span>
+<h2 class="font-headline-sm text-headline-sm text-text-primary">Authorize Google User</h2>
+</div>
+<span class="font-label-sm text-label-sm text-text-muted">Viewer Access Invitation</span>
+</div>
+<form class="grid grid-cols-1 md:grid-cols-12 gap-space-md items-end" onsubmit="event.preventDefault();">
+<div class="md:col-span-5 space-y-1">
+<label class="block font-label-md text-label-md text-text-primary">Google Email Address</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[18px]" data-icon="alternate_email">alternate_email</span>
+<input class="w-full h-9 pl-9 pr-3 text-body-sm font-body-sm bg-surface-canvas border border-border-hairline rounded focus:outline-none focus:border-primary-container focus:bg-surface-panel transition-colors" placeholder="colleague@domain.com or gmail.com" type="email">
+</div>
+<p class="font-metadata text-metadata text-text-muted">Must correspond to an authenticated Google account.</p>
+</div>
+<div class="md:col-span-4 space-y-1">
+<label class="block font-label-md text-label-md text-text-primary">Permission Scope</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[18px]" data-icon="visibility">visibility</span>
+<select class="w-full h-9 pl-9 pr-8 text-body-sm font-body-sm bg-surface-canvas border border-border-hairline rounded focus:outline-none focus:border-primary-container focus:bg-surface-panel transition-colors appearance-none">
+<option selected="">Viewer - Read &amp; Download Only</option>
+<option disabled="">Contributor (Disabled by Vault Policy)</option>
+<option disabled="">Editor (Vault Admin Only)</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none text-[18px]" data-icon="expand_more">expand_more</span>
+</div>
+<p class="font-metadata text-metadata text-text-muted">Read privileges are limited to designated storage paths.</p>
+</div>
+<div class="md:col-span-3">
+<button class="w-full h-9 px-space-md rounded bg-primary-container hover:bg-accent-orange-hover text-white font-label-md text-label-md flex items-center justify-center gap-space-xs transition-colors" type="submit">
+<span class="material-symbols-outlined text-[18px]" data-icon="send">send</span>
+<span class="">Send Access Grant</span>
+</button>
+</div>
+</form>
+</section>
+<!-- Friends Directory Table Section -->
+<section class="bg-surface-panel rounded border border-border-hairline overflow-hidden">
+<div class="p-space-md border-b border-border-hairline flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm bg-surface-canvas">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-text-muted" data-icon="badge">badge</span>
+<h2 class="font-headline-sm text-headline-sm text-text-primary">Active Friends Directory</h2>
+<span class="ml-2 px-2 py-0.5 rounded text-[11px] font-semibold bg-surface-subtle text-text-secondary border border-border-hairline">4 Active Grants</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="h-8 px-3 rounded bg-surface-panel border border-border-hairline text-text-secondary hover:text-text-primary font-label-md text-label-md flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[16px]" data-icon="filter_list">filter_list</span>
+<span class="">Filter</span>
+</button>
+<button class="h-8 px-3 rounded bg-surface-panel border border-border-hairline text-text-secondary hover:text-text-primary font-label-md text-label-md flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[16px]" data-icon="file_download">file_download</span>
+<span class="">Audit Log</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="h-9 bg-surface-subtle border-b border-border-hairline text-text-muted font-table-header text-table-header uppercase">
+<th class="py-2 px-space-md font-semibold">Friend / Google Identity</th>
+<th class="py-2 px-space-md font-semibold">Email</th>
+<th class="py-2 px-space-md font-semibold">Access Granted Date</th>
+<th class="py-2 px-space-md font-semibold">Files Accessible</th>
+<th class="py-2 px-space-md font-semibold">Folders Accessible</th>
+<th class="py-2 px-space-md font-semibold">Status</th>
+<th class="py-2 px-space-md font-semibold text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-hairline font-body-sm text-body-sm text-text-primary">
+<!-- Row 1: Sarah Chen -->
+<tr class="h-12 hover:bg-surface-canvas transition-colors duration-100 group">
+<td class="py-2.5 px-space-md">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded bg-secondary-container text-on-secondary-container flex items-center justify-center font-semibold text-[11px]">
+                      SC
+                    </div>
+<span class="font-medium text-text-primary">Sarah Chen</span>
+</div>
+</td>
+<td class="py-2.5 px-space-md font-code-inline text-code-inline text-text-secondary">sarah.c@vault.net</td>
+<td class="py-2.5 px-space-md text-text-muted">Mar 12, 2026</td>
+<td class="py-2.5 px-space-md">
+<span class="inline-flex items-center gap-1 text-text-secondary font-medium">
+<span class="material-symbols-outlined text-[16px] text-text-muted" data-icon="draft">draft</span>
+                    4 Files
+                  </span>
+</td>
+<td class="py-2.5 px-space-md">
+<span class="inline-flex items-center gap-1 text-text-secondary font-medium">
+<span class="material-symbols-outlined text-[16px] text-text-muted" data-icon="folder">folder</span>
+                    1 Folder
+                  </span>
+</td>
+<td class="py-2.5 px-space-md">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-[#DCFCE7] text-[#166534]"><span class="w-1.5 h-1.5 rounded-full bg-[#16A34A]"></span>Viewer</span>
+</td>
+<td class="py-2.5 px-space-md text-right">
+<div class="inline-flex items-center gap-1">
+<button class="h-7 px-2.5 rounded bg-surface-canvas hover:bg-surface-subtle border border-border-hairline text-text-primary font-label-sm text-label-sm transition-colors">
+                      Manage Permissions
+                    </button>
+<button class="h-7 px-2 rounded bg-surface-canvas hover:bg-error-container hover:text-status-error border border-border-hairline text-text-muted transition-colors" onclick="openRevokeModal('Sarah Chen', 'sarah.c@vault.net', 4, 1)" title="Revoke Access">
+<span class="material-symbols-outlined text-[16px]" data-icon="person_remove">person_remove</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2: Alex Rivera -->
+<tr class="h-12 hover:bg-surface-canvas transition-colors duration-100 group">
+<td class="py-2.5 px-space-md">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded bg-secondary-container text-on-secondary-container flex items-center justify-center font-semibold text-[11px]">
+                      AR
+                    </div>
+<span class="font-medium text-text-primary">Alex Rivera</span>
+</div>
+</td>
+<td class="py-2.5 px-space-md font-code-inline text-code-inline text-text-secondary">rivera.a@local</td>
+<td class="py-2.5 px-space-md text-text-muted">Feb 28, 2026</td>
+<td class="py-2.5 px-space-md">
+<span class="inline-flex items-center gap-1 text-text-secondary font-medium">
+<span class="material-symbols-outlined text-[16px] text-text-muted" data-icon="draft">draft</span>
+                    2 Files
+                  </span>
+</td>
+<td class="py-2.5 px-space-md">
+<span class="inline-flex items-center gap-1 text-text-muted">
+<span class="material-symbols-outlined text-[16px] text-text-muted" data-icon="folder_off">folder_off</span>
+                    0 Folders
+                  </span>
+</td>
+<td class="py-2.5 px-space-md">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-[#DCFCE7] text-[#166534]"><span class="w-1.5 h-1.5 rounded-full bg-[#16A34A]"></span>Viewer</span>
+</td>
+<td class="py-2.5 px-space-md text-right">
+<div class="inline-flex items-center gap-1">
+<button class="h-7 px-2.5 rounded bg-surface-canvas hover:bg-surface-subtle border border-border-hairline text-text-primary font-label-sm text-label-sm transition-colors">
+                      Manage Permissions
+                    </button>
+<button class="h-7 px-2 rounded bg-surface-canvas hover:bg-error-container hover:text-status-error border border-border-hairline text-text-muted transition-colors" onclick="openRevokeModal('Alex Rivera', 'rivera.a@local', 2, 0)" title="Revoke Access">
+<span class="material-symbols-outlined text-[16px]" data-icon="person_remove">person_remove</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3: Elena Rostova -->
+<tr class="h-12 hover:bg-surface-canvas transition-colors duration-100 group">
+<td class="py-2.5 px-space-md">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded bg-secondary-container text-on-secondary-container flex items-center justify-center font-semibold text-[11px]">
+                      ER
+                    </div>
+<span class="font-medium text-text-primary">Elena Rostova</span>
+</div>
+</td>
+<td class="py-2.5 px-space-md font-code-inline text-code-inline text-text-secondary">elena.r@sec.mesh</td>
+<td class="py-2.5 px-space-md text-text-muted">Jan 15, 2026</td>
+<td class="py-2.5 px-space-md">
+<span class="inline-flex items-center gap-1 text-text-secondary font-medium">
+<span class="material-symbols-outlined text-[16px] text-text-muted" data-icon="draft">draft</span>
+                    6 Files
+                  </span>
+</td>
+<td class="py-2.5 px-space-md">
+<span class="inline-flex items-center gap-1 text-text-secondary font-medium">
+<span class="material-symbols-outlined text-[16px] text-text-muted" data-icon="folder">folder</span>
+                    2 Folders
+                  </span>
+</td>
+<td class="py-2.5 px-space-md">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-[#DCFCE7] text-[#166534]"><span class="w-1.5 h-1.5 rounded-full bg-[#16A34A]"></span>Viewer</span>
+</td>
+<td class="py-2.5 px-space-md text-right">
+<div class="inline-flex items-center gap-1">
+<button class="h-7 px-2.5 rounded bg-surface-canvas hover:bg-surface-subtle border border-border-hairline text-text-primary font-label-sm text-label-sm transition-colors">
+                      Manage Permissions
+                    </button>
+<button class="h-7 px-2 rounded bg-surface-canvas hover:bg-error-container hover:text-status-error border border-border-hairline text-text-muted transition-colors" onclick="openRevokeModal('Elena Rostova', 'elena.r@sec.mesh', 6, 2)" title="Revoke Access">
+<span class="material-symbols-outlined text-[16px]" data-icon="person_remove">person_remove</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4: David Kim -->
+<tr class="h-12 hover:bg-surface-canvas transition-colors duration-100 group">
+<td class="py-2.5 px-space-md">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded bg-secondary-container text-on-secondary-container flex items-center justify-center font-semibold text-[11px]">
+                      DK
+                    </div>
+<span class="font-medium text-text-primary">David Kim</span>
+</div>
+</td>
+<td class="py-2.5 px-space-md font-code-inline text-code-inline text-text-secondary">d.kim@research.org</td>
+<td class="py-2.5 px-space-md text-text-muted">Yesterday</td>
+<td class="py-2.5 px-space-md">
+<span class="inline-flex items-center gap-1 text-text-secondary font-medium">
+<span class="material-symbols-outlined text-[16px] text-text-muted" data-icon="draft">draft</span>
+                    1 File
+                  </span>
+</td>
+<td class="py-2.5 px-space-md">
+<span class="inline-flex items-center gap-1 text-text-muted">
+<span class="material-symbols-outlined text-[16px] text-text-muted" data-icon="folder_off">folder_off</span>
+                    0 Folders
+                  </span>
+</td>
+<td class="py-2.5 px-space-md">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-[#DCFCE7] text-[#166534]"><span class="w-1.5 h-1.5 rounded-full bg-[#16A34A]"></span>Viewer</span>
+</td>
+<td class="py-2.5 px-space-md text-right">
+<div class="inline-flex items-center gap-1">
+<button class="h-7 px-2.5 rounded bg-surface-canvas hover:bg-surface-subtle border border-border-hairline text-text-primary font-label-sm text-label-sm transition-colors">
+                      Manage Permissions
+                    </button>
+<button class="h-7 px-2 rounded bg-surface-canvas hover:bg-error-container hover:text-status-error border border-border-hairline text-text-muted transition-colors" onclick="openRevokeModal('David Kim', 'd.kim@research.org', 1, 0)" title="Revoke Access">
+<span class="material-symbols-outlined text-[16px]" data-icon="person_remove">person_remove</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer / Access Audit Note -->
+<div class="p-space-sm px-space-md bg-surface-canvas border-t border-border-hairline flex items-center justify-between text-text-muted font-metadata text-metadata"><div class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]" data-icon="security">security</span><span class="">Access is restricted to authorized Google accounts.</span></div><span class="">Storage Target: Backblaze B2 (eu-central-003).</span></div>
+</section>
+<!-- Direct Access Policy Information Banner -->
+<section class="p-space-md bg-surface-panel rounded border border-border-hairline flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-primary-container shrink-0 mt-0.5" data-icon="info">info</span>
+<div class="text-body-sm font-body-sm text-text-secondary leading-relaxed"><strong class="text-text-primary font-semibold">Strict Viewer Boundary:</strong> Authorized friends possess read and download access for individual shared items. They cannot browse unshared vault directories, modify files, or invite secondary accounts.</div>
+</section>
+</div>
+</main>
+<!-- REVOKE ACCESS CONFIRMATION MODAL / SAFETY DRAWER (Hidden by default, pure JS toggle) -->
+<div aria-modal="true" class="fixed inset-0 bg-slate-900/40 z-50 flex items-center justify-center hidden" id="revoke-modal" role="dialog">
+<div class="bg-surface-panel rounded border border-border-hairline shadow-lg max-w-md w-full mx-4 overflow-hidden transform transition-all">
+<!-- Modal Header -->
+<div class="p-space-md border-b border-border-hairline flex items-center justify-between bg-surface-canvas">
+<div class="flex items-center gap-space-xs text-status-error font-headline-sm text-headline-sm">
+<span class="material-symbols-outlined" data-icon="warning">warning</span>
+<span class="">Revoke Access Grant</span>
+</div>
+<button class="w-7 h-7 rounded flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-surface-subtle transition-colors" onclick="closeRevokeModal()">
+<span class="material-symbols-outlined text-[18px]" data-icon="close">close</span>
+</button>
+</div>
+<!-- Modal Body / Impact Summary -->
+<div class="p-space-md space-y-space-md">
+<p class="text-body-sm font-body-sm text-text-primary">
+          Are you sure you want to completely revoke storage access for <strong class="font-semibold text-text-primary" id="modal-target-name">Sarah Chen</strong> (<span class="font-code-inline text-code-inline text-text-secondary" id="modal-target-email">sarah.c@vault.net</span>)?
+        </p>
+<!-- Impact Summary Card -->
+<div class="bg-surface-subtle p-space-sm rounded border border-border-hairline space-y-2">
+<div class="font-label-md text-label-md text-text-primary font-medium">Immediate Impact Summary:</div>
+<ul class="space-y-1.5 font-metadata text-metadata text-text-secondary">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-status-error text-[16px]" data-icon="cancel">cancel</span>
+<span class="">Invalidate <strong class="text-text-primary" id="modal-file-count">4</strong> individual file read leases</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-status-error text-[16px]" data-icon="folder_delete">folder_delete</span>
+<span class="">Sever traverse access to <strong class="text-text-primary" id="modal-folder-count">1</strong> folder directory</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-text-muted text-[16px]" data-icon="cached">cached</span>
+<span class="">Regenerate storage path ephemeral encryption salts</span>
+</li>
+</ul>
+</div>
+<p class="font-metadata text-metadata text-text-muted">
+          This operation will take effect across all replication nodes in less than 3 seconds. The user will be notified via their registered Google Identity.
+        </p>
+</div>
+<!-- Modal Actions -->
+<div class="p-space-md border-t border-border-hairline bg-surface-canvas flex items-center justify-end gap-space-xs">
+<button class="h-8 px-space-md rounded bg-surface-panel border border-border-hairline text-text-primary font-label-md text-label-md hover:bg-surface-subtle transition-colors" onclick="closeRevokeModal()">
+          Cancel
+        </button>
+<button class="h-8 px-space-md rounded bg-status-error hover:bg-red-700 text-white font-label-md text-label-md flex items-center gap-1 transition-colors" onclick="confirmRevocation()">
+<span class="material-symbols-outlined text-[16px]" data-icon="lock_reset">lock_reset</span>
+<span class="">Confirm Revocation</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Interactive Scripts for Micro-Interactions -->
+<script>
+    function openRevokeModal(name, email, files, folders) {
+      document.getElementById('modal-target-name').innerText = name;
+      document.getElementById('modal-target-email').innerText = email;
+      document.getElementById('modal-file-count').innerText = files;
+      document.getElementById('modal-folder-count').innerText = folders;
+      document.getElementById('revoke-modal').classList.remove('hidden');
+    }
+
+    function closeRevokeModal() {
+      document.getElementById('revoke-modal').classList.add('hidden');
+    }
+
+    function confirmRevocation() {
+      // Simulate revocation action and toast feedback
+      closeRevokeModal();
+      const notification = document.createElement('div');
+      notification.className = "fixed bottom-4 right-4 bg-surface-panel border border-border-hairline rounded px-4 py-3 shadow-md flex items-center gap-2 z-50 text-body-sm font-medium text-text-primary";
+      notification.innerHTML = `
+        <span class="material-symbols-outlined text-status-success text-[20px]">check_circle</span>
+        <span>Access grant successfully revoked from registry.</span>
+      `;
+      document.body.appendChild(notification);
+      setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transition = 'opacity 300ms ease';
+        setTimeout(() => notification.remove(), 300);
+      }, 3500);
+    }
+  </script>
+
+
+</body></html>

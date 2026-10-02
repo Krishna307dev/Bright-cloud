@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Bright Cloud — secure, private cloud backup and file management. Back up your USB drives and access files from anywhere." />
+    <link rel="icon" type="image/png" href="/app-logo.png" />
+    <link rel="alternate icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="apple-touch-icon" href="/app-logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bright Cloud</title>
+    <script>
+      (function() {
+        try {
+          var mode = localStorage.getItem('brightcloud-theme');
+          var isDark = mode === 'dark' || (!mode) || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.documentElement.style.colorScheme = 'dark';
+          } else {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.setAttribute('data-theme', 'light');
+            document.documentElement.style.colorScheme = 'light';
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <style>
+      html.dark, html.dark body { background-color: #000000; color: #E6E6E6; }
+      html, body { background-color: #f8fafc; color: #0f172a; }
+    </style>
+    <!-- Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-slate-50 dark:bg-black text-slate-900 dark:text-[#E6E6E6] antialiased font-sans min-h-screen selection:bg-brand-100 selection:text-brand-900 transition-colors duration-150">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

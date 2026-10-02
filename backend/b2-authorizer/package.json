@@ -1,0 +1,26 @@
+{
+  "name": "usbcloudbackup-b2-authorizer",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Secure Backblaze B2 S3 authorization backend for USBCloudBackup",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node --experimental-strip-types test/run-all-tests.mjs"
+  },
+  "keywords": [
+    "backblaze",
+    "b2",
+    "s3",
+    "firebase-auth",
+    "security"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240806.0",
+    "typescript": "^5.5.4",
+    "wrangler": "^3.71.0"
+  }
+}

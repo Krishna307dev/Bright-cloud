@@ -1,0 +1,620 @@
+<!DOCTYPE html><html class="h-full" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Bright Cloud - Files &amp; Directory View</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "status-error": "#DC2626",
+          "outline-variant": "#e0c0b1",
+          "surface-tint": "#9d4300",
+          "secondary-container": "#dae2fd",
+          "on-tertiary": "#ffffff",
+          "on-primary-fixed-variant": "#783200",
+          "inverse-primary": "#ffb690",
+          "surface-bright": "#f8f9ff",
+          "on-surface": "#0b1c30",
+          "primary-fixed": "#ffdbca",
+          "text-secondary": "#475569",
+          "primary-container": "#f97316",
+          "surface-dim": "#cbdbf5",
+          "secondary": "#565e74",
+          "secondary-fixed": "#dae2fd",
+          "border-strong": "#CBD5E1",
+          "primary": "#9d4300",
+          "on-error": "#ffffff",
+          "status-info": "#2563EB",
+          "surface-container": "#e5eeff",
+          "surface-subtle": "#F1F5F9",
+          "accent-orange-hover": "#EA580C",
+          "on-primary-container": "#582200",
+          "on-secondary": "#ffffff",
+          "on-tertiary-fixed-variant": "#003ea8",
+          "accent-orange-subtle": "#FFF7ED",
+          "error-container": "#ffdad6",
+          "primary-fixed-dim": "#ffb690",
+          "on-tertiary-container": "#002c7c",
+          "on-error-container": "#93000a",
+          "on-secondary-fixed": "#131b2e",
+          "surface-container-high": "#dce9ff",
+          "tertiary-container": "#7296ff",
+          "surface-variant": "#d3e4fe",
+          "on-primary": "#ffffff",
+          "tertiary-fixed-dim": "#b4c5ff",
+          "status-warning": "#D97706",
+          "surface-container-lowest": "#ffffff",
+          "inverse-surface": "#213145",
+          "text-muted": "#64748B",
+          "on-secondary-fixed-variant": "#3f465c",
+          "on-primary-fixed": "#341100",
+          "surface-panel": "#FFFFFF",
+          "background": "#f8f9ff",
+          "surface-container-low": "#eff4ff",
+          "text-primary": "#0F172A",
+          "surface-container-highest": "#d3e4fe",
+          "tertiary": "#0053db",
+          "surface-canvas": "#F8FAFC",
+          "outline": "#8c7164",
+          "status-success": "#16A34A",
+          "tertiary-fixed": "#dbe1ff",
+          "on-tertiary-fixed": "#00174b",
+          "on-surface-variant": "#584237",
+          "secondary-fixed-dim": "#bec6e0",
+          "border-hairline": "#E2E8F0",
+          "surface": "#f8f9ff",
+          "on-background": "#0b1c30",
+          "inverse-on-surface": "#eaf1ff",
+          "on-secondary-container": "#5c647a",
+          "error": "#ba1a1a"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-xl": "1.5rem",
+          "space-sm": "0.75rem",
+          "space-md": "1rem",
+          "gutter": "1rem",
+          "space-3xl": "2.5rem",
+          "space-lg": "1.25rem",
+          "gutter-desktop": "1.5rem",
+          "space-2xl": "2rem",
+          "margin": "1rem",
+          "margin-desktop": "1.5rem",
+          "space-2xs": "0.25rem",
+          "space-xs": "0.5rem",
+          "space-4xl": "3rem"
+        },
+        "fontFamily": {
+          "body-md": ["Inter"],
+          "body-sm": ["Inter"],
+          "table-header": ["Inter"],
+          "label-sm": ["Inter"],
+          "code-inline": ["Inter"],
+          "headline-lg": ["Inter"],
+          "label-md": ["Inter"],
+          "headline-lg-mobile": ["Inter"],
+          "metadata": ["Inter"],
+          "headline-sm": ["Inter"],
+          "headline-md": ["Inter"],
+          "body-lg": ["Inter"]
+        },
+        "fontSize": {
+          "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+          "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+          "table-header": ["12px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+          "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+          "code-inline": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+          "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+          "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+          "headline-lg-mobile": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+          "metadata": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+          "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+          "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+          "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }]
+        }
+      }
+    }
+  }
+  </script>
+</head>
+<body class="h-full bg-surface-canvas text-text-primary antialiased font-body-md text-body-md flex overflow-hidden">
+<!-- SideNavBar Component -->
+<aside class="fixed top-0 left-0 h-screen w-60 bg-surface-canvas border-r border-border-hairline z-20 flex flex-col justify-between py-space-md px-space-sm select-none">
+<!-- Top Branding & Navigation -->
+<div class="flex flex-col gap-space-md">
+<!-- Brand Anchor -->
+<div class="flex items-center gap-space-sm px-space-xs py-space-2xs">
+<div class="w-8 h-8 rounded bg-surface-panel border border-border-hairline flex items-center justify-center text-primary-container shadow-sm">
+<span class="material-symbols-outlined" data-icon="shield">shield</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm font-semibold text-text-primary leading-tight">Bright Cloud</span>
+<span class="font-metadata text-metadata text-text-muted">Personal Vault v2.4</span>
+</div>
+</div>
+<!-- Action Button CTA -->
+<div class="pt-space-2xs">
+<button class="w-full h-9 flex items-center justify-center gap-space-xs rounded bg-surface-panel border border-border-hairline text-text-primary font-label-md text-label-md hover:bg-surface-subtle transition-colors duration-150 ease-in-out" type="button">
+<span class="material-symbols-outlined text-[18px] text-text-secondary" data-icon="add">add</span>
+<span class="">Add Source</span>
+</button>
+</div>
+<!-- Main Navigation Menu -->
+<nav aria-label="Main Navigation" class="flex flex-col gap-1 pt-space-xs">
+<!-- Dashboard (Inactive) -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<!-- Files (Active) -->
+<a aria-current="page" class="flex items-center gap-space-sm px-space-md py-space-xs rounded bg-accent-orange-subtle text-primary-container font-semibold border-l-2 border-primary-container hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="folder" data-weight="fill" style="font-variation-settings: 'FILL' 1;">folder</span>
+<span class="font-label-md text-label-md">Files</span>
+</a>
+<!-- Sources (Inactive) -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="usb">usb</span>
+<span class="font-label-md text-label-md">Sources</span>
+</a>
+<!-- Shared (Inactive) -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="share">share</span>
+<span class="font-label-md text-label-md">Shared</span>
+</a>
+<!-- Activity (Inactive) -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="history">history</span>
+<span class="font-label-md text-label-md">Activity</span>
+</a>
+<!-- Settings (Inactive) -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+</div>
+<!-- Footer Profile/Security Status -->
+<div class="border-t border-border-hairline pt-space-sm flex flex-col gap-1">
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="shield_person">shield_person</span>
+<span class="font-label-md text-label-md">Security Profile</span>
+</a>
+<div class="px-space-md py-space-2xs flex items-center justify-between text-text-muted">
+<span class="font-metadata text-metadata">Storage: Local/Cloud</span>
+<span class="w-2 h-2 rounded-full bg-status-success" title="Storage Ready"></span>
+</div>
+</div>
+</aside>
+<!-- Right App Container (Header + Main Body + Status Bar) -->
+<div class="ml-60 w-[calc(100%-15rem)] h-full flex flex-col min-w-0">
+<!-- TopNavBar Component -->
+<header class="h-14 bg-surface-panel border-b border-border-hairline flex items-center justify-between px-space-xl z-10 flex-shrink-0">
+<!-- Breadcrumb Stack & Context Indicator -->
+<div class="flex items-center gap-space-xs min-w-0 pr-space-md">
+<span class="material-symbols-outlined text-[18px] text-text-muted flex-shrink-0" data-icon="folder">folder</span>
+<nav aria-label="Breadcrumbs" class="flex items-center gap-1 font-label-md text-label-md overflow-x-auto whitespace-nowrap scrollbar-none py-1">
+<a class="text-text-muted hover:text-primary-container transition-colors duration-150" href="#">Vault</a>
+<span class="text-text-muted">/</span>
+<a class="text-text-muted hover:text-primary-container transition-colors duration-150 flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-[16px] text-text-muted" data-icon="usb">usb</span>
+<span class="">Lexar JumpDrive 512GB</span>
+</a>
+<span class="text-text-muted">/</span>
+<a class="text-text-muted hover:text-primary-container transition-colors duration-150" href="#">Documents</a>
+<span class="text-text-muted">/</span>
+<a class="text-text-muted hover:text-primary-container transition-colors duration-150" href="#">Projects</a>
+<span class="text-text-muted">/</span>
+<span class="text-text-primary font-semibold">2026_Q1</span>
+</nav>
+</div>
+<!-- Trailing Controls & Utility Actions -->
+<div class="flex items-center gap-space-md flex-shrink-0">
+<!-- Action Buttons -->
+
+<button class="h-8 px-3 rounded bg-primary-container text-on-primary font-label-md text-label-md hover:bg-accent-orange-hover transition-colors duration-150 ease-in-out flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]" data-icon="download">download</span>
+<span class="">Download All</span>
+</button>
+<div class="h-4 w-px bg-border-hairline"></div>
+<!-- Trailing Utility Icons -->
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 rounded flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-surface-subtle transition-colors duration-150" title="Sync status" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="sync">sync</span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-surface-subtle transition-colors duration-150" title="Notifications" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="notifications">notifications</span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-surface-subtle transition-colors duration-150" title="Help" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="help">help</span>
+</button>
+</div>
+<div class="h-4 w-px bg-border-hairline"></div>
+<!-- User Identity Security Avatar -->
+<div class="flex items-center gap-space-xs pl-space-2xs cursor-pointer group">
+<div class="w-7 h-7 rounded-full bg-surface-subtle border border-border-hairline flex items-center justify-center text-text-secondary text-label-sm font-semibold group-hover:border-border-strong">
+            SC
+          </div>
+<span class="material-symbols-outlined text-[16px] text-text-muted group-hover:text-text-primary" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+</header>
+<!-- Context Toolbar (Search, Filter, Sort, View Toggle, Batch Action) -->
+<section class="bg-surface-canvas border-b border-border-hairline px-space-xl py-space-sm flex-shrink-0 flex items-center justify-between gap-space-md">
+<!-- Search Input in directory -->
+<div class="relative w-80 max-w-full">
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[18px] text-text-muted pointer-events-none" data-icon="search">search</span>
+<input class="w-full h-8 pl-8 pr-3 bg-surface-panel border border-border-hairline rounded font-body-sm text-body-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container" placeholder="Filter files in this directory..." type="text">
+</div>
+<!-- Action Group -->
+<div class="flex items-center gap-space-sm">
+<!-- Sort Control -->
+<button class="h-8 px-2.5 bg-surface-panel border border-border-hairline rounded font-label-md text-label-md text-text-secondary hover:text-text-primary hover:bg-surface-subtle flex items-center gap-1 transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px] text-text-muted" data-icon="sort">sort</span>
+<span class="">Sort: Last Modified</span>
+<span class="material-symbols-outlined text-[16px] text-text-muted" data-icon="arrow_drop_down">arrow_drop_down</span>
+</button>
+<!-- View Toggle (List / Grid) -->
+<div class="flex items-center bg-surface-subtle p-0.5 rounded border border-border-hairline">
+<button class="h-7 px-2 rounded bg-surface-panel text-text-primary font-label-sm text-label-sm shadow-sm flex items-center gap-1" title="List View" type="button">
+<span class="material-symbols-outlined text-[16px] text-primary-container" data-icon="format_list_bulleted">format_list_bulleted</span>
+<span class="">List</span>
+</button>
+<button class="h-7 px-2 rounded text-text-muted hover:text-text-primary font-label-sm text-label-sm flex items-center gap-1 transition-colors" title="Grid View" type="button">
+<span class="material-symbols-outlined text-[16px]" data-icon="grid_view">grid_view</span>
+<span class="">Grid</span>
+</button>
+</div>
+<!-- Download Selected (Primary action) -->
+<button class="h-8 px-3 rounded bg-surface-panel border border-border-hairline text-text-primary hover:bg-surface-subtle font-label-md text-label-md flex items-center gap-1.5 transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px] text-primary-container" data-icon="file_download">file_download</span>
+<span class="">Download Selected</span>
+<span class="text-label-sm text-text-muted bg-surface-subtle px-1.5 py-0.5 rounded font-code-inline text-code-inline">1</span>
+</button>
+</div>
+</section>
+<!-- Scrollable Workspace Container -->
+<main class="flex-1 overflow-y-auto px-space-xl py-space-lg flex flex-col gap-space-xl">
+<!-- Section 1: Sub-folder Grid -->
+<section aria-labelledby="subfolders-heading">
+<div class="flex items-center justify-between pb-space-xs mb-space-xs border-b border-border-hairline">
+<h2 class="font-headline-sm text-headline-sm text-text-primary flex items-center gap-1.5" id="subfolders-heading">
+<span class="material-symbols-outlined text-[20px] text-text-muted" data-icon="folder_open">folder_open</span>
+<span class="">Nested Folders</span>
+</h2>
+<span class="font-metadata text-metadata text-text-muted">4 directories</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md pt-space-xs">
+<!-- Folder 1: Field_Reports/ -->
+<div class="group bg-surface-panel border border-border-hairline hover:border-border-strong rounded p-space-md flex flex-col justify-between transition-colors duration-150 cursor-pointer shadow-sm">
+<div class="flex items-start justify-between">
+<div class="w-9 h-9 rounded bg-surface-subtle flex items-center justify-center text-text-secondary group-hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-[22px]" data-icon="folder" data-weight="fill" style="font-variation-settings: 'FILL' 1;">folder</span>
+</div>
+<span class="material-symbols-outlined text-[18px] text-text-muted group-hover:text-text-primary" data-icon="chevron_right">chevron_right</span>
+</div>
+<div class="mt-space-md">
+<span class="font-label-md text-label-md font-semibold text-text-primary group-hover:text-primary-container block truncate">Field_Reports/</span>
+<div class="flex items-center gap-1.5 mt-1 font-metadata text-metadata text-text-muted">
+<span class="">6 items</span>
+<span class="">•</span>
+<span class="">84 MB</span>
+</div>
+<div class="mt-2 pt-2 border-t border-border-hairline flex items-center gap-1 font-label-sm text-label-sm text-text-secondary">
+<span class="material-symbols-outlined text-[14px] text-status-success" data-icon="check_circle">check_circle</span>
+<span class="">Synced 2h ago</span>
+</div>
+</div>
+</div>
+<!-- Folder 2: Specifications/ -->
+<div class="group bg-surface-panel border border-border-hairline hover:border-border-strong rounded p-space-md flex flex-col justify-between transition-colors duration-150 cursor-pointer shadow-sm">
+<div class="flex items-start justify-between">
+<div class="w-9 h-9 rounded bg-surface-subtle flex items-center justify-center text-text-secondary group-hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-[22px]" data-icon="folder" data-weight="fill" style="font-variation-settings: 'FILL' 1;">folder</span>
+</div>
+<span class="material-symbols-outlined text-[18px] text-text-muted group-hover:text-text-primary" data-icon="chevron_right">chevron_right</span>
+</div>
+<div class="mt-space-md">
+<span class="font-label-md text-label-md font-semibold text-text-primary group-hover:text-primary-container block truncate">Specifications/</span>
+<div class="flex items-center gap-1.5 mt-1 font-metadata text-metadata text-text-muted">
+<span class="">12 items</span>
+<span class="">•</span>
+<span class="">310 MB</span>
+</div>
+<div class="mt-2 pt-2 border-t border-border-hairline flex items-center gap-1 font-label-sm text-label-sm text-text-secondary">
+<span class="material-symbols-outlined text-[14px] text-status-success" data-icon="check_circle">check_circle</span>
+<span class="">Synced Yesterday</span>
+</div>
+</div>
+</div>
+<!-- Folder 3: Spreadsheets/ -->
+<div class="group bg-surface-panel border border-border-hairline hover:border-border-strong rounded p-space-md flex flex-col justify-between transition-colors duration-150 cursor-pointer shadow-sm">
+<div class="flex items-start justify-between">
+<div class="w-9 h-9 rounded bg-surface-subtle flex items-center justify-center text-text-secondary group-hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-[22px]" data-icon="folder" data-weight="fill" style="font-variation-settings: 'FILL' 1;">folder</span>
+</div>
+<span class="material-symbols-outlined text-[18px] text-text-muted group-hover:text-text-primary" data-icon="chevron_right">chevron_right</span>
+</div>
+<div class="mt-space-md">
+<span class="font-label-md text-label-md font-semibold text-text-primary group-hover:text-primary-container block truncate">Spreadsheets/</span>
+<div class="flex items-center gap-1.5 mt-1 font-metadata text-metadata text-text-muted">
+<span class="">4 items</span>
+<span class="">•</span>
+<span class="">18 MB</span>
+</div>
+<div class="mt-2 pt-2 border-t border-border-hairline flex items-center gap-1 font-label-sm text-label-sm text-text-secondary">
+<span class="material-symbols-outlined text-[14px] text-status-success" data-icon="check_circle">check_circle</span>
+<span class="">Synced 3d ago</span>
+</div>
+</div>
+</div>
+<!-- Folder 4: Raw_Telemetry/ -->
+<div class="group bg-surface-panel border border-border-hairline hover:border-border-strong rounded p-space-md flex flex-col justify-between transition-colors duration-150 cursor-pointer shadow-sm">
+<div class="flex items-start justify-between">
+<div class="w-9 h-9 rounded bg-surface-subtle flex items-center justify-center text-text-secondary group-hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-[22px]" data-icon="folder" data-weight="fill" style="font-variation-settings: 'FILL' 1;">folder</span>
+</div>
+<span class="material-symbols-outlined text-[18px] text-text-muted group-hover:text-text-primary" data-icon="chevron_right">chevron_right</span>
+</div>
+<div class="mt-space-md">
+<span class="font-label-md text-label-md font-semibold text-text-primary group-hover:text-primary-container block truncate">Raw_Telemetry/</span>
+<div class="flex items-center gap-1.5 mt-1 font-metadata text-metadata text-text-muted">
+<span class="">28 items</span>
+<span class="">•</span>
+<span class="">1.2 GB</span>
+</div>
+<div class="mt-2 pt-2 border-t border-border-hairline flex items-center gap-1 font-label-sm text-label-sm text-text-secondary">
+<span class="material-symbols-outlined text-[14px] text-status-success" data-icon="check_circle">check_circle</span>
+<span class="">Synced 5d ago</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 2: Files in Current Folder Table -->
+<section aria-labelledby="files-heading" class="flex flex-col">
+<div class="flex items-center justify-between pb-space-xs mb-space-xs border-b border-border-hairline">
+<h2 class="font-headline-sm text-headline-sm text-text-primary flex items-center gap-1.5" id="files-heading">
+<span class="material-symbols-outlined text-[20px] text-text-muted" data-icon="description">description</span>
+<span class="">Files in Current Folder</span>
+</h2>
+<span class="font-metadata text-metadata text-text-muted">4 files (25.62 MB)</span>
+</div>
+<!-- Table Container -->
+<div class="w-full bg-surface-panel border border-border-hairline rounded overflow-hidden shadow-sm">
+<table class="w-full border-collapse text-left">
+<thead>
+<tr class="h-9 bg-surface-canvas border-b border-border-hairline font-table-header text-table-header text-text-muted select-none">
+<th class="w-10 px-3 text-center" scope="col">
+<input class="rounded border-border-hairline text-primary-container focus:ring-primary-container h-3.5 w-3.5" type="checkbox">
+</th>
+<th class="px-3" scope="col">Name</th>
+<th class="px-3" scope="col">Type</th>
+<th class="px-3" scope="col">Size</th>
+<th class="px-3" scope="col">Version</th>
+<th class="px-3" scope="col">Upload Date</th>
+<th class="px-3" scope="col">Access</th>
+<th class="px-3 text-right" scope="col">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-subtle font-body-sm text-body-sm">
+<!-- File Row 1: Selected File (Agriculture_v3.pdf) -->
+<tr class="h-11 bg-accent-orange-subtle border-l-2 border-primary-container hover:bg-surface-canvas transition-colors">
+<td class="px-3 text-center">
+<input checked="" class="rounded border-border-hairline text-primary-container focus:ring-primary-container h-3.5 w-3.5" type="checkbox">
+</td>
+<td class="px-3 font-medium text-text-primary">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-status-error flex-shrink-0" data-icon="picture_as_pdf">picture_as_pdf</span>
+<span class="truncate font-semibold text-text-primary max-w-xs">Agriculture_v3.pdf</span>
+</div>
+</td>
+<td class="px-3 text-text-secondary">PDF Document</td>
+<td class="px-3 font-code-inline text-code-inline text-text-secondary">14.2 MB</td>
+<td class="px-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-surface-subtle text-text-primary border border-border-hairline">
+                    v3 Latest
+                  </span>
+</td>
+<td class="px-3 text-text-secondary">Today, 09:42</td>
+<td class="px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-surface-subtle text-text-secondary">
+<span class="material-symbols-outlined text-[12px]" data-icon="group">group</span>
+<span class="">3 Viewers</span>
+</span>
+</td>
+<td class="px-3 text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-1 justify-end">
+<button class="h-7 px-2 rounded bg-surface-panel border border-border-hairline text-text-primary hover:bg-surface-subtle text-label-sm font-label-sm inline-flex items-center gap-1" title="Download" type="button">
+<span class="material-symbols-outlined text-[14px] text-primary-container" data-icon="download">download</span>
+<span class="">Download</span>
+</button>
+<button class="h-7 px-2 rounded bg-surface-panel border border-border-hairline text-text-secondary hover:text-text-primary hover:bg-surface-subtle text-label-sm font-label-sm inline-flex items-center gap-1" title="Details" type="button">
+<span class="material-symbols-outlined text-[14px]" data-icon="info">info</span>
+<span class="">Details</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- File Row 2: Respiration_FieldNotes.pdf -->
+<tr class="h-11 hover:bg-surface-canvas transition-colors">
+<td class="px-3 text-center">
+<input class="rounded border-border-hairline text-primary-container focus:ring-primary-container h-3.5 w-3.5" type="checkbox">
+</td>
+<td class="px-3 font-medium text-text-primary">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-status-error flex-shrink-0" data-icon="picture_as_pdf">picture_as_pdf</span>
+<span class="truncate text-text-primary max-w-xs">Respiration_FieldNotes.pdf</span>
+</div>
+</td>
+<td class="px-3 text-text-secondary">PDF Document</td>
+<td class="px-3 font-code-inline text-code-inline text-text-secondary">8.6 MB</td>
+<td class="px-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-surface-subtle text-text-muted">
+                    v1
+                  </span>
+</td>
+<td class="px-3 text-text-secondary">Mar 22, 14:15</td>
+<td class="px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-surface-subtle text-text-secondary">
+<span class="material-symbols-outlined text-[12px]" data-icon="person">person</span>
+<span class="">Sarah Chen</span>
+</span>
+</td>
+<td class="px-3 text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-1 justify-end">
+<button class="h-7 px-2 rounded bg-surface-panel border border-border-hairline text-text-primary hover:bg-surface-subtle text-label-sm font-label-sm inline-flex items-center gap-1" title="Download" type="button">
+<span class="material-symbols-outlined text-[14px] text-primary-container" data-icon="download">download</span>
+<span class="">Download</span>
+</button>
+<button class="h-7 px-2 rounded bg-surface-panel border border-border-hairline text-text-secondary hover:text-text-primary hover:bg-surface-subtle text-label-sm font-label-sm inline-flex items-center gap-1" title="Details" type="button">
+<span class="material-symbols-outlined text-[14px]" data-icon="info">info</span>
+<span class="">Details</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- File Row 3: Hardware_Manifest_v2.xlsx -->
+<tr class="h-11 hover:bg-surface-canvas transition-colors">
+<td class="px-3 text-center">
+<input class="rounded border-border-hairline text-primary-container focus:ring-primary-container h-3.5 w-3.5" type="checkbox">
+</td>
+<td class="px-3 font-medium text-text-primary">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-status-success flex-shrink-0" data-icon="table_view">table_view</span>
+<span class="truncate text-text-primary max-w-xs">Hardware_Manifest_v2.xlsx</span>
+</div>
+</td>
+<td class="px-3 text-text-secondary">Spreadsheet</td>
+<td class="px-3 font-code-inline text-code-inline text-text-secondary">2.4 MB</td>
+<td class="px-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-surface-subtle text-text-muted">
+                    v2
+                  </span>
+</td>
+<td class="px-3 text-text-secondary">Mar 19, 11:04</td>
+<td class="px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-accent-orange-subtle text-primary-container border border-primary-container/20">
+<span class="material-symbols-outlined text-[12px]" data-icon="lock">lock</span>
+<span class="">Admin Only</span>
+</span>
+</td>
+<td class="px-3 text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-1 justify-end">
+<button class="h-7 px-2 rounded bg-surface-panel border border-border-hairline text-text-primary hover:bg-surface-subtle text-label-sm font-label-sm inline-flex items-center gap-1" title="Download" type="button">
+<span class="material-symbols-outlined text-[14px] text-primary-container" data-icon="download">download</span>
+<span class="">Download</span>
+</button>
+<button class="h-7 px-2 rounded bg-surface-panel border border-border-hairline text-text-secondary hover:text-text-primary hover:bg-surface-subtle text-label-sm font-label-sm inline-flex items-center gap-1" title="Details" type="button">
+<span class="material-symbols-outlined text-[14px]" data-icon="info">info</span>
+<span class="">Details</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- File Row 4: Soil_Composition_Table.csv -->
+<tr class="h-11 hover:bg-surface-canvas transition-colors">
+<td class="px-3 text-center">
+<input class="rounded border-border-hairline text-primary-container focus:ring-primary-container h-3.5 w-3.5" type="checkbox">
+</td>
+<td class="px-3 font-medium text-text-primary">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-text-secondary flex-shrink-0" data-icon="grid_on">grid_on</span>
+<span class="truncate text-text-primary max-w-xs">Soil_Composition_Table.csv</span>
+</div>
+</td>
+<td class="px-3 text-text-secondary">Data Table</td>
+<td class="px-3 font-code-inline text-code-inline text-text-secondary">420 KB</td>
+<td class="px-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-surface-subtle text-text-muted">
+                    v1
+                  </span>
+</td>
+<td class="px-3 text-text-secondary">Mar 15, 16:30</td>
+<td class="px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-surface-subtle text-text-secondary">
+<span class="material-symbols-outlined text-[12px]" data-icon="person">person</span>
+<span class="">Alex Rivera</span>
+</span>
+</td>
+<td class="px-3 text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-1 justify-end">
+<button class="h-7 px-2 rounded bg-surface-panel border border-border-hairline text-text-primary hover:bg-surface-subtle text-label-sm font-label-sm inline-flex items-center gap-1" title="Download" type="button">
+<span class="material-symbols-outlined text-[14px] text-primary-container" data-icon="download">download</span>
+<span class="">Download</span>
+</button>
+<button class="h-7 px-2 rounded bg-surface-panel border border-border-hairline text-text-secondary hover:text-text-primary hover:bg-surface-subtle text-label-sm font-label-sm inline-flex items-center gap-1" title="Details" type="button">
+<span class="material-symbols-outlined text-[14px]" data-icon="info">info</span>
+<span class="">Details</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Inspection Panel Snapshot (Utility Metadata Box for Agriculture_v3.pdf) -->
+<section aria-labelledby="quick-inspect" class="bg-surface-panel border border-border-hairline rounded p-space-md shadow-sm">
+<div class="flex items-center justify-between pb-space-xs border-b border-border-hairline mb-space-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary-container" data-icon="description">description</span>
+<span class="font-headline-sm text-headline-sm text-text-primary" id="quick-inspect">Inspecting Selection: Agriculture_v3.pdf</span>
+</div>
+<span class="font-metadata text-metadata text-text-muted">Target ID: LOC-USB-512-9842</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-space-md text-body-sm font-body-sm">
+<div>
+<span class="block font-metadata text-metadata text-text-muted">File System Location</span>
+<span class="font-code-inline text-code-inline text-text-primary">/Volumes/Lexar512/Projects/2026_Q1/</span>
+</div>
+<div>
+<span class="block font-metadata text-metadata text-text-muted">SHA-256 Checksum</span>
+<div class="flex items-center gap-1 font-code-inline text-code-inline text-text-secondary">
+<span class="truncate">e3b0c44298fc1c149afbf4c8996fb924</span>
+<button class="text-text-muted hover:text-text-primary" title="Copy Checksum" type="button">
+<span class="material-symbols-outlined text-[14px]" data-icon="content_copy">content_copy</span>
+</button>
+</div>
+</div>
+<div>
+<span class="block font-metadata text-metadata text-text-muted">Remote Backup Target</span>
+<span class="text-text-secondary">Backblaze B2 (eu-central-003)</span>
+</div>
+<div>
+<span class="block font-metadata text-metadata text-text-muted">Synchronization State</span>
+<div class="flex items-center gap-1 text-status-success font-medium"><span class="material-symbols-outlined text-[15px]" data-icon="verified">verified</span>
+<span class="">Synchronized</span></div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Status Bar -->
+<footer class="h-8 bg-surface-canvas border-t border-border-hairline px-space-xl flex items-center justify-between font-metadata text-metadata text-text-secondary flex-shrink-0 select-none">
+<div class="flex items-center gap-space-xs truncate">
+<span class="material-symbols-outlined text-[14px] text-text-muted flex-shrink-0" data-icon="folder">folder</span>
+<span class="truncate">Current Path: Lexar JumpDrive 512GB / Documents / Projects / 2026_Q1/</span>
+</div>
+<div class="flex items-center gap-space-md flex-shrink-0">
+<span class="">4 subdirectories, 4 files (1.61 GB)</span>
+<span class="text-border-hairline">|</span>
+<div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-status-success"></span>
+<span class="">Target: Backblaze B2 (eu-central-003)</span></div>
+</div>
+</footer>
+</div>
+
+
+</body></html>

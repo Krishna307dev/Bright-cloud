@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bright Cloud — Sign In</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Inter Font -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "status-error": "#DC2626",
+            "outline-variant": "#e0c0b1",
+            "surface-tint": "#9d4300",
+            "secondary-container": "#dae2fd",
+            "on-tertiary": "#ffffff",
+            "on-primary-fixed-variant": "#783200",
+            "inverse-primary": "#ffb690",
+            "surface-bright": "#f8f9ff",
+            "on-surface": "#0b1c30",
+            "primary-fixed": "#ffdbca",
+            "text-secondary": "#475569",
+            "primary-container": "#f97316",
+            "surface-dim": "#cbdbf5",
+            "secondary": "#565e74",
+            "secondary-fixed": "#dae2fd",
+            "border-strong": "#CBD5E1",
+            "primary": "#9d4300",
+            "on-error": "#ffffff",
+            "status-info": "#2563EB",
+            "surface-container": "#e5eeff",
+            "surface-subtle": "#F1F5F9",
+            "accent-orange-hover": "#EA580C",
+            "on-primary-container": "#582200",
+            "on-secondary": "#ffffff",
+            "on-tertiary-fixed-variant": "#003ea8",
+            "accent-orange-subtle": "#FFF7ED",
+            "error-container": "#ffdad6",
+            "primary-fixed-dim": "#ffb690",
+            "on-tertiary-container": "#002c7c",
+            "on-error-container": "#93000a",
+            "on-secondary-fixed": "#131b2e",
+            "surface-container-high": "#dce9ff",
+            "tertiary-container": "#7296ff",
+            "surface-variant": "#d3e4fe",
+            "on-primary": "#ffffff",
+            "tertiary-fixed-dim": "#b4c5ff",
+            "status-warning": "#D97706",
+            "surface-container-lowest": "#ffffff",
+            "inverse-surface": "#213145",
+            "text-muted": "#64748B",
+            "on-secondary-fixed-variant": "#3f465c",
+            "on-primary-fixed": "#341100",
+            "surface-panel": "#FFFFFF",
+            "background": "#f8f9ff",
+            "surface-container-low": "#eff4ff",
+            "text-primary": "#0F172A",
+            "surface-container-highest": "#d3e4fe",
+            "tertiary": "#0053db",
+            "surface-canvas": "#F8FAFC",
+            "outline": "#8c7164",
+            "status-success": "#16A34A",
+            "tertiary-fixed": "#dbe1ff",
+            "on-tertiary-fixed": "#00174b",
+            "on-surface-variant": "#584237",
+            "secondary-fixed-dim": "#bec6e0",
+            "border-hairline": "#E2E8F0",
+            "surface": "#f8f9ff",
+            "on-background": "#0b1c30",
+            "inverse-on-surface": "#eaf1ff",
+            "on-secondary-container": "#5c647a",
+            "error": "#ba1a1a"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-xl": "1.5rem",
+            "space-sm": "0.75rem",
+            "space-md": "1rem",
+            "gutter": "1rem",
+            "space-3xl": "2.5rem",
+            "space-lg": "1.25rem",
+            "gutter-desktop": "1.5rem",
+            "space-2xl": "2rem",
+            "margin": "1rem",
+            "margin-desktop": "1.5rem",
+            "space-2xs": "0.25rem",
+            "space-xs": "0.5rem",
+            "space-4xl": "3rem"
+          },
+          "fontFamily": {
+            "body-md": ["Inter"],
+            "body-sm": ["Inter"],
+            "table-header": ["Inter"],
+            "label-sm": ["Inter"],
+            "code-inline": ["Inter"],
+            "headline-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "headline-lg-mobile": ["Inter"],
+            "metadata": ["Inter"],
+            "headline-sm": ["Inter"],
+            "headline-md": ["Inter"],
+            "body-lg": ["Inter"]
+          },
+          "fontSize": {
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "table-header": ["12px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+            "code-inline": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "headline-lg-mobile": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "metadata": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }]
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-feature-settings: 'liga';
+      -webkit-font-smoothing: antialiased;
+    }
+  </style>
+</head>
+<body class="bg-surface-canvas text-text-primary min-h-screen flex flex-col justify-between font-body-md text-body-md antialiased selection:bg-accent-orange-subtle selection:text-primary-container">
+<!-- Top System Bar -->
+<header class="w-full h-14 bg-surface-panel border-b border-border-hairline px-space-xl flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-accent-orange-subtle border border-border-hairline flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined" data-icon="cloud">cloud</span>
+</div>
+<div class="flex items-baseline gap-space-2xs">
+<span class="font-headline-sm text-headline-sm text-text-primary font-semibold">Bright Cloud</span>
+<span class="font-metadata text-metadata text-text-muted">/ Auth Portal</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-space-xs text-text-muted">
+<span class="w-2 h-2 rounded-full bg-status-success inline-block"></span>
+<span class="font-label-sm text-label-sm text-text-secondary">Storage Node Online</span>
+</div>
+<div class="h-4 w-[1px] bg-border-hairline"></div>
+<div class="flex items-center gap-space-2xs text-text-muted">
+<span class="material-symbols-outlined" data-icon="shield">shield</span>
+<span class="font-code-inline text-code-inline text-text-secondary">256-Bit TLS</span>
+</div>
+</div>
+</header>
+<!-- Main Centered Content Canvas -->
+<main class="flex-1 flex flex-col items-center justify-center p-space-md sm:p-space-xl">
+<div class="w-full max-w-[480px] flex flex-col gap-space-md">
+<!-- Authentication Card -->
+<div class="bg-surface-panel border border-border-hairline rounded-xl p-space-2xl shadow-[0_1px_3px_0_rgba(15,23,42,0.08),0_4px_6px_-1px_rgba(15,23,42,0.05)]">
+<!-- Brand Mark & Headers -->
+<div class="flex flex-col items-center text-center">
+<div class="w-14 h-14 rounded-xl bg-accent-orange-subtle border border-primary-container/20 flex items-center justify-center text-primary-container mb-space-md">
+<span class="material-symbols-outlined" data-icon="shield_lock" style="font-size: 32px; font-variation-settings: 'FILL' 1;">shield_lock</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-text-primary tracking-tight">Bright Cloud</h1>
+<p class="font-label-md text-label-md text-primary-container font-semibold mt-space-2xs">
+            Private Cloud Backup &amp; Vault Viewer
+          </p>
+<p class="font-body-md text-body-md text-text-secondary mt-space-md max-w-sm">
+            Sign in with your authorized Google account to view and manage backed-up vault files.
+          </p>
+</div>
+<!-- Google Authentication Button -->
+<div class="mt-space-xl">
+<button class="w-full h-11 px-space-md bg-surface-panel hover:bg-surface-canvas active:bg-surface-subtle border border-border-strong hover:border-text-secondary rounded-lg flex items-center justify-center gap-space-sm transition-colors duration-150 group cursor-pointer shadow-sm" id="googleSignInBtn" type="button">
+<!-- Official Standard Google G Logo SVG -->
+<svg aria-hidden="true" class="w-5 h-5 shrink-0" viewbox="0 0 24 24">
+<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"></path>
+<path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"></path>
+</svg>
+<span class="font-headline-sm text-headline-sm text-text-primary font-semibold group-hover:text-text-primary">
+              Sign in with Google
+            </span>
+</button>
+</div>
+<!-- Identity Protocol Context -->
+<div class="mt-space-lg pt-space-md border-t border-border-hairline flex items-center justify-between text-text-muted">
+<div class="flex items-center gap-space-2xs">
+<span class="material-symbols-outlined" data-icon="lock" style="font-size: 16px;">lock</span>
+<span class="font-label-sm text-label-sm">Firebase Authentication Gate</span>
+</div>
+<span class="font-label-sm text-label-sm text-status-success font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success"></span>
+            Strict ACL
+          </span>
+</div>
+</div>
+<!-- Information Callout Card -->
+<div class="bg-surface-subtle border border-border-hairline rounded-lg p-space-md">
+<div class="flex items-start gap-space-sm">
+<div class="text-text-muted shrink-0 mt-0.5">
+<span class="material-symbols-outlined" data-icon="info">info</span>
+</div>
+<div class="flex flex-col gap-space-2xs">
+<h2 class="font-label-md text-label-md text-text-primary font-semibold">Private &amp; Shared Vault Access</h2>
+<p class="font-body-sm text-body-sm text-text-secondary leading-relaxed">
+              Physical USB backups are uploaded automatically by configured Android backup daemons. Authorized friends and owners sign in here to browse files, inspect revisions, and download content.
+            </p>
+</div>
+</div>
+</div>
+<!-- System Diagnostic / Hardware Status Pill Group -->
+<div class="flex flex-wrap items-center justify-between gap-space-xs px-space-xs text-text-muted font-metadata text-metadata">
+<div class="flex items-center gap-space-2xs">
+<span class="material-symbols-outlined" data-icon="storage" style="font-size: 16px;">storage</span>
+<span>Target: Backblaze B2</span>
+</div>
+<div class="flex items-center gap-space-2xs">
+<span class="material-symbols-outlined" data-icon="verified_user" style="font-size: 16px;">verified_user</span>
+<span>Access Level: Verified Accounts Only</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Technical Footer -->
+<footer class="w-full bg-surface-panel border-t border-border-hairline py-space-sm px-space-xl">
+<div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-space-xs text-text-muted font-metadata text-metadata">
+<div class="flex flex-wrap items-center gap-space-md">
+<span class="flex items-center gap-space-2xs text-text-secondary">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+          Backblaze B2 Storage Status: <span class="font-code-inline text-code-inline text-text-primary">eu-central-003</span>
+</span>
+<span class="hidden sm:inline text-border-hairline">|</span>
+<a class="hover:text-text-primary transition-colors duration-150" href="#privacy">Privacy &amp; Access Policy</a>
+<span class="hidden sm:inline text-border-hairline">|</span>
+<a class="hover:text-text-primary transition-colors duration-150" href="#docs">Documentation</a>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-code-inline text-code-inline text-text-muted">Vault Web Viewer v2.4</span>
+</div>
+</div>
+</footer>
+<script>
+    document.getElementById('googleSignInBtn')?.addEventListener('click', function() {
+      const btn = this;
+      btn.classList.add('opacity-75', 'pointer-events-none');
+      btn.querySelector('span').textContent = 'Connecting to Google Authentication...';
+      setTimeout(() => {
+        btn.classList.remove('opacity-75', 'pointer-events-none');
+        btn.querySelector('span').textContent = 'Sign in with Google';
+      }, 2500);
+    });
+  </script>
+</body></html>

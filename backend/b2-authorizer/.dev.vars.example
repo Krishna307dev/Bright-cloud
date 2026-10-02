@@ -1,0 +1,24 @@
+# USBCloudBackup — Backblaze B2 Authorizer Local Environment Template
+# Copy this file to `.dev.vars` for local development with Cloudflare Wrangler:
+#   cp .dev.vars.example .dev.vars
+#
+# DO NOT COMMIT `.dev.vars` OR ANY REAL SECRETS TO SOURCE CONTROL.
+
+# Firebase Project Configuration
+FIREBASE_PROJECT_ID=your-firebase-project-id
+
+# Backblaze B2 Production S3 Configuration
+B2_ENDPOINT=https://s3.eu-central-003.backblazeb2.com
+B2_BUCKET=BrightCloud
+B2_REGION=eu-central-003
+
+# Backblaze B2 Application Key Credentials (Server-Side Only)
+# Generated in Backblaze B2 Console -> Application Keys
+B2_KEY_ID=your_backblaze_application_key_id_here
+B2_APPLICATION_KEY=your_backblaze_application_key_secret_here
+
+# Optional Server-Side HMAC Secret
+AUTH_TOKEN_SECRET=your_random_server_secret_here
+
+# Runtime Environment
+ENVIRONMENT=development

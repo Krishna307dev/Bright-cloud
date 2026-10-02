@@ -1,0 +1,725 @@
+<!DOCTYPE html><html class="h-full bg-surface-canvas" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Bright Cloud - Dashboard</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Inter Google Font -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-tertiary": "#ffffff",
+            "border-hairline": "#E2E8F0",
+            "secondary-fixed": "#dae2fd",
+            "on-primary-fixed": "#341100",
+            "primary": "#9d4300",
+            "on-secondary-fixed-variant": "#3f465c",
+            "text-secondary": "#475569",
+            "surface-panel": "#FFFFFF",
+            "on-secondary-container": "#5c647a",
+            "error": "#ba1a1a",
+            "tertiary": "#0053db",
+            "status-success": "#16A34A",
+            "on-primary": "#ffffff",
+            "surface-canvas": "#F8FAFC",
+            "on-primary-container": "#582200",
+            "on-tertiary-fixed-variant": "#003ea8",
+            "surface-bright": "#f8f9ff",
+            "status-error": "#DC2626",
+            "surface-tint": "#9d4300",
+            "secondary-container": "#dae2fd",
+            "outline": "#8c7164",
+            "tertiary-fixed": "#dbe1ff",
+            "on-primary-fixed-variant": "#783200",
+            "tertiary-container": "#7296ff",
+            "text-primary": "#0F172A",
+            "surface-container-lowest": "#ffffff",
+            "error-container": "#ffdad6",
+            "surface": "#f8f9ff",
+            "on-tertiary-fixed": "#00174b",
+            "surface-container-highest": "#d3e4fe",
+            "status-info": "#2563EB",
+            "background": "#f8f9ff",
+            "surface-dim": "#cbdbf5",
+            "tertiary-fixed-dim": "#b4c5ff",
+            "on-tertiary-container": "#002c7c",
+            "secondary-fixed-dim": "#bec6e0",
+            "surface-container-high": "#dce9ff",
+            "surface-subtle": "#F1F5F9",
+            "secondary": "#565e74",
+            "surface-container-low": "#eff4ff",
+            "primary-fixed": "#ffdbca",
+            "inverse-primary": "#ffb690",
+            "accent-orange-subtle": "#FFF7ED",
+            "inverse-surface": "#213145",
+            "surface-variant": "#d3e4fe",
+            "on-surface-variant": "#584237",
+            "primary-fixed-dim": "#ffb690",
+            "on-surface": "#0b1c30",
+            "on-error-container": "#93000a",
+            "on-background": "#0b1c30",
+            "accent-orange-hover": "#EA580C",
+            "on-secondary": "#ffffff",
+            "border-strong": "#CBD5E1",
+            "text-muted": "#64748B",
+            "primary-container": "#f97316",
+            "inverse-on-surface": "#eaf1ff",
+            "on-error": "#ffffff",
+            "outline-variant": "#e0c0b1",
+            "surface-container": "#e5eeff",
+            "on-secondary-fixed": "#131b2e",
+            "status-warning": "#D97706"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-xl": "1.5rem",
+            "margin-desktop": "1.5rem",
+            "space-3xl": "2.5rem",
+            "gutter-desktop": "1.5rem",
+            "margin": "1rem",
+            "gutter": "1rem",
+            "space-4xl": "3rem",
+            "space-md": "1rem",
+            "space-2xs": "0.25rem",
+            "space-sm": "0.75rem",
+            "space-xs": "0.5rem",
+            "space-2xl": "2rem",
+            "space-lg": "1.25rem"
+          },
+          "fontFamily": {
+            "body-md": ["Inter"],
+            "headline-lg": ["Inter"],
+            "headline-sm": ["Inter"],
+            "headline-lg-mobile": ["Inter"],
+            "body-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "headline-md": ["Inter"],
+            "metadata": ["Inter"],
+            "label-sm": ["Inter"],
+            "table-header": ["Inter"],
+            "label-md": ["Inter"],
+            "code-inline": ["Inter"]
+          },
+          "fontSize": {
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "headline-lg-mobile": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "metadata": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+            "table-header": ["12px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "code-inline": ["12px", { "lineHeight": "16px", "fontWeight": "500" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 18px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body class="h-full bg-surface-canvas text-text-primary antialiased selection:bg-accent-orange-subtle selection:text-primary-container">
+<!-- SIDEBAR (desktop_drawer from Shared Components JSON) -->
+<aside class="hidden md:flex flex-col fixed top-0 left-0 h-screen w-60 bg-surface-canvas border-r border-border-hairline z-30 select-none">
+<div class="flex flex-col justify-between h-full w-60 py-space-md px-space-sm">
+<!-- Top Brand & Nav Section -->
+<div class="space-y-space-md">
+<!-- Brand identity -->
+<div class="flex items-center gap-space-sm px-space-sm py-space-xs">
+<div class="w-8 h-8 rounded-lg bg-surface-panel border border-border-hairline flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined" data-icon="shield">shield</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm font-semibold text-text-primary tracking-tight leading-none">Bright Cloud</span>
+<span class="font-metadata text-metadata text-text-muted mt-1 leading-none">Personal Vault v2.4</span>
+</div>
+</div>
+<!-- Add Source Button -->
+<div class="px-space-xs">
+<button class="w-full flex items-center justify-center gap-space-xs h-9 px-space-sm rounded-lg bg-surface-panel border border-border-hairline font-label-md text-label-md text-text-primary hover:bg-surface-subtle hover:border-border-strong transition-colors duration-150 ease-in-out shadow-sm">
+<span class="material-symbols-outlined text-text-secondary" data-icon="add">add</span>
+<span class="">Add Source</span>
+</button>
+</div>
+<!-- Primary Navigation Cluster -->
+<nav class="space-y-1">
+<!-- Dashboard (Active) -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded bg-accent-orange-subtle text-primary-container font-semibold border-l-2 border-primary-container transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<!-- Files -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="folder">folder</span>
+<span class="font-label-md text-label-md">Files</span>
+</a>
+<!-- Sources -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="usb">usb</span>
+<span class="font-label-md text-label-md">Sources</span>
+</a>
+<!-- Shared -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="share">share</span>
+<span class="font-label-md text-label-md">Shared</span>
+</a>
+<!-- Activity -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-label-md text-label-md">Activity</span>
+</a>
+<!-- Settings -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+</div>
+<!-- Footer User & Security Anchor -->
+<div class="pt-space-md border-t border-border-hairline space-y-space-sm">
+<a class="flex items-center justify-between px-space-md py-space-xs rounded text-text-secondary hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined" data-icon="shield_person">shield_person</span>
+<span class="font-label-md text-label-md">Security Profile</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-status-success"></span>
+</a>
+<!-- Admin user profile card -->
+<div class="flex items-center gap-space-sm p-space-xs rounded-lg bg-surface-panel border border-border-hairline"><div class="w-8 h-8 rounded bg-surface-subtle border border-border-hairline flex items-center justify-center text-text-secondary font-semibold text-xs">VA</div><div class="flex flex-col min-w-0 flex-1"><span class="font-label-md text-label-md text-text-primary truncate">Admin</span><span class="font-metadata text-metadata text-text-muted truncate">Primary Vault Owner</span></div></div>
+</div>
+</div>
+</aside>
+<!-- TOP CONTEXTUAL NAV BAR (docked full-width top-0 h-14 ml-60 w-[calc(100%-15rem)]) -->
+<header class="fixed top-0 left-0 md:left-60 right-0 h-14 bg-surface-panel border-b border-border-hairline z-20 flex items-center justify-between px-3 sm:px-space-md md:px-space-xl w-full md:w-[calc(100%-15rem)]">
+<!-- Left Context / Vault Selector -->
+<div class="flex items-center gap-space-lg">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm font-semibold text-text-primary">Dashboard</span>
+<span class="text-text-muted font-normal text-sm px-1">/</span>
+<!-- Vault Selector Dropdown Trigger -->
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-subtle border border-border-hairline text-text-primary font-label-md text-label-md">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success"></span>
+<span class="">Personal Vault</span>
+<span class="material-symbols-outlined text-text-muted" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<!-- Sync Status -->
+<div class="hidden xl:flex items-center gap-space-2xs text-text-muted font-metadata text-metadata">
+<span class="material-symbols-outlined text-status-success text-[16px]" data-icon="check_circle">check_circle</span>
+<span class="">Daemon synchronized 4 mins ago</span>
+</div>
+</div>
+<!-- Center/Right Search and Actions -->
+<div class="flex items-center gap-space-md">
+<!-- Search Input Container -->
+<div class="relative w-36 sm:w-64 lg:w-80">
+<span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-text-muted">
+<span class="material-symbols-outlined text-[17px]" data-icon="search">search</span>
+</span>
+<input class="w-full h-8 pl-8 pr-3 text-sm bg-surface-subtle border border-border-hairline rounded text-text-primary placeholder:text-text-muted focus:outline-none focus:border-border-strong focus:bg-surface-panel font-body-sm" placeholder="Filter files, hashes, sources..." type="text">
+<div class="absolute inset-y-0 right-0 pr-2 flex items-center">
+<span class="px-1.5 py-0.5 text-[10px] font-code-inline text-text-muted bg-surface-panel border border-border-hairline rounded">⌘K</span>
+</div>
+</div>
+<!-- Action Icons Cluster -->
+<div class="flex items-center gap-1 border-l border-border-hairline pl-space-md">
+<button class="w-8 h-8 rounded flex items-center justify-center text-text-secondary hover:bg-surface-subtle hover:text-text-primary transition-colors" title="Force Synchronize">
+<span class="material-symbols-outlined" data-icon="sync">sync</span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center text-text-secondary hover:bg-surface-subtle hover:text-text-primary transition-colors relative" title="Notifications">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-primary-container rounded-full"></span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center text-text-secondary hover:bg-surface-subtle hover:text-text-primary transition-colors" title="Help &amp; Vault Documentation">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+</div>
+<!-- Primary Action -->
+<button class="hidden sm:inline-flex items-center gap-1.5 h-8 px-space-md bg-primary-container text-white font-label-md text-label-md rounded hover:bg-accent-orange-hover transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px]" data-icon="download">download</span>
+<span class="">Download All</span>
+</button>
+</div>
+</header>
+<!-- MAIN SCROLLABLE CONTENT PANE -->
+<main class="ml-0 md:ml-60 pt-14 pb-16 md:pb-0 min-h-screen bg-surface-canvas px-3 sm:px-space-md md:px-space-xl py-space-xl">
+<div class="max-w-[1400px] mx-auto space-y-space-xl">
+<!-- SUB-HEADER: Context Summary Banner -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between pb-space-xs gap-space-sm border-b border-border-hairline">
+<div>
+<h1 class="font-headline-md text-headline-md text-text-primary tracking-tight">Vault Overview &amp; Local Hardware</h1>
+<p class="font-body-sm text-body-sm text-text-secondary mt-0.5">Physical USB storage sources synchronized to Backblaze B2.</p>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-panel border border-border-hairline font-label-sm text-label-sm text-text-secondary">
+<span class="w-2 h-2 rounded-full bg-status-success"></span>
+<span class="">B2 Cloud Storage Online</span>
+</span>
+
+</div>
+</div>
+<!-- 1. TOP QUICK OVERVIEW CARDS (Disciplined, Zero Fake Metrics) -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-space-md">
+<!-- Card 1: Physical Sources -->
+<div class="bg-surface-panel p-space-lg rounded border border-border-hairline flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<span class="font-table-header text-table-header text-text-muted uppercase">Physical Sources</span>
+<span class="material-symbols-outlined text-text-muted" data-icon="usb">usb</span>
+</div>
+<div class="mt-space-md">
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-text-primary">2</span>
+<span class="font-label-md text-label-md text-text-secondary">Connected Drives</span>
+</div>
+<div class="mt-1 flex items-center justify-between text-xs text-text-muted">
+<span class="truncate">Lexar 512GB • SanDisk 256GB</span>
+<span class="text-status-success font-semibold">Healthy</span>
+</div>
+</div>
+</div>
+<!-- Card 2: Stored Objects -->
+<div class="bg-surface-panel p-space-lg rounded border border-border-hairline flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<span class="font-table-header text-table-header text-text-muted uppercase">Stored Objects</span>
+<span class="material-symbols-outlined text-text-muted" data-icon="inventory_2">inventory_2</span>
+</div>
+<div class="mt-space-md">
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-text-primary">14,829</span>
+<span class="font-label-md text-label-md text-text-secondary">Indexed Files</span>
+</div>
+<div class="mt-1 flex items-center justify-between text-xs text-text-muted">
+<span class="">Organized in 642 directories</span>
+<span class="text-text-primary font-medium">Root /</span>
+</div>
+</div>
+</div>
+<!-- Card 3: Vault Storage Usage -->
+<div class="bg-surface-panel p-space-lg rounded border border-border-hairline flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<span class="font-table-header text-table-header text-text-muted uppercase">Vault Storage Usage</span>
+<span class="material-symbols-outlined text-text-muted" data-icon="cloud_sync">cloud_sync</span>
+</div>
+<div class="mt-space-md">
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-text-primary">412.6 <span class="text-base font-normal text-text-secondary">GB</span></span>
+</div>
+<div class="mt-1 flex items-center justify-between text-xs text-text-muted">
+<span class="">Backblaze B2 Target</span>
+<span class="text-status-success font-medium">Saved 38.4 GB dedup</span>
+</div>
+</div>
+</div>
+<!-- Card 4: Active Collaborators -->
+<div class="bg-surface-panel p-space-lg rounded border border-border-hairline flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<span class="font-table-header text-table-header text-text-muted uppercase">Active Collaborators</span>
+<span class="material-symbols-outlined text-text-muted" data-icon="group">group</span>
+</div>
+<div class="mt-space-md">
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-text-primary">4</span>
+<span class="font-label-md text-label-md text-text-secondary">Authorized Peers</span>
+</div>
+<div class="mt-1 flex items-center justify-between text-xs text-text-muted">
+<span class="">3 Viewers • 1 Contributor</span>
+<span class="text-text-primary font-medium">RBAC Active</span>
+</div>
+</div>
+</div>
+</div>
+<!-- 2. CONNECTED PHYSICAL BACKUP SOURCES SECTION -->
+<section class="space-y-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<h2 class="font-headline-sm text-headline-sm text-text-primary">Connected Backup Sources</h2>
+<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-surface-subtle text-text-secondary border border-border-hairline">2 Total</span>
+</div>
+<button class="font-label-md text-label-md text-text-secondary hover:text-text-primary flex items-center gap-1 transition-colors">
+<span class="">Manage All Sources</span>
+<span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-space-md">
+<!-- Source Card 1: Lexar JumpDrive -->
+<div class="bg-surface-panel rounded border border-border-hairline p-space-lg flex flex-col justify-between hover:border-border-strong transition-colors">
+<div>
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded bg-accent-orange-subtle border border-primary-container/20 flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined" data-icon="usb">usb</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Lexar JumpDrive 512GB</h3>
+<div class="flex items-center gap-2 mt-0.5"><span class="font-code-inline text-code-inline text-text-muted">Source ID: SRC-LX9482</span><span class="text-border-hairline">•</span><span class="font-metadata text-metadata text-text-muted">exFAT</span></div>
+</div>
+</div>
+<!-- Status Badge -->
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#DCFCE7] text-[#166534] font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success"></span>
+                  Up to date
+                </span>
+</div>
+<!-- Storage Bar & Details -->
+<div class="mt-space-lg space-y-2">
+<div class="flex justify-between text-xs font-body-sm text-text-secondary">
+<span class="">342.1 GB used of 512.0 GB</span>
+<span class="font-medium text-text-primary">66.8%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-subtle rounded overflow-hidden">
+<div class="bg-primary-container h-full" style="width: 66.8%;"></div>
+</div>
+<div class="grid grid-cols-2 gap-2 pt-2 text-xs border-t border-border-hairline text-text-muted">
+<div>
+<span class="block">Last Sync:</span>
+<span class="font-medium text-text-primary">Today at 14:22</span>
+</div>
+<div>
+<span class="block">File Count:</span>
+<span class="font-medium text-text-primary">9,412 files indexed</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card Actions -->
+<div class="mt-space-lg pt-space-sm border-t border-border-hairline flex items-center justify-between">
+<span class="font-metadata text-metadata text-text-muted flex items-center gap-1"><span class="material-symbols-outlined text-[15px]" data-icon="sync">sync</span>
+                Automated daemon sync
+              </span>
+<div class="flex items-center gap-2">
+
+<button class="h-8 px-3 rounded bg-primary-container hover:bg-accent-orange-hover text-white font-label-md text-label-md transition-colors flex items-center gap-1">
+<span class="">Browse Source</span>
+<span class="material-symbols-outlined text-[15px]" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Source Card 2: SanDisk Ultra -->
+<div class="bg-surface-panel rounded border border-border-hairline p-space-lg flex flex-col justify-between hover:border-border-strong transition-colors">
+<div>
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded bg-surface-subtle border border-border-hairline flex items-center justify-center text-text-secondary">
+<span class="material-symbols-outlined" data-icon="usb">usb</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">SanDisk Ultra 256GB</h3>
+<div class="flex items-center gap-2 mt-0.5"><span class="font-code-inline text-code-inline text-text-muted">Source ID: SRC-SD3301</span><span class="text-border-hairline">•</span><span class="font-metadata text-metadata text-text-muted">ext4</span></div>
+</div>
+</div>
+<!-- Status Badge -->
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#DCFCE7] text-[#166534] font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success"></span>
+                  Up to date
+                </span>
+</div>
+<!-- Storage Bar & Details -->
+<div class="mt-space-lg space-y-2">
+<div class="flex justify-between text-xs font-body-sm text-text-secondary">
+<span class="">70.5 GB used of 256.0 GB</span>
+<span class="font-medium text-text-primary">27.5%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-subtle rounded overflow-hidden">
+<div class="bg-primary-container h-full" style="width: 27.5%;"></div>
+</div>
+<div class="grid grid-cols-2 gap-2 pt-2 text-xs border-t border-border-hairline text-text-muted">
+<div>
+<span class="block">Last Sync:</span>
+<span class="font-medium text-text-primary">Yesterday at 18:40</span>
+</div>
+<div>
+<span class="block">File Count:</span>
+<span class="font-medium text-text-primary">5,417 files indexed</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card Actions -->
+<div class="mt-space-lg pt-space-sm border-t border-border-hairline flex items-center justify-between">
+<div class=""></div>
+<div class="flex items-center gap-2">
+
+<button class="h-8 px-3 rounded bg-primary-container hover:bg-accent-orange-hover text-white font-label-md text-label-md transition-colors flex items-center gap-1">
+<span class="">Browse Source</span>
+<span class="material-symbols-outlined text-[15px]" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. RECENT FILES QUICK ACCESS ROW -->
+<section class="space-y-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<h2 class="font-headline-sm text-headline-sm text-text-primary">Recent Objects</h2>
+<span class="font-metadata text-metadata text-text-muted">Pinned access to recently committed payloads</span>
+</div>
+<a class="font-label-md text-label-md text-text-secondary hover:text-text-primary flex items-center gap-1 transition-colors" href="#">
+<span class="">View All Files</span>
+<span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-space-md">
+<!-- File 1: Agriculture.pdf -->
+<div class="bg-surface-panel rounded border border-border-hairline p-space-md flex flex-col justify-between hover:border-border-strong transition-colors">
+<div class="flex items-start gap-space-sm">
+<div class="w-10 h-10 rounded bg-surface-subtle border border-border-hairline flex items-center justify-center text-text-secondary shrink-0">
+<span class="material-symbols-outlined text-status-error" data-icon="picture_as_pdf">picture_as_pdf</span>
+</div>
+<div class="min-w-0 flex-1">
+<div class="flex items-center justify-between">
+<h4 class="font-label-md text-label-md text-text-primary font-semibold truncate" title="Agriculture.pdf">Agriculture.pdf</h4>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-surface-subtle text-text-secondary border border-border-hairline">v3</span>
+</div>
+<p class="font-metadata text-metadata text-text-muted mt-0.5">8.4 MB • /Docs/Research</p>
+<p class="font-code-inline text-[11px] text-text-muted mt-1 truncate">sha256: 7f83b165...e2a9</p>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs border-t border-border-hairline flex items-center justify-between">
+<span class="font-metadata text-metadata text-text-muted">Updated 2h ago</span>
+<div class="flex items-center gap-1">
+<button class="w-7 h-7 rounded flex items-center justify-center text-text-secondary hover:bg-surface-subtle hover:text-text-primary" title="Quick view metadata">
+<span class="material-symbols-outlined text-[16px]" data-icon="info">info</span>
+</button>
+<button class="h-7 px-2 rounded bg-surface-subtle border border-border-hairline hover:border-border-strong text-text-primary font-label-sm text-label-sm flex items-center gap-1" title="Download Agriculture.pdf"><span class="material-symbols-outlined text-[14px]" data-icon="download">download</span><span class="">Download</span></button>
+</div>
+</div>
+</div>
+<!-- File 2: Respiration.pdf -->
+<div class="bg-surface-panel rounded border border-border-hairline p-space-md flex flex-col justify-between hover:border-border-strong transition-colors">
+<div class="flex items-start gap-space-sm">
+<div class="w-10 h-10 rounded bg-surface-subtle border border-border-hairline flex items-center justify-center text-text-secondary shrink-0">
+<span class="material-symbols-outlined text-status-error" data-icon="picture_as_pdf">picture_as_pdf</span>
+</div>
+<div class="min-w-0 flex-1">
+<div class="flex items-center justify-between">
+<h4 class="font-label-md text-label-md text-text-primary font-semibold truncate" title="Respiration.pdf">Respiration.pdf</h4>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-surface-subtle text-text-secondary border border-border-hairline">v1</span>
+</div>
+<p class="font-metadata text-metadata text-text-muted mt-0.5">14.2 MB • /Docs/Biology</p>
+<p class="font-code-inline text-[11px] text-text-muted mt-1 truncate">sha256: 4b29c910...881f</p>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs border-t border-border-hairline flex items-center justify-between">
+<span class="font-metadata text-metadata text-text-muted">Updated 5h ago</span>
+<div class="flex items-center gap-1">
+<button class="w-7 h-7 rounded flex items-center justify-center text-text-secondary hover:bg-surface-subtle hover:text-text-primary" title="Quick view metadata">
+<span class="material-symbols-outlined text-[16px]" data-icon="info">info</span>
+</button>
+<button class="h-7 px-2 rounded bg-surface-subtle border border-border-hairline hover:border-border-strong text-text-primary font-label-sm text-label-sm flex items-center gap-1" title="Download Respiration.pdf"><span class="material-symbols-outlined text-[14px]" data-icon="download">download</span><span class="">Download</span></button>
+</div>
+</div>
+</div>
+<!-- File 3: Soil_Telemetry_Data.csv -->
+<div class="bg-surface-panel rounded border border-border-hairline p-space-md flex flex-col justify-between hover:border-border-strong transition-colors">
+<div class="flex items-start gap-space-sm">
+<div class="w-10 h-10 rounded bg-surface-subtle border border-border-hairline flex items-center justify-center text-text-secondary shrink-0">
+<span class="material-symbols-outlined text-status-success" data-icon="table_chart">table_chart</span>
+</div>
+<div class="min-w-0 flex-1">
+<div class="flex items-center justify-between">
+<h4 class="font-label-md text-label-md text-text-primary font-semibold truncate" title="Soil_Telemetry_Data.csv">Soil_Telemetry_Data.csv</h4>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-surface-subtle text-text-secondary border border-border-hairline">v12</span>
+</div>
+<p class="font-metadata text-metadata text-text-muted mt-0.5">2.1 MB • /Sensors/2026</p>
+<p class="font-code-inline text-[11px] text-text-muted mt-1 truncate">sha256: 9e01a88b...10c2</p>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs border-t border-border-hairline flex items-center justify-between">
+<span class="font-metadata text-metadata text-text-muted">Updated Yesterday</span>
+<div class="flex items-center gap-1">
+<button class="w-7 h-7 rounded flex items-center justify-center text-text-secondary hover:bg-surface-subtle hover:text-text-primary" title="Quick view metadata">
+<span class="material-symbols-outlined text-[16px]" data-icon="info">info</span>
+</button>
+<button class="h-7 px-2 rounded bg-surface-subtle border border-border-hairline hover:border-border-strong text-text-primary font-label-sm text-label-sm flex items-center gap-1" title="Download Soil_Telemetry_Data.csv"><span class="material-symbols-outlined text-[14px]" data-icon="download">download</span><span class="">Download</span></button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 4. RECENT BACKUP ACTIVITY (Chronological Event Feed) -->
+<section class="space-y-space-sm pb-space-2xl">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<h2 class="font-headline-sm text-headline-sm text-text-primary">Recent Backup Activity</h2>
+<span class="font-metadata text-metadata text-text-muted">Chronological daemon sync log</span>
+</div>
+<button class="font-label-md text-label-md text-text-secondary hover:text-text-primary flex items-center gap-1 transition-colors">
+<span class="">Audit Log</span>
+<span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<!-- Strict High-Density Table Container -->
+<div class="bg-surface-panel rounded border border-border-hairline overflow-hidden shadow-none">
+<div class="overflow-x-auto">
+<table class="w-full min-w-[580px] text-left border-collapse">
+<thead>
+<tr class="bg-surface-subtle border-b border-border-hairline h-9 text-text-muted font-table-header text-table-header uppercase">
+<th class="px-space-md py-1 font-semibold w-8"></th>
+<th class="px-space-md py-1 font-semibold">Event Description</th>
+<th class="px-space-md py-1 font-semibold">Target / Context</th>
+<th class="px-space-md py-1 font-semibold">Status</th>
+<th class="px-space-md py-1 font-semibold text-right">Timestamp</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-hairline font-body-sm text-body-sm text-text-primary">
+<!-- Event 1: Backup completed Lexar -->
+<tr class="hover:bg-surface-canvas transition-colors h-11">
+<td class="px-space-md text-center">
+<span class="material-symbols-outlined text-status-success text-[18px]" data-icon="check_circle">check_circle</span>
+</td>
+<td class="px-space-md">
+<div class="font-medium text-text-primary">Backup completed — Lexar JumpDrive</div>
+<div class="font-metadata text-metadata text-text-muted">12 files uploaded, 3 duplicates skipped</div>
+</td>
+<td class="px-space-md font-code-inline text-code-inline text-text-secondary">
+                    /Vault/Physical/LX-9482
+                  </td>
+<td class="px-space-md">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-[#DCFCE7] text-[#166534]">
+                      Synchronized
+                    </span>
+</td>
+<td class="px-space-md text-right font-metadata text-metadata text-text-muted">
+                    14:22:04 Today
+                  </td>
+</tr>
+<!-- Event 2: Upload completed Agriculture.pdf -->
+<tr class="hover:bg-surface-canvas transition-colors h-11">
+<td class="px-space-md text-center">
+<span class="material-symbols-outlined text-status-info text-[18px]" data-icon="upload_file">upload_file</span>
+</td>
+<td class="px-space-md">
+<div class="font-medium text-text-primary">Upload completed — Agriculture.pdf</div>
+<div class="font-metadata text-metadata text-text-muted">New revision recorded (v3, 8.4 MB)</div>
+</td>
+<td class="px-space-md font-code-inline text-code-inline text-text-secondary">
+                    /Docs/Research/Agriculture.pdf
+                  </td>
+<td class="px-space-md">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-surface-subtle text-text-secondary">
+                      Committed
+                    </span>
+</td>
+<td class="px-space-md text-right font-metadata text-metadata text-text-muted">
+                    12:15:32 Today
+                  </td>
+</tr>
+<!-- Event 3: Files discovered Photos -->
+<tr class="hover:bg-surface-canvas transition-colors h-11">
+<td class="px-space-md text-center">
+<span class="material-symbols-outlined text-status-warning text-[18px]" data-icon="folder_zip">folder_zip</span>
+</td>
+<td class="px-space-md">
+<div class="font-medium text-text-primary">Files discovered — 15 items in /Photos/Field_2026</div>
+<div class="font-metadata text-metadata text-text-muted">Queueing block hashes for background integrity check</div>
+</td>
+<td class="px-space-md font-code-inline text-code-inline text-text-secondary">
+                    /Photos/Field_2026/
+                  </td>
+<td class="px-space-md">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-[#FEF3C7] text-[#92400E]">
+                      Queued
+                    </span>
+</td>
+<td class="px-space-md text-right font-metadata text-metadata text-text-muted">
+                    10:04:18 Today
+                  </td>
+</tr>
+<!-- Event 4: Backup recovered SanDisk Ultra -->
+<tr class="hover:bg-surface-canvas transition-colors h-11">
+<td class="px-space-md text-center">
+<span class="material-symbols-outlined text-text-secondary text-[18px]" data-icon="change_circle">change_circle</span>
+</td>
+<td class="px-space-md">
+<div class="font-medium text-text-primary">Backup recovered — SanDisk Ultra re-indexed</div>
+<div class="font-metadata text-metadata text-text-muted">5,417 metadata headers verified against B2 remote ledger</div>
+</td>
+<td class="px-space-md font-code-inline text-code-inline text-text-secondary">
+                    /Vault/Physical/SD-3301
+                  </td>
+<td class="px-space-md">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-surface-subtle text-text-secondary">
+                      Verified
+                    </span>
+</td>
+<td class="px-space-md text-right font-metadata text-metadata text-text-muted">
+                    Yesterday 18:40:12
+                  </td>
+</tr>
+<!-- Event 5: Duplicate Skipped -->
+<tr class="hover:bg-surface-canvas transition-colors h-11">
+<td class="px-space-md text-center">
+<span class="material-symbols-outlined text-text-muted text-[18px]" data-icon="copy_all">copy_all</span>
+</td>
+<td class="px-space-md">
+<div class="font-medium text-text-primary">Duplicate payload detected — Soil_Telemetry_Data.csv</div>
+<div class="font-metadata text-metadata text-text-muted">Identical content hash matched block 389b. Skipped disk write.</div>
+</td>
+<td class="px-space-md font-code-inline text-code-inline text-text-secondary">
+                    /Sensors/2026/Soil_Telemetry_Data.csv
+                  </td>
+<td class="px-space-md">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-surface-subtle text-[#475569]">
+                      Duplicate Skipped
+                    </span>
+</td>
+<td class="px-space-md text-right font-metadata text-metadata text-text-muted">
+                    Yesterday 16:02:44
+                  </td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer status bar -->
+<div class="px-space-md py-2 bg-surface-subtle border-t border-border-hairline flex items-center justify-between text-xs text-text-muted">
+<span class="">Showing latest 5 entries from local audit journal (log_2026_03.sqlite)</span>
+<div class="flex items-center gap-4">
+<span class="">Integrity: <strong class="font-medium text-text-primary">Pass</strong></span>
+<span class="">Total recorded events: 4,819</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main><nav class="flex md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-panel border-t border-border-hairline py-1.5 px-3 justify-around items-center select-none"><a class="flex flex-col items-center gap-0.5 text-primary-container font-semibold" href="#"><span class="material-symbols-outlined text-[20px]" data-icon="dashboard">dashboard</span><span class="text-[10px] leading-tight">Dashboard</span></a><a class="flex flex-col items-center gap-0.5 text-text-secondary hover:text-text-primary transition-colors" href="#"><span class="material-symbols-outlined text-[20px]" data-icon="folder">folder</span><span class="text-[10px] leading-tight">Files</span></a><a class="flex flex-col items-center gap-0.5 text-text-secondary hover:text-text-primary transition-colors" href="#"><span class="material-symbols-outlined text-[20px]" data-icon="usb">usb</span><span class="text-[10px] leading-tight">Sources</span></a><a class="flex flex-col items-center gap-0.5 text-text-secondary hover:text-text-primary transition-colors" href="#"><span class="material-symbols-outlined text-[20px]" data-icon="history">history</span><span class="text-[10px] leading-tight">Activity</span></a><a class="flex flex-col items-center gap-0.5 text-text-secondary hover:text-text-primary transition-colors" href="#"><span class="material-symbols-outlined text-[20px]" data-icon="settings">settings</span><span class="text-[10px] leading-tight">Settings</span></a></nav>
+<script>
+    // Optional minimal keyboard shortcuts for desktop utility feel
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.querySelector('input[type="text"]');
+        if (searchInput) searchInput.focus();
+      }
+    });
+  </script>
+
+
+</body></html>

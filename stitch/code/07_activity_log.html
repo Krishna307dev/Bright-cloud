@@ -1,0 +1,573 @@
+<!DOCTYPE html><html lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Bright Cloud - Activity Log &amp; System Events</title>
+<!-- Google Font: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS v3 with Container Queries & Forms -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration verbatim from Design System -->
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "status-warning": "#D97706",
+            "on-secondary-fixed-variant": "#3f465c",
+            "surface-container-highest": "#d3e4fe",
+            "tertiary-fixed": "#dbe1ff",
+            "surface-container-low": "#eff4ff",
+            "tertiary-fixed-dim": "#b4c5ff",
+            "secondary-container": "#dae2fd",
+            "accent-orange-hover": "#EA580C",
+            "border-strong": "#CBD5E1",
+            "on-tertiary-fixed-variant": "#003ea8",
+            "surface-canvas": "#F8FAFC",
+            "border-hairline": "#E2E8F0",
+            "outline": "#8c7164",
+            "surface-panel": "#FFFFFF",
+            "inverse-primary": "#ffb690",
+            "secondary-fixed-dim": "#bec6e0",
+            "surface": "#f8f9ff",
+            "text-muted": "#64748B",
+            "primary": "#9d4300",
+            "on-primary-fixed-variant": "#783200",
+            "on-surface-variant": "#584237",
+            "surface-bright": "#f8f9ff",
+            "on-error": "#ffffff",
+            "on-surface": "#0b1c30",
+            "secondary-fixed": "#dae2fd",
+            "status-info": "#2563EB",
+            "on-error-container": "#93000a",
+            "on-tertiary": "#ffffff",
+            "status-error": "#DC2626",
+            "on-secondary-fixed": "#131b2e",
+            "tertiary": "#0053db",
+            "secondary": "#565e74",
+            "outline-variant": "#e0c0b1",
+            "on-secondary": "#ffffff",
+            "on-primary": "#ffffff",
+            "error-container": "#ffdad6",
+            "primary-fixed-dim": "#ffb690",
+            "surface-subtle": "#F1F5F9",
+            "surface-container-high": "#dce9ff",
+            "on-primary-fixed": "#341100",
+            "on-tertiary-container": "#002c7c",
+            "primary-container": "#f97316",
+            "surface-container": "#e5eeff",
+            "on-tertiary-fixed": "#00174b",
+            "on-background": "#0b1c30",
+            "surface-variant": "#d3e4fe",
+            "status-success": "#16A34A",
+            "on-secondary-container": "#5c647a",
+            "surface-container-lowest": "#ffffff",
+            "surface-tint": "#9d4300",
+            "accent-orange-subtle": "#FFF7ED",
+            "surface-dim": "#cbdbf5",
+            "error": "#ba1a1a",
+            "inverse-surface": "#213145",
+            "background": "#f8f9ff",
+            "primary-fixed": "#ffdbca",
+            "inverse-on-surface": "#eaf1ff",
+            "text-secondary": "#475569",
+            "text-primary": "#0F172A",
+            "on-primary-container": "#582200",
+            "tertiary-container": "#7296ff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-sm": "0.75rem",
+            "space-md": "1rem",
+            "space-xl": "1.5rem",
+            "gutter": "1rem",
+            "space-2xs": "0.25rem",
+            "space-lg": "1.25rem",
+            "margin-desktop": "1.5rem",
+            "space-4xl": "3rem",
+            "space-3xl": "2.5rem",
+            "margin": "1rem",
+            "space-xs": "0.5rem",
+            "space-2xl": "2rem",
+            "gutter-desktop": "1.5rem"
+          },
+          "fontFamily": {
+            "body-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "headline-lg-mobile": ["Inter"],
+            "body-md": ["Inter"],
+            "metadata": ["Inter"],
+            "headline-md": ["Inter"],
+            "headline-sm": ["Inter"],
+            "table-header": ["Inter"],
+            "headline-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "label-sm": ["Inter"],
+            "code-inline": ["Inter"]
+          },
+          "fontSize": {
+            "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "headline-lg-mobile": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "metadata": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "table-header": ["12px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+            "code-inline": ["12px", { "lineHeight": "16px", "fontWeight": "500" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 18px;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    /* Monospace-like numerical precision */
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+</head>
+<body class="bg-surface-canvas text-text-primary antialiased font-body-md text-body-md h-screen overflow-hidden flex flex-col">
+<!-- ========================================================================= -->
+<!-- SHARED COMPONENT: SideNavBar (Desktop Drawer)                             -->
+<!-- ========================================================================= -->
+<aside class="hidden md:flex flex-col fixed top-0 left-0 h-screen w-60 bg-surface-canvas border-r border-border-hairline z-30 select-none">
+<div class="flex flex-col justify-between h-full w-60 py-space-md px-space-sm">
+<!-- Top Section: Brand & Nav Links -->
+<div class="flex flex-col gap-space-md">
+<!-- Header / Logo -->
+<div class="flex items-center gap-space-sm px-space-xs py-space-2xs">
+<div class="w-8 h-8 rounded bg-accent-orange-subtle border border-border-hairline flex items-center justify-center text-primary-container shrink-0">
+<span class="material-symbols-outlined" data-icon="shield">shield</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm font-semibold text-text-primary truncate">Bright Cloud</span>
+<span class="font-metadata text-metadata text-text-muted truncate">Personal Vault v2.4</span>
+</div>
+</div>
+<!-- Primary CTA from JSON: Add Source -->
+<div class="px-space-xs">
+<button class="w-full flex items-center justify-center gap-space-xs h-9 px-space-sm rounded bg-primary-container hover:bg-accent-orange-hover text-on-primary font-label-md text-label-md transition-colors duration-150 ease-in-out shadow-none" type="button">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+<span class="">Add Source</span>
+</button>
+</div>
+<!-- Navigation Tab Items -->
+<nav aria-label="Main Navigation" class="flex flex-col gap-1 mt-space-xs">
+<!-- Dashboard (Inactive) -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-text-muted" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<!-- Files (Inactive) -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-text-muted" data-icon="folder">folder</span>
+<span class="font-label-md text-label-md">Files</span>
+</a>
+<!-- Sources (Inactive) -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-text-muted" data-icon="usb">usb</span>
+<span class="font-label-md text-label-md">Sources</span>
+</a>
+<!-- Shared (Inactive) -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-text-muted" data-icon="share">share</span>
+<span class="font-label-md text-label-md">Shared</span>
+</a>
+<!-- Activity (ACTIVE TAB - Exactly matches current view) -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded bg-accent-orange-subtle text-primary-container font-semibold border-l-2 border-primary-container transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-primary-container" data-icon="history">history</span>
+<span class="font-label-md text-label-md">Activity</span>
+</a>
+<!-- Settings (Inactive) -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-text-muted" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+</div>
+<!-- Bottom Drawer Footer -->
+<div class="flex flex-col gap-space-xs border-t border-border-hairline pt-space-sm">
+<a class="flex items-center justify-between px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-text-muted" data-icon="shield_person">shield_person</span>
+<span class="font-label-md text-label-md">Security Profile</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-status-success"></span>
+</a>
+</div>
+</div>
+</aside>
+<!-- ========================================================================= -->
+<!-- SHARED COMPONENT: TopNavBar (Contextual Top Bar)                         -->
+<!-- ========================================================================= -->
+<header class="fixed top-0 left-0 md:left-60 right-0 h-14 bg-surface-panel border-b border-border-hairline z-20 flex items-center justify-between px-3 sm:px-space-md md:px-space-xl w-full md:w-[calc(100%-15rem)]">
+<!-- Left Area: Breadcrumbs Context from Request -->
+<div class="flex items-center gap-space-sm">
+<div class="flex items-center gap-2 text-text-muted font-body-sm text-body-sm">
+<a class="hover:text-primary-container transition-colors duration-150 flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-text-muted" data-icon="lock">lock</span>
+<span class="">Vault</span>
+</a>
+<span class="text-text-muted font-normal">/</span>
+<span class="font-semibold text-text-primary">Backup Activity</span>
+</div>
+<div class="h-4 w-px bg-border-hairline mx-space-xs"></div>
+<!-- Live Daemon Status Pill -->
+<div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface-subtle border border-border-hairline text-text-secondary font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success animate-pulse"></span>
+<span class="">Daemon Active</span>
+</div>
+</div>
+<!-- Center/Right Area: Filters & Actions -->
+<div class="flex items-center gap-1.5 sm:gap-space-md">
+<!-- Filter Dropdown 1: Source Filter -->
+<div class="flex items-center hidden sm:flex">
+<div class="relative">
+<select class="appearance-none bg-surface-panel border border-border-hairline hover:border-border-strong rounded h-9 pl-space-sm pr-8 font-label-md text-label-md text-text-secondary cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary-container transition-colors">
+<option value="all">All Sources</option>
+<option value="lexar">Lexar JumpDrive (512GB)</option>
+<option value="sandisk">SanDisk Ultra (256GB)</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-muted">
+<span class="material-symbols-outlined" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Filter Dropdown 2: Event Type Filter -->
+<div class="flex items-center">
+<div class="relative">
+<select class="appearance-none bg-surface-panel border border-border-hairline hover:border-border-strong rounded h-9 pl-space-sm pr-8 font-label-md text-label-md text-text-secondary cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary-container transition-colors">
+<option value="all">All Events</option>
+<option value="completed">Backup Completed</option>
+<option value="uploads">Uploads</option>
+<option value="duplicates">Duplicates Skipped</option>
+<option value="interrupted">Interrupted</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-muted">
+<span class="material-symbols-outlined" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+</div>
+<div class="h-4 w-px bg-border-hairline mx-space-2xs"></div>
+<!-- TopNav Trailing Icon Actions from JSON -->
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 rounded flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-surface-subtle transition-colors" title="Sync Status" type="button">
+<span class="material-symbols-outlined" data-icon="sync">sync</span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-surface-subtle transition-colors" title="Notifications" type="button">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-surface-subtle transition-colors" title="Help &amp; Docs" type="button">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+</div>
+<!-- User Security Profile Avatar -->
+<div class="flex items-center gap-2 pl-space-xs border-l border-border-hairline">
+<div class="w-8 h-8 rounded-full bg-surface-subtle border border-border-hairline flex items-center justify-center text-text-secondary">
+<span class="material-symbols-outlined" data-icon="verified_user">verified_user</span>
+</div>
+</div>
+</div>
+</header>
+<!-- ========================================================================= -->
+<!-- MAIN WORKSPACE VIEW (ml-60 pt-14)                                        -->
+<!-- ========================================================================= -->
+<main class="ml-0 md:ml-60 mt-14 pb-16 md:pb-0 flex-1 min-h-[calc(100vh-3.5rem)] bg-surface-canvas overflow-y-auto overflow-x-hidden flex flex-col">
+<div class="max-w-6xl w-full mx-auto p-3 sm:p-space-md md:p-space-xl flex flex-col gap- space-md md:gap-space-xl overflow-hidden">
+<!-- Content Area Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md pb-space-sm border-b border-border-hairline">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<h1 class="font-headline-lg text-headline-lg font-semibold text-text-primary tracking-tight">Daemon &amp; Vault Activity</h1>
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface-subtle border border-border-hairline font-label-sm text-label-sm text-text-secondary"><span class="w-1.5 h-1.5 rounded-full bg-status-success"></span>Audit Stream</span>
+</div>
+<p class="font-body-md text-body-md text-text-muted">
+            Chronological log of files discovered, uploaded, and synchronized from connected USB devices to cloud storage.
+          </p>
+</div>
+<!-- Quick Log Export & Search -->
+<div class="flex items-center gap-space-xs w-full sm:w-auto">
+<div class="relative flex-1 sm:flex-initial">
+<span class="material-symbols-outlined absolute left-2.5 top-2.5 text-text-muted" data-icon="search">search</span>
+<input class="h-9 pl-9 pr-3 rounded bg-surface-panel border border-border-hairline text-text-primary placeholder:text-text-muted font-body-sm text-body-sm focus:outline-none focus:ring-1 focus:ring-primary-container focus:border-primary-container w-full sm:w-64 lg:w-80 transition-colors" placeholder="Search filenames or hashes..." type="text">
+</div>
+<button class="h-9 px-space-sm rounded bg-surface-panel border border-border-hairline hover:bg-surface-subtle text-text-primary font-label-md text-label-md flex items-center gap-1.5 transition-colors" type="button">
+<span class="material-symbols-outlined text-text-muted" data-icon="file_download">file_download</span>
+<span class="">Raw Log</span>
+</button>
+</div>
+</div>
+<!-- Filter Pills (Metric Breakdown) -->
+<div class="flex items-center gap-space-xs overflow-x-auto whitespace-nowrap pb-1 max-w-full no-scrollbar">
+<button class="px-3 py-1.5 rounded bg-surface-panel border border-primary-container text-text-primary font-label-md text-label-md shadow-none flex items-center gap-2" type="button">
+<span class="font-semibold">All</span>
+<span class="px-1.5 py-0.2 rounded bg-accent-orange-subtle text-primary font-semibold text-label-sm">1,420</span>
+</button>
+<button class="px-3 py-1.5 rounded bg-surface-panel border border-border-hairline hover:border-border-strong text-text-secondary font-label-md text-label-md flex items-center gap-2 transition-colors" type="button">
+<span class="">Uploads</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-subtle text-text-muted text-label-sm tabular-nums">842</span>
+</button>
+<button class="px-3 py-1.5 rounded bg-surface-panel border border-border-hairline hover:border-border-strong text-text-secondary font-label-md text-label-md flex items-center gap-2 transition-colors" type="button">
+<span class="">Duplicates Skipped</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-subtle text-text-muted text-label-sm tabular-nums">526</span>
+</button>
+<button class="px-3 py-1.5 rounded bg-surface-panel border border-border-hairline hover:border-border-strong text-text-secondary font-label-md text-label-md flex items-center gap-2 transition-colors" type="button">
+<span class="">Errors / Warnings</span>
+<span class="px-1.5 py-0.2 rounded bg-amber-50 text-status-warning text-label-sm font-semibold tabular-nums">4</span>
+</button>
+</div>
+<!-- ===================================================================== -->
+<!-- TIMELINE CONTAINER                                                    -->
+<!-- ===================================================================== -->
+<div class="flex flex-col gap-space-2xl">
+<!-- ------------------------------------------------------------------- -->
+<!-- GROUP 1: Today - March 28, 2026                                     -->
+<!-- ------------------------------------------------------------------- -->
+<section class="flex flex-col gap-space-md">
+<!-- Date Sticky Indicator -->
+<div class="flex items-center gap-space-sm sticky top-0 py-1 bg-surface-canvas z-10">
+<span class="font-headline-sm text-headline-sm font-semibold text-text-primary tracking-tight">Today</span>
+<span class="text-text-muted font-body-sm text-body-sm">— March 28, 2026</span>
+<div class="h-px bg-border-hairline flex-1 ml-2"></div>
+<span class="font-metadata text-metadata text-text-muted">4 events</span>
+</div>
+<!-- Chronological List with Hairline Trace -->
+<div class="relative pl-6 flex flex-col gap-space-md border-l border-border-hairline ml-3">
+<!-- EVENT 1: Backup completed (Lexar JumpDrive) -->
+<article class="relative bg-surface-panel border border-border-hairline rounded p-space-md hover:border-border-strong transition-colors flex flex-col gap-space-xs">
+<!-- Pin node on the timeline trace -->
+<div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full bg-surface-panel border-2 border-status-success flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success"></span>
+</div>
+<!-- Header Row -->
+<div class="text-body-sm text-text-secondary flex flex-wrap items-center gap-x-2 sm:gap-x-3 gap-y-1 pt-1 font-body-sm min-w-0">
+<div class="flex items-center gap-space-sm">
+<span class="font-code-inline text-code-inline text-text-muted tabular-nums">14:22:04</span>
+<div class="w-1 h-1 rounded-full bg-border-strong"></div>
+<h2 class="font-label-md text-label-md font-semibold text-text-primary flex items-center gap-1.5">
+<span class="material-symbols-outlined text-status-success" data-icon="task_alt">task_alt</span>
+                    Backup completed — Lexar JumpDrive 512GB
+                  </h2>
+</div>
+<!-- Status Badge -->
+<span class="font-code-inline text-code-inline text-text-muted bg-surface-subtle px-1.5 py-0.5 rounded border border-border-hairline truncate max-w-full">
+                  Completed
+                </span>
+</div>
+<!-- Metadata & Event Attributes -->
+<div class="text-body-sm text-text-secondary flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 font-body-sm">
+<span class="flex items-center gap-1 text-text-primary font-medium">
+<span class="material-symbols-outlined text-text-muted" data-icon="cloud_upload">cloud_upload</span>
+                  12 files uploaded (48.2 MB)
+                </span>
+<span class="text-border-hairline">•</span>
+<span class="text-text-muted">3 duplicates skipped</span>
+<span class="text-border-hairline">•</span>
+<span class="font-code-inline text-code-inline text-text-muted bg-surface-subtle px-1.5 py-0.5 rounded border border-border-hairline">
+                  Target: /Documents/Projects/
+                </span>
+</div>
+</article>
+<!-- EVENT 2: Upload completed — Agriculture.pdf (v3) -->
+<article class="relative bg-surface-panel border border-border-hairline rounded p-space-md hover:border-border-strong transition-colors flex flex-col gap-space-xs">
+<div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full bg-surface-panel border-2 border-status-success flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success"></span>
+</div>
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-space-sm">
+<span class="font-code-inline text-code-inline text-text-muted tabular-nums">12:15:32</span>
+<div class="w-1 h-1 rounded-full bg-border-strong"></div>
+<h2 class="font-label-md text-label-md font-semibold text-text-primary flex items-center gap-1.5">
+<span class="material-symbols-outlined text-status-success" data-icon="cloud_done">cloud_done</span>
+                    Upload completed — Agriculture.pdf (v3)
+                  </h2>
+</div>
+<span class="inline-flex items-center px-2 py-0.5 rounded font-label-sm text-label-sm font-semibold bg-[#DCFCE7] text-[#166534]">
+                  Committed
+                </span>
+</div>
+<div class="text-body-sm text-text-secondary flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 font-body-sm">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-text-muted" data-icon="usb">usb</span>
+                  Source: Lexar JumpDrive
+                </span>
+<span class="text-border-hairline">•</span>
+<span class="tabular-nums">14.2 MB</span>
+<span class="text-border-hairline">•</span>
+<span class="inline-flex items-center gap-1 font-code-inline text-code-inline text-text-muted">
+<span class="material-symbols-outlined text-text-muted" data-icon="verified">verified</span>
+                  SHA-256: 8f9b2c...a41e (verified)
+                </span>
+</div>
+</article>
+<!-- EVENT 3: Files discovered (SanDisk Ultra 256GB) -->
+<article class="relative bg-surface-panel border border-border-hairline rounded p-space-md hover:border-border-strong transition-colors flex flex-col gap-space-xs">
+<div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full bg-surface-panel border-2 border-text-muted flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-text-muted"></span>
+</div>
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-space-sm">
+<span class="font-code-inline text-code-inline text-text-muted tabular-nums">10:04:18</span>
+<div class="w-1 h-1 rounded-full bg-border-strong"></div>
+<h2 class="font-label-md text-label-md font-semibold text-text-primary flex items-center gap-1.5">
+<span class="material-symbols-outlined text-text-muted" data-icon="manage_search">manage_search</span>
+                    Files discovered — 15 items in /Photos/Field_2026/
+                  </h2>
+</div>
+<span class="inline-flex items-center px-2 py-0.5 rounded font-label-sm text-label-sm font-semibold bg-[#F1F5F9] text-[#334155]">
+                  Processed
+                </span>
+</div>
+<div class="text-body-sm text-text-secondary flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 font-body-sm">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-text-muted" data-icon="usb">usb</span>
+                  Source: SanDisk Ultra 256GB
+                </span>
+<span class="text-border-hairline">•</span>
+<span class="text-text-muted">Scanned directory hash tree for diff resolution</span>
+</div>
+</article>
+<!-- EVENT 4: Duplicate skipped — Respiration.pdf -->
+<article class="relative bg-surface-panel border border-border-hairline rounded p-space-md hover:border-border-strong transition-colors flex flex-col gap-space-xs">
+<div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full bg-surface-panel border-2 border-status-info flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-status-info"></span>
+</div>
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-space-sm">
+<span class="font-code-inline text-code-inline text-text-muted tabular-nums">08:30:12</span>
+<div class="w-1 h-1 rounded-full bg-border-strong"></div>
+<h2 class="font-label-md text-label-md font-semibold text-text-primary flex items-center gap-1.5">
+<span class="material-symbols-outlined text-status-info" data-icon="content_copy">content_copy</span>
+                    Duplicate skipped — Respiration.pdf
+                  </h2>
+</div>
+<span class="inline-flex items-center px-2 py-0.5 rounded font-label-sm text-label-sm font-semibold bg-[#F1F5F9] text-[#475569]">
+                  Deduplicated
+                </span>
+</div>
+<div class="text-body-sm text-text-secondary flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 font-body-sm">
+<span class="text-text-secondary">
+                  Content SHA-256 matches existing vault object. Skipped B2 re-upload.
+                </span>
+<span class="text-border-hairline">•</span>
+<span class="font-code-inline text-code-inline text-text-muted">4.8 MB conserved</span>
+</div>
+</article>
+</div>
+</section>
+<!-- ------------------------------------------------------------------- -->
+<!-- GROUP 2: Yesterday - March 27, 2026                                 -->
+<!-- ------------------------------------------------------------------- -->
+<section class="flex flex-col gap-space-md">
+<div class="flex items-center gap-space-sm sticky top-0 py-1 bg-surface-canvas z-10">
+<span class="font-headline-sm text-headline-sm font-semibold text-text-primary tracking-tight">Yesterday</span>
+<span class="text-text-muted font-body-sm text-body-sm">— March 27, 2026</span>
+<div class="h-px bg-border-hairline flex-1 ml-2"></div>
+<span class="font-metadata text-metadata text-text-muted">2 events</span>
+</div>
+<div class="relative pl-6 flex flex-col gap-space-md border-l border-border-hairline ml-3">
+<!-- EVENT 5: Backup completed (SanDisk Ultra 256GB) -->
+<article class="relative bg-surface-panel border border-border-hairline rounded p-space-md hover:border-border-strong transition-colors flex flex-col gap-space-xs">
+<div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full bg-surface-panel border-2 border-status-success flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success"></span>
+</div>
+<div class="text-body-sm text-text-secondary flex flex-wrap items-center gap-x-2 sm:gap-x-3 gap-y-1 pt-1 font-body-sm min-w-0">
+<div class="flex items-center gap-space-sm">
+<span class="font-code-inline text-code-inline text-text-muted tabular-nums">18:40:55</span>
+<div class="w-1 h-1 rounded-full bg-border-strong"></div>
+<h2 class="font-label-md text-label-md font-semibold text-text-primary flex items-center gap-1.5">
+<span class="material-symbols-outlined text-status-success" data-icon="task_alt">task_alt</span>
+                    Backup completed — SanDisk Ultra 256GB
+                  </h2>
+</div>
+<span class="font-code-inline text-code-inline text-text-muted bg-surface-subtle px-1.5 py-0.5 rounded border border-border-hairline truncate max-w-full">
+                  Completed
+                </span>
+</div>
+<div class="text-body-sm text-text-secondary flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 font-body-sm">
+<span class="flex items-center gap-1 text-text-primary font-medium">
+<span class="material-symbols-outlined text-text-muted" data-icon="sync_saved_locally">sync_saved_locally</span>
+                  45 files synchronized (182.4 MB)
+                </span>
+<span class="text-border-hairline">•</span>
+<span class="text-text-muted">Daemon runtime: 3m 41s</span>
+<span class="text-border-hairline">•</span>
+<span class="font-code-inline text-code-inline text-text-muted bg-surface-subtle px-1.5 py-0.5 rounded border border-border-hairline">
+                  Target: /Field_Records/
+                </span>
+</div>
+</article>
+<!-- EVENT 6: Backup interrupted — USB Source disconnected unexpectedly -->
+<article class="relative bg-surface-panel border border-border-hairline rounded p-space-md hover:border-border-strong transition-colors flex flex-col gap-space-xs">
+<div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full bg-surface-panel border-2 border-status-warning flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-status-warning"></span>
+</div>
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-space-sm">
+<span class="font-code-inline text-code-inline text-text-muted tabular-nums">15:10:22</span>
+<div class="w-1 h-1 rounded-full bg-border-strong"></div>
+<h2 class="font-label-md text-label-md font-semibold text-text-primary flex items-center gap-1.5">
+<span class="material-symbols-outlined text-status-warning" data-icon="warning">warning</span>
+                    Backup interrupted — USB Source disconnected unexpectedly
+                  </h2>
+</div>
+<span class="inline-flex items-center px-2 py-0.5 rounded font-label-sm text-label-sm font-semibold bg-[#FEF3C7] text-[#92400E]">
+                  Interrupted
+                </span>
+</div>
+<div class="text-body-sm text-text-secondary flex flex-col gap-1 pt-1 font-body-sm">
+<p class="">
+                  Daemon safely queued 8 pending items. Resumed automatically when reconnected.
+                </p>
+<div class="flex items-center gap-2 text-text-muted font-code-inline text-code-inline pt-1">
+<span class="material-symbols-outlined text-text-muted" data-icon="info">info</span>
+<span class="">Exit Code 11: Device detached without unmount signal. Transaction log integrity verified.</span>
+</div>
+</div>
+</article>
+</div>
+</section>
+</div>
+<!-- ===================================================================== -->
+<!-- PAGINATION / LOAD OLDER ACTIVITY FOOTER                               -->
+<!-- ===================================================================== -->
+<div class="pt-space-md pb-space-2xl border-t border-border-hairline flex flex-col sm:flex-row items-center justify-between gap-space-md">
+<div class="text-text-muted font-metadata text-metadata">
+          Showing <span class="font-semibold text-text-primary">6</span> of <span class="font-semibold text-text-primary">1,420</span> indexed events
+        </div>
+<div class="flex items-center gap-space-xs">
+<button class="h-9 px-space-md rounded bg-surface-panel border border-border-hairline hover:bg-surface-subtle text-text-primary font-label-md text-label-md flex items-center gap-2 transition-colors" type="button">
+<span class="material-symbols-outlined text-text-muted" data-icon="history_toggle_subpath">image_search</span>
+<span class="">Load Older Activity</span>
+</button>
+<button class="h-9 px-space-sm rounded bg-surface-panel border border-border-hairline hover:bg-surface-subtle text-text-secondary font-label-md text-label-md flex items-center justify-center transition-colors" title="Export as CSV" type="button">
+<span class="material-symbols-outlined" data-icon="table_view">table_view</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+
+
+<nav aria-label="Mobile Navigation" class="flex md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-panel border-t border-border-hairline py-1.5 px-3 justify-around items-center select-none shadow-sm"><a href="#" class="flex flex-col items-center gap-0.5 text-text-muted hover:text-text-primary px-2 py-1"><span class="material-symbols-outlined text-[20px]" data-icon="dashboard">dashboard</span><span class="text-[11px] font-medium leading-none">Dashboard</span></a><a href="#" class="flex flex-col items-center gap-0.5 text-text-muted hover:text-text-primary px-2 py-1"><span class="material-symbols-outlined text-[20px]" data-icon="folder">folder</span><span class="text-[11px] font-medium leading-none">Files</span></a><a href="#" class="flex flex-col items-center gap-0.5 text-text-muted hover:text-text-primary px-2 py-1"><span class="material-symbols-outlined text-[20px]" data-icon="usb">usb</span><span class="text-[11px] font-medium leading-none">Sources</span></a><a href="#" class="flex flex-col items-center gap-0.5 text-primary-container font-semibold px-2 py-1"><span class="material-symbols-outlined text-[20px] text-primary-container" data-icon="history">history</span><span class="text-[11px] font-semibold leading-none">Activity</span></a><a href="#" class="flex flex-col items-center gap-0.5 text-text-muted hover:text-text-primary px-2 py-1"><span class="material-symbols-outlined text-[20px]" data-icon="settings">settings</span><span class="text-[11px] font-medium leading-none">Settings</span></a></nav></body></html>

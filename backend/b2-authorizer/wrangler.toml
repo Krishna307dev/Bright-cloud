@@ -1,0 +1,15 @@
+name = "usbcloudbackup-b2-authorizer"
+main = "src/index.ts"
+compatibility_date = "2024-08-01"
+
+[vars]
+FIREBASE_PROJECT_ID = "cloudusb-f5f7e"
+B2_ENDPOINT = "https://s3.eu-central-003.backblazeb2.com"
+B2_BUCKET = "BrightCloud"
+B2_REGION = "eu-central-003"
+ENVIRONMENT = "production"
+
+# Secrets required in production (configured via `wrangler secret put`):
+# - B2_KEY_ID
+# - B2_APPLICATION_KEY
+# - AUTH_TOKEN_SECRET

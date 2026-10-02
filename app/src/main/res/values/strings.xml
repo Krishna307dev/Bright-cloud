@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Bright Cloud</string>
+    <string name="setup_title">Bright Cloud</string>
+    <string name="setup_description">One-time initial setup for automatic cloud backup.</string>
+</resources>

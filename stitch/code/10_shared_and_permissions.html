@@ -1,0 +1,678 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Bright Cloud - Shared &amp; Permissions</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "status-warning": "#D97706",
+            "on-secondary-fixed-variant": "#3f465c",
+            "surface-container-highest": "#d3e4fe",
+            "tertiary-fixed": "#dbe1ff",
+            "surface-container-low": "#eff4ff",
+            "tertiary-fixed-dim": "#b4c5ff",
+            "secondary-container": "#dae2fd",
+            "accent-orange-hover": "#EA580C",
+            "border-strong": "#CBD5E1",
+            "on-tertiary-fixed-variant": "#003ea8",
+            "surface-canvas": "#F8FAFC",
+            "border-hairline": "#E2E8F0",
+            "outline": "#8c7164",
+            "surface-panel": "#FFFFFF",
+            "inverse-primary": "#ffb690",
+            "secondary-fixed-dim": "#bec6e0",
+            "surface": "#f8f9ff",
+            "text-muted": "#64748B",
+            "primary": "#9d4300",
+            "on-primary-fixed-variant": "#783200",
+            "on-surface-variant": "#584237",
+            "surface-bright": "#f8f9ff",
+            "on-error": "#ffffff",
+            "on-surface": "#0b1c30",
+            "secondary-fixed": "#dae2fd",
+            "status-info": "#2563EB",
+            "on-error-container": "#93000a",
+            "on-tertiary": "#ffffff",
+            "status-error": "#DC2626",
+            "on-secondary-fixed": "#131b2e",
+            "tertiary": "#0053db",
+            "secondary": "#565e74",
+            "outline-variant": "#e0c0b1",
+            "on-secondary": "#ffffff",
+            "on-primary": "#ffffff",
+            "error-container": "#ffdad6",
+            "primary-fixed-dim": "#ffb690",
+            "surface-subtle": "#F1F5F9",
+            "surface-container-high": "#dce9ff",
+            "on-primary-fixed": "#341100",
+            "on-tertiary-container": "#002c7c",
+            "primary-container": "#f97316",
+            "surface-container": "#e5eeff",
+            "on-tertiary-fixed": "#00174b",
+            "on-background": "#0b1c30",
+            "surface-variant": "#d3e4fe",
+            "status-success": "#16A34A",
+            "on-secondary-container": "#5c647a",
+            "surface-container-lowest": "#ffffff",
+            "surface-tint": "#9d4300",
+            "accent-orange-subtle": "#FFF7ED",
+            "surface-dim": "#cbdbf5",
+            "error": "#ba1a1a",
+            "inverse-surface": "#213145",
+            "background": "#f8f9ff",
+            "primary-fixed": "#ffdbca",
+            "inverse-on-surface": "#eaf1ff",
+            "text-secondary": "#475569",
+            "text-primary": "#0F172A",
+            "on-primary-container": "#582200",
+            "tertiary-container": "#7296ff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-sm": "0.75rem",
+            "space-md": "1rem",
+            "space-xl": "1.5rem",
+            "gutter": "1rem",
+            "space-2xs": "0.25rem",
+            "space-lg": "1.25rem",
+            "margin-desktop": "1.5rem",
+            "space-4xl": "3rem",
+            "space-3xl": "2.5rem",
+            "margin": "1rem",
+            "space-xs": "0.5rem",
+            "space-2xl": "2rem",
+            "gutter-desktop": "1.5rem"
+          },
+          "fontFamily": {
+            "body-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "headline-lg-mobile": ["Inter"],
+            "body-md": ["Inter"],
+            "metadata": ["Inter"],
+            "headline-md": ["Inter"],
+            "headline-sm": ["Inter"],
+            "table-header": ["Inter"],
+            "headline-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "label-sm": ["Inter"],
+            "code-inline": ["Inter"]
+          },
+          "fontSize": {
+            "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "headline-lg-mobile": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "metadata": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "table-header": ["12px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+            "code-inline": ["12px", { "lineHeight": "16px", "fontWeight": "500" }]
+          }
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-surface-canvas text-text-primary antialiased min-h-screen overflow-x-hidden selection:bg-accent-orange-subtle selection:text-primary-container">
+<!-- Fixed Left Sidebar (Shared Components JSON execution) -->
+<aside class="fixed top-0 left-0 h-screen w-60 bg-surface-canvas border-r border-border-hairline z-30 flex flex-col justify-between py-space-md px-space-sm select-none">
+<div class="flex flex-col gap-space-md">
+<!-- App Brand Anchor -->
+<div class="flex items-center gap-space-sm px-space-xs">
+<div class="w-8 h-8 rounded bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[20px]" data-icon="shield">shield</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm font-semibold text-text-primary leading-tight">Bright Cloud</span>
+<span class="font-metadata text-metadata text-text-muted">Personal Vault v2.4</span>
+</div>
+</div>
+<!-- Quick Action CTA -->
+<div class="pt-space-xs">
+<button class="w-full flex items-center justify-center gap-space-xs bg-surface-panel border border-border-hairline hover:border-border-strong hover:bg-surface-subtle text-text-primary h-9 px-space-sm rounded font-label-md text-label-md transition-colors duration-150 ease-in-out">
+<span class="material-symbols-outlined text-[18px] text-primary-container" data-icon="add">add</span>
+<span class="">Add Source</span>
+</button>
+</div>
+<!-- Navigation Tabs (6 tabs, with active: Shared) -->
+<nav class="flex flex-col gap-1 pt-space-xs">
+<!-- Dashboard -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<!-- Files -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="folder">folder</span>
+<span class="font-label-md text-label-md">Files</span>
+</a>
+<!-- Sources -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="usb">usb</span>
+<span class="font-label-md text-label-md">Sources</span>
+</a>
+<!-- Shared (ACTIVE) -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded bg-accent-orange-subtle text-primary-container font-semibold border-l-2 border-primary-container transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="share">share</span>
+<span class="font-label-md text-label-md">Shared</span>
+</a>
+<!-- Activity -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="history">history</span>
+<span class="font-label-md text-label-md">Activity</span>
+</a>
+<!-- Settings -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+</div>
+<!-- Footer Profile/Security -->
+<div class="border-t border-border-hairline pt-space-sm flex flex-col gap-1">
+<div class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary hover:bg-surface-subtle hover:text-text-primary cursor-pointer transition-colors duration-150 ease-in-out">
+<span class="material-symbols-outlined text-[18px]" data-icon="shield_person">shield_person</span>
+<span class="font-label-md text-label-md">Security Profile</span>
+</div>
+<div class="flex items-center justify-between px-space-md pt-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-status-success"></div>
+<span class="font-metadata text-metadata text-text-muted">Vault Status: Online</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Docked Top Navigation Bar (Shared Components JSON execution) -->
+<header class="fixed top-0 left-60 right-0 h-14 bg-surface-panel border-b border-border-hairline z-20 flex items-center justify-between px-space-xl">
+<div class="flex items-center gap-space-md w-1/2">
+<!-- Breadcrumbs Anchor -->
+<nav class="flex items-center gap-space-xs font-label-md text-label-md">
+<span class="text-text-muted hover:text-primary-container cursor-pointer transition-colors">Vault</span>
+<span class="text-text-muted">/</span>
+<span class="text-text-primary font-semibold">Shared with Friends</span>
+</nav>
+<!-- Global Filter Search Bar -->
+<div class="relative w-80">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[18px]" data-icon="search">search</span>
+<input class="w-full h-8 pl-9 pr-3 bg-surface-subtle border border-border-hairline rounded font-body-sm text-body-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary-container focus:bg-surface-panel transition-all" placeholder="Filter shared files or recipients..." type="text">
+</div>
+</div>
+<!-- Trailing Action Cluster -->
+<div class="flex items-center gap-space-sm">
+<button class="h-9 px-space-md bg-primary-container hover:bg-accent-orange-hover text-on-primary rounded font-label-md text-label-md font-medium flex items-center gap-space-xs shadow-none transition-colors duration-150">
+<span class="material-symbols-outlined text-[18px]" data-icon="share">share</span>
+<span class="">Share File or Folder</span>
+</button>
+<div class="h-5 w-[1px] bg-border-hairline mx-1"></div>
+<!-- Icon actions from JSON specification -->
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 rounded flex items-center justify-center text-text-secondary hover:bg-surface-subtle hover:text-text-primary transition-colors" title="Sync state">
+<span class="material-symbols-outlined text-[18px]" data-icon="sync">sync</span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center text-text-secondary hover:bg-surface-subtle hover:text-text-primary transition-colors" title="Notifications">
+<span class="material-symbols-outlined text-[18px]" data-icon="notifications">notifications</span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center text-text-secondary hover:bg-surface-subtle hover:text-text-primary transition-colors" title="Help &amp; documentation">
+<span class="material-symbols-outlined text-[18px]" data-icon="help">help</span>
+</button>
+</div>
+<!-- User Security Profile Avatar -->
+<div class="flex items-center gap-2 pl-2 border-l border-border-hairline">
+<div class="w-7 h-7 rounded bg-surface-subtle border border-border-hairline flex items-center justify-center text-text-primary font-label-sm text-label-sm font-semibold">
+          AD
+        </div>
+</div>
+</div>
+</header>
+<!-- Main Content Layout (Desktop Shell with fluid table and pinned inspection panel) -->
+<div class="ml-60 pt-14 min-h-screen flex">
+<!-- Left Workspace Pane -->
+<main class="flex-1 min-w-0 p-space-xl overflow-y-auto">
+<!-- Sub-tabs bar: 'Files Shared by You' & 'Shared with You' -->
+<div class="flex items-center justify-between border-b border-border-hairline pb-0 mb-space-lg">
+<div class="flex items-center gap-space-lg">
+<button class="pb-space-sm font-headline-sm text-headline-sm border-b-2 border-primary-container text-text-primary flex items-center gap-2">
+<span class="">Files Shared by You</span>
+<span class="px-2 py-0.5 rounded-full bg-accent-orange-subtle text-primary-container font-label-sm text-label-sm">8</span>
+</button>
+<button class="pb-space-sm font-label-md text-label-md text-text-muted hover:text-text-primary transition-colors flex items-center gap-2">
+<span class="">Shared with You</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-subtle text-text-secondary font-label-sm text-label-sm">2</span>
+</button>
+</div>
+<div class="flex items-center gap-2 pb-space-sm">
+<button class="h-8 px-space-sm rounded border border-border-hairline bg-surface-panel hover:bg-surface-subtle text-text-secondary font-label-md text-label-md flex items-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[16px]" data-icon="filter_list">filter_list</span>
+<span class="">Filter</span>
+</button>
+<button class="h-8 px-space-sm rounded border border-border-hairline bg-surface-panel hover:bg-surface-subtle text-text-secondary font-label-md text-label-md flex items-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[16px]" data-icon="download">download</span>
+<span class="">Audit Log</span>
+</button>
+</div>
+</div>
+<!-- Access Summary Metrics Bento Strip -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md mb-space-lg">
+<div class="bg-surface-panel p-space-md rounded border border-border-hairline flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-metadata text-metadata text-text-muted">Total Active Shares</span>
+<span class="font-headline-lg text-headline-lg text-text-primary mt-1">8 <span class="font-body-sm text-body-sm font-normal text-text-secondary">Items</span></span>
+</div>
+<div class="w-10 h-10 rounded bg-surface-subtle flex items-center justify-center text-text-secondary">
+<span class="material-symbols-outlined text-[22px]" data-icon="folder_shared">folder_shared</span>
+</div>
+</div>
+<div class="bg-surface-panel p-space-md rounded border border-border-hairline flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-metadata text-metadata text-text-muted">Authorized Friends</span>
+<span class="font-headline-lg text-headline-lg text-text-primary mt-1">4 <span class="font-body-sm text-body-sm font-normal text-text-secondary">Viewers</span></span>
+</div>
+<div class="w-10 h-10 rounded bg-accent-orange-subtle flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-[22px]" data-icon="group">group</span>
+</div>
+</div>
+<div class="bg-surface-panel p-space-md rounded border border-border-hairline flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-metadata text-metadata text-text-muted">Permission Policy</span>
+<span class="font-headline-sm text-headline-sm text-text-primary mt-1">Strict Direct-Grant</span>
+</div>
+<div class="w-10 h-10 rounded bg-surface-subtle flex items-center justify-center text-status-success">
+<span class="material-symbols-outlined text-[22px]" data-icon="verified_user">verified_user</span>
+</div>
+</div>
+</div>
+<!-- Manage Friends Quick Bar -->
+<div class="bg-surface-panel rounded border border-border-hairline p-space-md mb-space-lg">
+<div class="flex items-center justify-between pb-space-xs mb-space-sm border-b border-border-hairline">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-text-secondary" data-icon="people">people</span>
+<span class="font-label-md text-label-md text-text-primary font-semibold">Authorized Friends Circle</span>
+<span class="font-metadata text-metadata text-text-muted">(4 Total)</span>
+</div>
+<button class="text-primary-container hover:text-accent-orange-hover font-label-md text-label-md font-semibold flex items-center gap-1 transition-colors">
+<span class="">Manage Access</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-sm">
+<!-- Marcus Vance (Admin) -->
+<div class="p-space-sm rounded border border-border-hairline bg-surface-canvas flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-full bg-status-info/10 text-status-info font-label-sm text-label-sm flex items-center justify-center font-semibold">MV</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-medium">Marcus Vance</span>
+<span class="font-metadata text-metadata text-text-muted">marcus@home.lan</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-semibold bg-[#FFF7ED] text-[#C2410C]">Admin</span>
+</div>
+<!-- Sarah Chen (Viewer) -->
+<div class="p-space-sm rounded border border-border-hairline bg-surface-canvas flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-full bg-status-success/10 text-status-success font-label-sm text-label-sm flex items-center justify-center font-semibold">SC</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-medium">Sarah Chen</span>
+<span class="font-metadata text-metadata text-text-muted">sarah.c@vault.net</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-semibold bg-[#F1F5F9] text-[#334155]">Viewer</span>
+</div>
+<!-- Alex Rivera (Viewer) -->
+<div class="p-space-sm rounded border border-border-hairline bg-surface-canvas flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-full bg-status-warning/10 text-status-warning font-label-sm text-label-sm flex items-center justify-center font-semibold">AR</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-medium">Alex Rivera</span>
+<span class="font-metadata text-metadata text-text-muted">rivera.a@local</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-semibold bg-[#F1F5F9] text-[#334155]">Viewer</span>
+</div>
+<!-- Elena Rostova (Viewer) -->
+<div class="p-space-sm rounded border border-border-hairline bg-surface-canvas flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-label-sm text-label-sm flex items-center justify-center font-semibold">ER</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-medium">Elena Rostova</span>
+<span class="font-metadata text-metadata text-text-muted">elena.r@sec.mesh</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-semibold bg-[#F1F5F9] text-[#334155]">Viewer</span>
+</div>
+</div>
+</div>
+<!-- Shared Files & Folders Table -->
+<div class="bg-surface-panel rounded border border-border-hairline overflow-hidden shadow-none">
+<div class="px-space-md py-space-sm border-b border-border-hairline flex items-center justify-between bg-surface-canvas">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-text-primary font-semibold">Active File Grants</span>
+<span class="font-metadata text-metadata text-text-muted">Displaying 4 active entries</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="text-text-muted hover:text-text-primary p-1 rounded hover:bg-surface-subtle transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="refresh">refresh</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="h-9 bg-surface-subtle border-b border-border-hairline font-table-header text-table-header text-text-muted uppercase tracking-wider">
+<th class="px-space-md w-8">
+<input class="rounded border-border-hairline text-primary-container focus:ring-primary-container h-3.5 w-3.5" type="checkbox">
+</th>
+<th class="px-space-md">Name</th>
+<th class="px-space-md">Type</th>
+<th class="px-space-md">Original Source</th>
+<th class="px-space-md">Shared With</th>
+<th class="px-space-md">Access Level</th>
+<th class="px-space-md">Shared Date</th>
+<th class="px-space-md text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-subtle font-body-sm text-body-sm">
+<!-- Row 1: Projects/ -->
+<tr class="h-11 hover:bg-surface-canvas transition-colors group">
+<td class="px-space-md">
+<input class="rounded border-border-hairline text-primary-container focus:ring-primary-container h-3.5 w-3.5" type="checkbox">
+</td>
+<td class="px-space-md">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-text-muted group-hover:text-primary-container transition-colors" data-icon="folder">folder</span>
+<span class="font-label-md text-label-md font-medium text-text-primary">Projects/</span>
+<span class="font-metadata text-metadata text-text-muted">(42 items)</span>
+</div>
+</td>
+<td class="px-space-md text-text-secondary">Folder</td>
+<td class="px-space-md">
+<span class="inline-flex items-center gap-1 text-text-secondary">
+<span class="material-symbols-outlined text-[15px] text-text-muted" data-icon="usb">usb</span>
+<span class="">Lexar JumpDrive</span>
+</span>
+</td>
+<td class="px-space-md">
+<div class="flex items-center gap-1">
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm bg-surface-subtle text-text-secondary font-medium">3 Viewers</span>
+</div>
+</td>
+<td class="px-space-md">
+<span class="font-metadata text-metadata text-text-secondary">Folder View &amp; Download</span>
+</td>
+<td class="px-space-md text-text-muted">Mar 24 2026</td>
+<td class="px-space-md text-right">
+<div class="inline-flex items-center gap-1.5">
+<button class="px-2.5 py-1 text-xs font-semibold rounded bg-surface-panel border border-border-hairline hover:bg-surface-subtle hover:border-border-strong text-text-primary transition-colors">
+                      Manage Access
+                    </button>
+<button class="px-2 py-1 text-xs font-semibold rounded text-status-error hover:bg-red-50 transition-colors">
+                      Revoke
+                    </button>
+</div>
+</td>
+</tr>
+<!-- Row 2: Agriculture.pdf (SELECTED / ACTIVE PREVIEW) -->
+<tr class="h-11 bg-accent-orange-subtle border-l-2 border-primary-container transition-colors group">
+<td class="px-space-md">
+<input checked="" class="rounded border-border-hairline text-primary-container focus:ring-primary-container h-3.5 w-3.5" type="checkbox">
+</td>
+<td class="px-space-md">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-primary-container" data-icon="picture_as_pdf">picture_as_pdf</span>
+<span class="font-label-md text-label-md font-semibold text-text-primary">Agriculture.pdf</span>
+<span class="font-metadata text-metadata text-text-muted">(14.2 MB)</span>
+</div>
+</td>
+<td class="px-space-md text-text-secondary">PDF</td>
+<td class="px-space-md">
+<span class="inline-flex items-center gap-1 text-text-secondary">
+<span class="material-symbols-outlined text-[15px] text-text-muted" data-icon="usb">usb</span>
+<span class="">Lexar JumpDrive</span>
+</span>
+</td>
+<td class="px-space-md">
+<div class="flex items-center gap-1">
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm bg-white border border-border-hairline text-text-primary font-medium">Sarah Chen</span>
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm bg-white border border-border-hairline text-text-primary font-medium">Alex Rivera</span>
+</div>
+</td>
+<td class="px-space-md">
+<span class="font-metadata text-metadata text-text-secondary font-medium">File Download</span>
+</td>
+<td class="px-space-md text-text-primary font-medium">Today 09:42</td>
+<td class="px-space-md text-right">
+<div class="inline-flex items-center gap-1.5">
+<button class="px-2.5 py-1 text-xs font-semibold rounded bg-white border border-primary-container text-primary-container transition-colors">
+                      Manage Access
+                    </button>
+<button class="px-2 py-1 text-xs font-semibold rounded text-status-error hover:bg-red-50 transition-colors">
+                      Revoke
+                    </button>
+</div>
+</td>
+</tr>
+<!-- Row 3: Respiration.pdf -->
+<tr class="h-11 hover:bg-surface-canvas transition-colors group">
+<td class="px-space-md">
+<input class="rounded border-border-hairline text-primary-container focus:ring-primary-container h-3.5 w-3.5" type="checkbox">
+</td>
+<td class="px-space-md">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-text-muted group-hover:text-primary-container transition-colors" data-icon="picture_as_pdf">picture_as_pdf</span>
+<span class="font-label-md text-label-md font-medium text-text-primary">Respiration.pdf</span>
+<span class="font-metadata text-metadata text-text-muted">(8.6 MB)</span>
+</div>
+</td>
+<td class="px-space-md text-text-secondary">PDF</td>
+<td class="px-space-md">
+<span class="inline-flex items-center gap-1 text-text-secondary">
+<span class="material-symbols-outlined text-[15px] text-text-muted" data-icon="usb">usb</span>
+<span class="">SanDisk Ultra</span>
+</span>
+</td>
+<td class="px-space-md">
+<div class="flex items-center gap-1">
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm bg-surface-subtle text-text-secondary font-medium">Sarah Chen</span>
+</div>
+</td>
+<td class="px-space-md">
+<span class="font-metadata text-metadata text-text-secondary">File Download</span>
+</td>
+<td class="px-space-md text-text-muted">Yesterday</td>
+<td class="px-space-md text-right">
+<div class="inline-flex items-center gap-1.5">
+<button class="px-2.5 py-1 text-xs font-semibold rounded bg-surface-panel border border-border-hairline hover:bg-surface-subtle hover:border-border-strong text-text-primary transition-colors">
+                      Manage Access
+                    </button>
+<button class="px-2 py-1 text-xs font-semibold rounded text-status-error hover:bg-red-50 transition-colors">
+                      Revoke
+                    </button>
+</div>
+</td>
+</tr>
+<!-- Row 4: Hardware_Manifest_v2.xlsx -->
+<tr class="h-11 hover:bg-surface-canvas transition-colors group">
+<td class="px-space-md">
+<input class="rounded border-border-hairline text-primary-container focus:ring-primary-container h-3.5 w-3.5" type="checkbox">
+</td>
+<td class="px-space-md">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-text-muted group-hover:text-primary-container transition-colors" data-icon="table_view">table_view</span>
+<span class="font-label-md text-label-md font-medium text-text-primary">Hardware_Manifest_v2.xlsx</span>
+<span class="font-metadata text-metadata text-text-muted">(2.4 MB)</span>
+</div>
+</td>
+<td class="px-space-md text-text-secondary">Spreadsheet</td>
+<td class="px-space-md">
+<span class="inline-flex items-center gap-1 text-text-secondary">
+<span class="material-symbols-outlined text-[15px] text-text-muted" data-icon="usb">usb</span>
+<span class="">Lexar JumpDrive</span>
+</span>
+</td>
+<td class="px-space-md">
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm bg-surface-subtle text-text-secondary font-medium">All Authorized Viewers</span>
+</td>
+<td class="px-space-md">
+<span class="font-metadata text-metadata text-text-secondary">File Download</span>
+</td>
+<td class="px-space-md text-text-muted">Mar 20 2026</td>
+<td class="px-space-md text-right">
+<div class="inline-flex items-center gap-1.5">
+<button class="px-2.5 py-1 text-xs font-semibold rounded bg-surface-panel border border-border-hairline hover:bg-surface-subtle hover:border-border-strong text-text-primary transition-colors">
+                      Manage Access
+                    </button>
+<button class="px-2 py-1 text-xs font-semibold rounded text-status-error hover:bg-red-50 transition-colors">
+                      Revoke
+                    </button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Pagination and Bottom Info Bar -->
+<div class="px-space-md py-space-xs bg-surface-canvas border-t border-border-hairline flex items-center justify-between font-metadata text-metadata text-text-muted">
+<span class="">Showing 4 of 8 total grants</span>
+<div class="flex items-center gap-2">
+<button class="px-2 py-1 rounded border border-border-hairline bg-surface-panel disabled:opacity-50" disabled="">Previous</button>
+<span class="text-text-primary font-medium">Page 1 of 2</span>
+<button class="px-2 py-1 rounded border border-border-hairline bg-surface-panel hover:bg-surface-subtle text-text-primary">Next</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Side Panel: Access Management Drawer (Pinned 320px inspection panel per Design System) -->
+<aside class="w-80 bg-surface-panel border-l border-border-hairline flex flex-col justify-between p-space-lg select-none">
+<div class="flex flex-col gap-space-md">
+<!-- Drawer Header -->
+<div class="flex items-center justify-between border-b border-border-hairline pb-space-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-primary-container" data-icon="tune">tune</span>
+<span class="font-headline-sm text-headline-sm text-text-primary">Access Management</span>
+</div>
+<button class="text-text-muted hover:text-text-primary p-1 rounded hover:bg-surface-subtle transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="close">close</span>
+</button>
+</div>
+<!-- Selected Item Badge & Summary -->
+<div class="p-space-sm rounded border border-border-hairline bg-surface-canvas">
+<div class="flex items-center gap-2 mb-1.5">
+<div class="w-8 h-8 rounded bg-accent-orange-subtle flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-[20px]" data-icon="picture_as_pdf">picture_as_pdf</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md font-semibold text-text-primary truncate">Agriculture.pdf</span>
+<span class="font-metadata text-metadata text-text-muted">14.2 MB · Direct USB Backup</span>
+</div>
+</div>
+<div class="flex items-center justify-between text-xs pt-1 border-t border-border-hairline text-text-secondary">
+<span class="">Ownership</span>
+<span class="font-semibold text-text-primary">Admin (You)</span>
+</div>
+</div>
+<!-- Add Friend to Item Quick Bar -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-md text-label-md font-medium text-text-secondary">Grant New Friend</label>
+<div class="flex items-center gap-1.5">
+<div class="relative flex-1">
+<input class="w-full h-8 pl-2.5 pr-2 bg-surface-canvas border border-border-hairline rounded font-body-sm text-body-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary-container" placeholder="Select friend name..." type="text">
+</div>
+<button class="h-8 px-space-sm bg-surface-panel border border-border-hairline hover:bg-surface-subtle text-text-primary rounded font-label-md text-label-md font-medium flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[16px] text-primary-container" data-icon="person_add">person_add</span>
+<span class="">Add</span>
+</button>
+</div>
+</div>
+<!-- Active Grantees List -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-table-header text-table-header text-text-muted uppercase tracking-wider">Permitted Users (2)</span>
+<span class="font-metadata text-metadata text-text-muted">Access Level</span>
+</div>
+<!-- User 1: Sarah Chen -->
+<div class="p-space-xs rounded border border-border-hairline bg-surface-panel hover:bg-surface-canvas transition-colors">
+<div class="flex items-center justify-between mb-1.5">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-status-success/10 text-status-success font-label-sm text-label-sm flex items-center justify-center font-semibold">SC</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-medium leading-tight">Sarah Chen</span>
+<span class="font-metadata text-metadata text-text-muted">sarah.c@vault.net</span>
+</div>
+</div>
+<span class="px-1.5 py-0.5 rounded font-label-sm text-label-sm font-semibold bg-[#F1F5F9] text-[#334155]">Viewer</span>
+</div>
+<div class="flex items-center justify-between pt-1 border-t border-border-hairline/60">
+<select class="h-6 text-xs bg-transparent border-none text-text-secondary focus:ring-0 cursor-pointer p-0 font-medium">
+<option selected="">Can View &amp; Download</option>
+<option>View Only (Stream)</option>
+</select>
+<button class="text-xs text-status-error hover:underline flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]" data-icon="remove_circle">remove_circle</span>
+<span class="">Remove</span>
+</button>
+</div>
+</div>
+<!-- User 2: Alex Rivera -->
+<div class="p-space-xs rounded border border-border-hairline bg-surface-panel hover:bg-surface-canvas transition-colors">
+<div class="flex items-center justify-between mb-1.5">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-status-warning/10 text-status-warning font-label-sm text-label-sm flex items-center justify-center font-semibold">AR</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-text-primary font-medium leading-tight">Alex Rivera</span>
+<span class="font-metadata text-metadata text-text-muted">rivera.a@local</span>
+</div>
+</div>
+<span class="px-1.5 py-0.5 rounded font-label-sm text-label-sm font-semibold bg-[#F1F5F9] text-[#334155]">Viewer</span>
+</div>
+<div class="flex items-center justify-between pt-1 border-t border-border-hairline/60">
+<select class="h-6 text-xs bg-transparent border-none text-text-secondary focus:ring-0 cursor-pointer p-0 font-medium">
+<option selected="">Can View &amp; Download</option>
+<option>View Only (Stream)</option>
+</select>
+<button class="text-xs text-status-error hover:underline flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]" data-icon="remove_circle">remove_circle</span>
+<span class="">Remove</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Sharing Policy Summary Box -->
+<div class="p-space-sm rounded bg-surface-subtle border border-border-hairline flex flex-col gap-1">
+<div class="flex items-center gap-1.5 text-text-primary font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[16px] text-text-muted" data-icon="lock">lock</span>
+<span class="">Security Model</span>
+</div>
+<p class="font-metadata text-metadata text-text-muted leading-relaxed">Access is restricted to authenticated Google accounts with explicit viewer permissions. No public URLs or unauthenticated download links are generated.</p>
+</div>
+</div>
+<!-- Drawer Footer Actions -->
+<div class="border-t border-border-hairline pt-space-md flex flex-col gap-2">
+<button class="w-full h-9 bg-primary-container hover:bg-accent-orange-hover text-on-primary rounded font-label-md text-label-md font-medium flex items-center justify-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="check">check</span>
+<span class="">Save Changes</span>
+</button>
+<button class="w-full h-8 bg-surface-panel border border-border-hairline hover:bg-surface-subtle text-text-secondary rounded font-label-md text-label-md font-medium transition-colors">
+          Reset to Default
+        </button>
+</div>
+</aside>
+</div>
+
+
+</body></html>

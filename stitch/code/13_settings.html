@@ -1,0 +1,658 @@
+<!DOCTYPE html><html lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Bright Cloud - Settings</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Inter Font -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config Verbatim -->
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "status-error": "#DC2626",
+            "outline-variant": "#e0c0b1",
+            "surface-tint": "#9d4300",
+            "secondary-container": "#dae2fd",
+            "on-tertiary": "#ffffff",
+            "on-primary-fixed-variant": "#783200",
+            "inverse-primary": "#ffb690",
+            "surface-bright": "#f8f9ff",
+            "on-surface": "#0b1c30",
+            "primary-fixed": "#ffdbca",
+            "text-secondary": "#475569",
+            "primary-container": "#f97316",
+            "surface-dim": "#cbdbf5",
+            "secondary": "#565e74",
+            "secondary-fixed": "#dae2fd",
+            "border-strong": "#CBD5E1",
+            "primary": "#9d4300",
+            "on-error": "#ffffff",
+            "status-info": "#2563EB",
+            "surface-container": "#e5eeff",
+            "surface-subtle": "#F1F5F9",
+            "accent-orange-hover": "#EA580C",
+            "on-primary-container": "#582200",
+            "on-secondary": "#ffffff",
+            "on-tertiary-fixed-variant": "#003ea8",
+            "accent-orange-subtle": "#FFF7ED",
+            "error-container": "#ffdad6",
+            "primary-fixed-dim": "#ffb690",
+            "on-tertiary-container": "#002c7c",
+            "on-error-container": "#93000a",
+            "on-secondary-fixed": "#131b2e",
+            "surface-container-high": "#dce9ff",
+            "tertiary-container": "#7296ff",
+            "surface-variant": "#d3e4fe",
+            "on-primary": "#ffffff",
+            "tertiary-fixed-dim": "#b4c5ff",
+            "status-warning": "#D97706",
+            "surface-container-lowest": "#ffffff",
+            "inverse-surface": "#213145",
+            "text-muted": "#64748B",
+            "on-secondary-fixed-variant": "#3f465c",
+            "on-primary-fixed": "#341100",
+            "surface-panel": "#FFFFFF",
+            "background": "#f8f9ff",
+            "surface-container-low": "#eff4ff",
+            "text-primary": "#0F172A",
+            "surface-container-highest": "#d3e4fe",
+            "tertiary": "#0053db",
+            "surface-canvas": "#F8FAFC",
+            "outline": "#8c7164",
+            "status-success": "#16A34A",
+            "tertiary-fixed": "#dbe1ff",
+            "on-tertiary-fixed": "#00174b",
+            "on-surface-variant": "#584237",
+            "secondary-fixed-dim": "#bec6e0",
+            "border-hairline": "#E2E8F0",
+            "surface": "#f8f9ff",
+            "on-background": "#0b1c30",
+            "inverse-on-surface": "#eaf1ff",
+            "on-secondary-container": "#5c647a",
+            "error": "#ba1a1a"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-xl": "1.5rem",
+            "space-sm": "0.75rem",
+            "space-md": "1rem",
+            "gutter": "1rem",
+            "space-3xl": "2.5rem",
+            "space-lg": "1.25rem",
+            "gutter-desktop": "1.5rem",
+            "space-2xl": "2rem",
+            "margin": "1rem",
+            "margin-desktop": "1.5rem",
+            "space-2xs": "0.25rem",
+            "space-xs": "0.5rem",
+            "space-4xl": "3rem"
+          },
+          "fontFamily": {
+            "body-md": ["Inter"],
+            "body-sm": ["Inter"],
+            "table-header": ["Inter"],
+            "label-sm": ["Inter"],
+            "code-inline": ["Inter"],
+            "headline-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "headline-lg-mobile": ["Inter"],
+            "metadata": ["Inter"],
+            "headline-sm": ["Inter"],
+            "headline-md": ["Inter"],
+            "body-lg": ["Inter"]
+          },
+          "fontSize": {
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "table-header": ["12px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+            "code-inline": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "headline-lg-mobile": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "metadata": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 20px;
+      line-height: 1;
+      display: inline-block;
+      text-transform: none;
+      letter-spacing: normal;
+      word-wrap: normal;
+      white-space: nowrap;
+      direction: ltr;
+      vertical-align: middle;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Custom radio styling to match precision desktop utility */
+    input[type="radio"]:checked {
+      background-color: #f97316;
+      border-color: #f97316;
+    }
+    input[type="checkbox"]:checked {
+      background-color: #f97316;
+      border-color: #f97316;
+    }
+  </style>
+</head>
+<body class="bg-surface-canvas text-text-primary antialiased selection:bg-accent-orange-subtle selection:text-primary">
+<!-- ========================================================================= -->
+<!-- SIDE NAVIGATION (Shared Component: SideNavBar)                            -->
+<!-- ========================================================================= -->
+<aside class="fixed top-0 left-0 h-screen w-60 bg-surface-canvas border-r border-border-hairline z-30 select-none">
+<div class="flex flex-col justify-between h-full w-60 py-space-md px-space-sm">
+<!-- Top Group: Identity & Main Tabs -->
+<div class="space-y-space-md">
+<!-- Brand Header -->
+<div class="px-space-sm flex items-center gap-space-sm py-space-xs">
+<div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[20px]" data-icon="shield">shield</span>
+</div>
+<div>
+<h1 class="font-headline-sm text-headline-sm font-semibold text-text-primary tracking-tight">Bright Cloud</h1>
+<p class="font-metadata text-metadata text-text-muted">Personal Vault v2.4</p>
+</div>
+</div>
+<!-- Add Source Action Button -->
+<div class="px-space-sm">
+<button class="w-full flex items-center justify-center gap-space-xs h-9 px-space-md bg-surface-panel hover:bg-surface-subtle text-text-primary font-label-md text-label-md border border-border-hairline hover:border-border-strong rounded transition-colors duration-150 ease-in-out shadow-sm">
+<span class="material-symbols-outlined text-[18px] text-text-muted" data-icon="add">add</span>
+<span class="">Add Source</span>
+</button>
+</div>
+<!-- Navigation Tabs List -->
+<nav class="space-y-1">
+<!-- 1. Dashboard -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="">Dashboard</span>
+</a>
+<!-- 2. Files -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="folder">folder</span>
+<span class="">Files</span>
+</a>
+<!-- 3. Sources -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="usb">usb</span>
+<span class="">Sources</span>
+</a>
+<!-- 4. Shared -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="share">share</span>
+<span class="">Shared</span>
+</a>
+<!-- 5. Activity -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="">Activity</span>
+</a>
+<!-- 6. Settings (ACTIVE SELECTION) -->
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded bg-accent-orange-subtle text-primary-container font-semibold border-l-2 border-primary-container transition-colors duration-150 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined text-primary-container" data-icon="settings">settings</span>
+<span class="">Settings</span>
+</a>
+</nav>
+</div>
+<!-- Footer Navigation Group -->
+<div class="pt-space-md border-t border-border-hairline space-y-1">
+<a class="flex items-center gap-space-sm px-space-md py-space-xs rounded text-text-secondary font-medium hover:bg-surface-subtle hover:text-text-primary transition-colors duration-150 ease-in-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" data-icon="shield_person">shield_person</span>
+<span class="">Security Profile</span>
+</a>
+<div class="px-space-md py-space-xs mt-2 flex items-center justify-between text-text-muted">
+<span class="font-metadata text-metadata">Storage Node</span>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-status-success font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success"></span> Online
+          </span>
+</div>
+</div>
+</div>
+</aside>
+<!-- ========================================================================= -->
+<!-- TOP CONTEXTUAL BAR (Shared Component: TopNavBar)                          -->
+<!-- ========================================================================= -->
+<header class="fixed top-0 right-0 h-14 bg-surface-panel border-b border-border-hairline z-20 flex items-center justify-between px-space-xl ml-60 w-[calc(100%-15rem)]">
+<!-- Left Area: Breadcrumbs & Quick Filter -->
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-space-xs text-text-muted font-label-md text-label-md">
+<span class="hover:text-text-primary cursor-pointer transition-colors duration-150">Vault</span>
+<span class="">/</span>
+<span class="text-text-primary font-semibold">Settings</span>
+</div>
+<!-- Subtle vertical separator -->
+<div class="h-4 w-px bg-border-hairline mx-1"></div>
+<!-- Compact Search Bar on Left as defined in TopNavBar spec -->
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted text-[16px]" data-icon="search">search</span>
+<input class="w-full h-8 pl-8 pr-3 text-body-sm font-body-sm bg-surface-subtle border border-border-hairline rounded focus:outline-none focus:border-border-strong focus:bg-surface-panel text-text-primary placeholder:text-text-muted transition-all" placeholder="Filter preferences..." type="text">
+</div>
+</div>
+<!-- Right Area: Trailing Icon Actions, Profile & Quick Actions -->
+<div class="flex items-center gap-space-md">
+<!-- Trailing Icon Cluster from JSON: sync, notifications, help -->
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-subtle text-text-muted hover:text-text-primary transition-colors" title="Sync state">
+<span class="material-symbols-outlined text-[18px]" data-icon="sync">sync</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-subtle text-text-muted hover:text-text-primary transition-colors" title="Notifications">
+<span class="material-symbols-outlined text-[18px]" data-icon="notifications">notifications</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-subtle text-text-muted hover:text-text-primary transition-colors" title="Help &amp; Documentation">
+<span class="material-symbols-outlined text-[18px]" data-icon="help">help</span>
+</button>
+</div>
+<div class="h-4 w-px bg-border-hairline"></div>
+<!-- Authorize Device & Quick Download buttons from JSON spec -->
+<div class="flex items-center gap-2">
+
+<button class="h-8 px-3 rounded bg-primary-container hover:bg-accent-orange-hover text-on-primary font-label-md text-label-md transition-colors flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[16px]" data-icon="download">download</span>
+<span class="">Download All</span>
+</button>
+</div>
+<div class="h-4 w-px bg-border-hairline"></div>
+<!-- Profile Avatar -->
+<div class="flex items-center gap-2 pl-1 cursor-pointer">
+<div class="w-7 h-7 rounded-full bg-surface-subtle border border-border-hairline flex items-center justify-center text-text-primary font-label-sm text-label-sm font-semibold">
+          MV
+        </div>
+</div>
+</div>
+</header>
+<!-- ========================================================================= -->
+<!-- MAIN WORKSPACE                                                            -->
+<!-- ========================================================================= -->
+<main class="ml-60 pt-14 min-h-screen bg-surface-canvas pb-space-4xl">
+<!-- Workspace Header & Action Anchor -->
+<div class="bg-surface-panel border-b border-border-hairline px-space-2xl py-space-xl">
+<div class="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-text-primary tracking-tight">System Settings &amp; Vault Policy</h2>
+<p class="font-body-md text-body-md text-text-secondary mt-1">Configure authenticated session profiles, remote storage targets, and transfer verification protocols.</p>
+</div>
+<!-- Global Toolbar Actions -->
+<div class="flex items-center gap-space-sm flex-shrink-0">
+<button class="h-9 px-space-md rounded border border-border-hairline hover:border-border-strong bg-surface-panel hover:bg-surface-subtle text-text-primary font-label-md text-label-md transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-text-muted" data-icon="assignment_returned">assignment_returned</span>
+<span class="">Export Audit Manifest</span>
+</button>
+<button class="h-9 px-space-md rounded bg-primary-container hover:bg-accent-orange-hover text-on-primary font-label-md text-label-md transition-colors flex items-center gap-2 shadow-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="save">save</span>
+<span class="">Save Preferences</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Layout Grid: Subsections Nav + Content Panels -->
+<div class="max-w-6xl mx-auto px-space-2xl mt-space-xl">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-start">
+<!-- =================================================================== -->
+<!-- SUBSECTION SELECTOR (LEFT INTERNAL TABS)                           -->
+<!-- =================================================================== -->
+<nav aria-label="Settings subsections" class="lg:col-span-3 bg-surface-panel border border-border-hairline rounded-lg p-space-xs space-y-1 sticky top-20 shadow-sm">
+<a class="flex items-center justify-between px-space-md py-space-xs rounded bg-accent-orange-subtle text-primary-container font-semibold border-l-2 border-primary-container transition-colors font-label-md text-label-md" href="#account">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[18px]" data-icon="badge">badge</span>
+<span class="">Account &amp; Profile</span>
+</div>
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+</a>
+<a class="flex items-center justify-between px-space-md py-space-xs rounded text-text-secondary hover:bg-surface-subtle hover:text-text-primary transition-colors font-label-md text-label-md" href="#vault-overview">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[18px] text-text-muted" data-icon="inventory_2">inventory_2</span>
+<span class="">Vault Overview</span>
+</div>
+</a>
+<a class="flex items-center justify-between px-space-md py-space-xs rounded text-text-secondary hover:bg-surface-subtle hover:text-text-primary transition-colors font-label-md text-label-md" href="#storage">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[18px] text-text-muted" data-icon="cloud_sync">cloud_sync</span>
+<span class="">Storage &amp; Remote Target</span>
+</div>
+</a>
+<a class="flex items-center justify-between px-space-md py-space-xs rounded text-text-secondary hover:bg-surface-subtle hover:text-text-primary transition-colors font-label-md text-label-md" href="#security-policy">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[18px] text-text-muted" data-icon="verified_user">verified_user</span>
+<span class="">Security &amp; Sharing Policy</span>
+</div>
+</a>
+<a class="flex items-center justify-between px-space-md py-space-xs rounded text-text-secondary hover:bg-surface-subtle hover:text-text-primary transition-colors font-label-md text-label-md" href="#appearance">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[18px] text-text-muted" data-icon="palette">palette</span>
+<span class="">Appearance &amp; Accessibility</span>
+</div>
+</a>
+</nav>
+<!-- =================================================================== -->
+<!-- CONTENT WORKSPACE (RIGHT SECTIONS)                                  -->
+<!-- =================================================================== -->
+<div class="lg:col-span-9 space-y-space-xl">
+<!-- 1. ACCOUNT & PROFILE SECTION -->
+<section class="bg-surface-panel border border-border-hairline rounded-lg overflow-hidden shadow-sm" id="account">
+<div class="px-space-xl py-space-md border-b border-border-hairline flex items-center justify-between bg-surface-subtle/50">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-text-muted" data-icon="account_circle">account_circle</span>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Account &amp; Profile</h3>
+</div>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-[#DCFCE7] text-[#166534]">
+                Active Session
+              </span>
+</div>
+<div class="p-space-xl space-y-space-lg">
+<!-- Signed-in Account Card -->
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md p-space-md bg-surface-canvas border border-border-hairline rounded-lg">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-lg bg-surface-panel border border-border-hairline flex items-center justify-center font-headline-md text-headline-md text-text-primary font-semibold shadow-xs">
+                    MV
+                  </div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-text-primary">Marcus Vance</span>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-accent-orange-subtle text-primary font-semibold">
+                        Vault Owner / Admin
+                      </span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mt-0.5">marcus@home.lan</p>
+<div class="flex items-center gap-1.5 mt-1 text-text-muted font-metadata text-metadata"><span class="w-2 h-2 rounded-full bg-status-success"></span><span class="">Google Identity Provider</span></div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs self-stretch sm:self-auto justify-end">
+<button class="h-9 px-space-md rounded border border-border-hairline hover:border-border-strong bg-surface-panel hover:bg-surface-subtle text-status-error font-label-md text-label-md transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]" data-icon="logout">logout</span>
+<span class="">Sign Out</span>
+</button>
+</div>
+</div>
+<!-- Auth Identity Attributes -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md pt-space-xs">
+<div class="border border-border-hairline rounded p-space-md"><label class="block font-metadata text-metadata text-text-muted uppercase tracking-wider mb-1">Primary Authenticator</label><div class="flex items-center justify-between"><span class="font-label-md text-label-md text-text-primary">Google Sign-In</span><span class="material-symbols-outlined text-status-success text-[18px]" data-icon="check_circle">check_circle</span></div><p class="font-metadata text-metadata text-text-secondary mt-1">Provider: Google Identity (Firebase Auth)</p></div>
+<div class="border border-border-hairline rounded p-space-md">
+<label class="block font-metadata text-metadata text-text-muted uppercase tracking-wider mb-1">Account Identifier</label>
+<div class="flex items-center justify-between">
+<span class="font-code-inline text-code-inline text-text-primary">usr_9441a-002f-b2</span>
+<button class="text-text-muted hover:text-text-primary" title="Copy ID">
+<span class="material-symbols-outlined text-[16px]" data-icon="content_copy">content_copy</span>
+</button>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+<!-- 2. VAULT OVERVIEW & BACKUP DESTINATION -->
+<section class="bg-surface-panel border border-border-hairline rounded-lg overflow-hidden shadow-sm" id="vault-overview">
+<div class="px-space-xl py-space-md border-b border-border-hairline flex items-center justify-between bg-surface-subtle/50">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-text-muted" data-icon="lock">lock</span>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Vault Overview</h3>
+</div>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-[#DCFCE7] text-[#166534]">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success mr-1.5"></span> Operational
+              </span>
+</div>
+<div class="p-space-xl space-y-space-lg">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- Vault Name Card -->
+<div class="p-space-md border border-border-hairline rounded-lg bg-surface-canvas">
+<span class="font-metadata text-metadata text-text-muted block uppercase">Vault Container Name</span>
+<div class="flex items-center gap-2 mt-1">
+<span class="font-headline-sm text-headline-sm text-text-primary font-semibold">Personal Vault</span>
+</div>
+<p class="font-metadata text-metadata text-text-secondary mt-1">Target alias: Personal Vault</p>
+</div>
+<!-- Vault Identifier -->
+<div class="p-space-md border border-border-hairline rounded-lg bg-surface-canvas"><span class="font-metadata text-metadata text-text-muted block uppercase">Vault Identifier</span><div class="flex items-center justify-between mt-1"><span class="font-code-inline text-code-inline text-text-primary">Personal-Vault-01</span><button class="text-text-muted hover:text-text-primary" title="Copy ID"><span class="material-symbols-outlined text-[16px]" data-icon="content_copy">content_copy</span></button></div><p class="font-metadata text-metadata text-text-secondary mt-1">Created: Oct 14, 2023</p></div>
+<!-- Backup Destination -->
+<div class="p-space-md border border-border-hairline rounded-lg bg-surface-canvas">
+<span class="font-metadata text-metadata text-text-muted block uppercase">Target Remote Cloud</span>
+<div class="flex items-center gap-1.5 mt-1">
+<span class="material-symbols-outlined text-primary-container text-[18px]" data-icon="cloud">cloud</span>
+<span class="font-headline-sm text-headline-sm text-text-primary">Backblaze B2</span>
+</div>
+<p class="font-metadata text-metadata text-text-secondary mt-1">Cluster: eu-central-003</p>
+</div>
+</div>
+<!-- Vault Rename Field -->
+<div class="pt-space-xs">
+<label class="block font-label-md text-label-md text-text-primary mb-1" for="vault-label">Local Vault Display Label</label>
+<div class="flex gap-space-sm max-w-lg">
+<input class="h-9 px-space-sm flex-1 font-body-sm text-body-sm bg-surface-panel border border-border-hairline rounded focus:outline-none focus:border-border-strong text-text-primary" id="vault-label" type="text" value="Personal Vault">
+<button class="h-9 px-space-md border border-border-hairline bg-surface-subtle hover:bg-border-hairline text-text-primary font-label-md text-label-md rounded transition-colors">
+                    Update Name
+                  </button>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. STORAGE & REMOTE TARGET METRICS -->
+<section class="bg-surface-panel border border-border-hairline rounded-lg overflow-hidden shadow-sm" id="storage">
+<div class="px-space-xl py-space-md border-b border-border-hairline flex items-center justify-between bg-surface-subtle/50">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-text-muted" data-icon="hard_drive">hard_drive</span>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Storage &amp; Remote Target</h3>
+</div>
+<span class="font-metadata text-metadata text-text-muted">Target Sync: Synced 4m ago</span>
+</div>
+<div class="p-space-xl space-y-space-lg">
+<!-- Practical Storage Summary Bento Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-space-md">
+<div class="p-space-md border border-border-hairline rounded-lg">
+<div class="flex items-center justify-between text-text-muted">
+<span class="font-metadata text-metadata font-medium">Vault Size</span>
+<span class="material-symbols-outlined text-[18px]" data-icon="data_usage">data_usage</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-text-primary font-semibold">142.8</span>
+<span class="font-label-md text-label-md text-text-secondary">GB</span>
+</div>
+<p class="font-metadata text-metadata text-text-muted mt-1">In Backblaze B2 (eu-central-003)</p>
+</div>
+<div class="p-space-md border border-border-hairline rounded-lg">
+<div class="flex items-center justify-between text-text-muted">
+<span class="font-metadata text-metadata font-medium">Total Files Indexed</span>
+<span class="material-symbols-outlined text-[18px]" data-icon="description">description</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-text-primary font-semibold">1,842</span>
+<span class="font-label-md text-label-md text-text-secondary">files</span>
+</div>
+<p class="font-metadata text-metadata text-text-muted mt-1">Across 18 root directories</p>
+</div>
+<div class="p-space-md border border-border-hairline rounded-lg">
+<div class="flex items-center justify-between text-text-muted">
+<span class="font-metadata text-metadata font-medium">Connected Sources</span>
+<span class="material-symbols-outlined text-[18px]" data-icon="device_hub">device_hub</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-text-primary font-semibold">2</span>
+<span class="font-label-md text-label-md text-text-secondary">endpoints</span>
+</div>
+<p class="font-metadata text-metadata text-text-muted mt-1">1 Cloud Replica + 1 Workstation</p>
+</div>
+</div>
+<!-- Storage Quota Bar -->
+<div class="border border-border-hairline rounded-lg p-space-md bg-surface-canvas">
+<div class="flex justify-between items-center mb-2">
+<span class="font-label-md text-label-md text-text-primary">Allocated Storage Bucket Quota</span>
+<span class="font-code-inline text-code-inline text-text-secondary">142.8 GB / 500.0 GB (28.5%)</span>
+</div>
+<div class="w-full bg-border-hairline h-2 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full rounded-full" style="width: 28.5%;"></div>
+</div>
+<div class="flex justify-between items-center mt-2 text-text-muted font-metadata text-metadata"><span class="">Remote bucket: <code class="font-code-inline text-code-inline text-text-primary">brightcloud-vault-backup</code></span><span class="">Retention: Standard</span></div>
+</div>
+</div>
+</section>
+<!-- 4. SECURITY & SHARING POLICY SETTINGS -->
+<section class="bg-surface-panel border border-border-hairline rounded-lg overflow-hidden shadow-sm" id="security-policy">
+<div class="px-space-xl py-space-md border-b border-border-hairline flex items-center justify-between bg-surface-subtle/50">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-text-muted" data-icon="policy">policy</span>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Security &amp; Sharing Policy</h3>
+</div>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-[#DCFCE7] text-[#166534]">Active Policy</span>
+</div>
+<div class="p-space-xl space-y-space-lg">
+<!-- SHA-256 Integrity Verification Status -->
+<div class="p-space-md border border-border-hairline rounded-lg bg-surface-canvas flex items-start justify-between gap-space-md">
+<div class="flex items-start gap-space-md">
+<div class="p-2 rounded bg-surface-panel border border-border-hairline text-primary-container mt-0.5">
+<span class="material-symbols-outlined text-[20px]" data-icon="fact_check">fact_check</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-text-primary">SHA-256 Transfer Verification</h4>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1 max-w-xl">Verifies file SHA-256 checksums to ensure file integrity during download.</p>
+<div class="mt-2 inline-flex items-center gap-1.5 font-label-sm text-label-sm text-[#166534] bg-[#DCFCE7] px-2 py-0.5 rounded">
+<span class="material-symbols-outlined text-[14px]" data-icon="verified">verified</span>
+<span class="">Enabled for all file transfers</span>
+</div>
+</div>
+</div>
+<div class="flex items-center pt-1">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" disabled="" type="checkbox">
+<div class="w-11 h-6 bg-primary-container peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border-hairline after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+</label>
+</div>
+</div>
+<!-- Default Permission Model for New Shares -->
+<div class="space-y-space-sm pt-space-xs">
+<div>
+<h4 class="font-headline-sm text-headline-sm text-text-primary">Default Share Permission Model</h4>
+<p class="font-body-sm text-body-sm text-text-secondary mt-0.5">Define access constraints applied whenever new outbound file links or member permissions are generated.</p>
+</div>
+<div class="space-y-2">
+<!-- Option 1: Strict Direct-Grant (Active) -->
+<label class="flex items-start gap-space-md p-space-md border-2 border-primary-container bg-accent-orange-subtle/50 rounded-lg cursor-pointer">
+<input checked="" class="mt-1 text-primary-container focus:ring-primary-container" name="share-policy" type="radio">
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-text-primary">Strict Direct-Grant</span>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-accent-orange-subtle text-primary-container font-semibold">Active Policy</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">
+                        Explicit Viewer invites only. Requires verified authenticated recipient email. Public links, wildcard viewers, and anonymous access tokens are strictly disallowed.
+                      </p>
+</div>
+</label>
+<!-- Option 2: Restricted Read -->
+<label class="flex items-start gap-space-md p-space-md border border-border-hairline bg-surface-panel hover:bg-surface-canvas rounded-lg cursor-pointer transition-colors">
+<input class="mt-1 text-primary-container focus:ring-primary-container" name="share-policy" type="radio">
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-text-primary">Domain-Bound Member Read</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">
+                        Permits read-only viewing to all authenticated users with the matching home domain (<code class="font-code-inline text-code-inline text-text-primary">@home.lan</code>).
+                      </p>
+</div>
+</label>
+<!-- Option 3: Time-Bound Tokenized -->
+<label class="flex items-start gap-space-md p-space-md border border-border-hairline bg-surface-panel hover:bg-surface-canvas rounded-lg cursor-pointer transition-colors">
+<input class="mt-1 text-primary-container focus:ring-primary-container" name="share-policy" type="radio">
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-text-primary">Time-Bound Expiring Links (Max 24h)</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-secondary mt-1">
+                        Generates single-use temporary URLs that self-expire after a mandatory 24-hour verification window.
+                      </p>
+</div>
+</label>
+</div>
+</div>
+<!-- Transfer Safety Controls -->
+<div class="pt-space-xs border-t border-border-hairline space-y-3"><span class="block font-label-md text-label-md text-text-primary">Transfer Assertion Rules</span><label class="flex items-center gap-3 cursor-pointer"><input checked="" class="rounded border-border-hairline text-primary-container focus:ring-primary-container" type="checkbox"><span class="font-body-sm text-body-sm text-text-primary">Verify checksums before download completion</span></label><label class="flex items-center gap-3 cursor-pointer"><input checked="" class="rounded border-border-hairline text-primary-container focus:ring-primary-container" type="checkbox"><span class="font-body-sm text-body-sm text-text-primary">Log file access and download events in Activity stream</span></label><label class="flex items-center gap-3 cursor-pointer"><input class="rounded border-border-hairline text-primary-container focus:ring-primary-container" type="checkbox"><span class="font-body-sm text-body-sm text-text-primary">Notify on large batch downloads (&gt;10 GB)</span></label></div>
+</div>
+</section>
+<!-- 5. APPEARANCE & ACCESSIBILITY -->
+<section class="bg-surface-panel border border-border-hairline rounded-lg overflow-hidden shadow-sm" id="appearance">
+<div class="px-space-xl py-space-md border-b border-border-hairline flex items-center justify-between bg-surface-subtle/50">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-text-muted" data-icon="display_settings">display_settings</span>
+<h3 class="font-headline-sm text-headline-sm text-text-primary">Appearance &amp; Accessibility</h3>
+</div>
+<span class="font-metadata text-metadata text-text-muted">Standard UI Profile</span>
+</div>
+<div class="p-space-xl space-y-space-lg">
+<!-- Interface Density Selector -->
+<div>
+<label class="block font-label-md text-label-md text-text-primary mb-1">File Manager Table Density</label>
+<p class="font-body-sm text-body-sm text-text-secondary mb-3">Controls the vertical row height and visual spacing across file views and directory streams.</p>
+<div class="grid grid-cols-3 gap-space-sm max-w-lg">
+<button class="p-space-sm border-2 border-primary-container bg-accent-orange-subtle text-text-primary rounded text-center transition-colors">
+<span class="font-label-md text-label-md font-semibold block">Compact</span>
+<span class="font-metadata text-metadata text-text-secondary">44px row height</span>
+</button>
+<button class="p-space-sm border border-border-hairline hover:border-border-strong bg-surface-panel text-text-primary rounded text-center transition-colors">
+<span class="font-label-md text-label-md block">Comfortable</span>
+<span class="font-metadata text-metadata text-text-secondary">52px row height</span>
+</button>
+<button class="p-space-sm border border-border-hairline hover:border-border-strong bg-surface-panel text-text-primary rounded text-center transition-colors">
+<span class="font-label-md text-label-md block">Detailed</span>
+<span class="font-metadata text-metadata text-text-secondary">Stacked previews</span>
+</button>
+</div>
+</div>
+<!-- High Contrast Hairlines Switch -->
+<div class="pt-space-xs border-t border-border-hairline flex items-center justify-between">
+<div>
+<span class="font-label-md text-label-md text-text-primary block">High-Definition Hairline Dividers</span>
+<p class="font-body-sm text-body-sm text-text-secondary mt-0.5">Increases divider border contrast to #CBD5E1 for improved display on calibrated studio monitors.</p>
+</div>
+<input checked="" class="rounded border-border-hairline text-primary-container focus:ring-primary-container" type="checkbox">
+</div>
+<!-- Checksum display preference -->
+<div class="pt-space-xs border-t border-border-hairline flex items-center justify-between">
+<div>
+<span class="font-label-md text-label-md text-text-primary block">Inline Monospace Checksum Truncation</span>
+<p class="font-body-sm text-body-sm text-text-secondary mt-0.5">Displays abbreviated SHA-256 strings (8...8 characters) in file inspector tables.</p>
+</div>
+<input checked="" class="rounded border-border-hairline text-primary-container focus:ring-primary-container" type="checkbox">
+</div>
+</div>
+</section>
+<!-- BOTTOM ACTION FOOTER -->
+<div class="flex items-center justify-between p-space-lg bg-surface-panel border border-border-hairline rounded-lg shadow-sm">
+<div class="flex items-center gap-2 text-text-muted font-body-sm text-body-sm"><span class="material-symbols-outlined text-[18px]" data-icon="info">info</span><span class="">Settings changes take effect immediately.</span></div>
+<div class="flex items-center gap-space-sm">
+<button class="h-9 px-space-md rounded border border-border-hairline hover:border-border-strong bg-surface-panel hover:bg-surface-subtle text-text-primary font-label-md text-label-md transition-colors">
+                Discard Changes
+              </button>
+<button class="h-9 px-space-md rounded bg-primary-container hover:bg-accent-orange-hover text-on-primary font-label-md text-label-md transition-colors shadow-sm">
+                Save Preferences
+              </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+
+
+</body></html>
