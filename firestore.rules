@@ -25,30 +25,30 @@ service cloud.firestore {
 
     function isAdmin(vaultId) {
       return isGoogleUser() && hasVaultSettings(vaultId) &&
-        'adminUids' in getVaultSettings(vaultId) &&
-        request.auth.uid in getVaultSettings(vaultId).adminUids;
+      'adminUids' in getVaultSettings(vaultId) &&
+      request.auth.uid in getVaultSettings(vaultId).adminUids;
     }
 
     function isValidApprovalPayload(userId) {
       let data = request.resource.data;
       return data.keys().hasOnly(['uid', 'email', 'name', 'reason', 'referredBy', 'status', 'createdAt', 'updatedAt']) &&
-        data.uid == userId &&
-        data.status == 'pending' &&
-        data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
-        data.reason is string && data.reason.size() > 0 && data.reason.size() <= 1000 &&
-        data.referredBy is string && data.referredBy.size() > 0 && data.referredBy.size() <= 100 &&
-        (!('email' in data) || ('email' in request.auth.token && data.email == request.auth.token.email));
+      data.uid == userId &&
+      data.status == 'pending' &&
+      data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+      data.reason is string && data.reason.size() > 0 && data.reason.size() <= 1000 &&
+      data.referredBy is string && data.referredBy.size() > 0 && data.referredBy.size() <= 100 &&
+      (!('email' in data) || ('email' in request.auth.token && data.email == request.auth.token.email));
     }
 
     function isAuthorizedFriend(vaultId) {
       return isGoogleUser() && hasVaultSettings(vaultId) &&
-        'authorizedFriends' in getVaultSettings(vaultId) &&
-        request.auth.uid in getVaultSettings(vaultId).authorizedFriends;
+      'authorizedFriends' in getVaultSettings(vaultId) &&
+      request.auth.uid in getVaultSettings(vaultId).authorizedFriends;
     }
 
     function isJobTerminal(vaultId, jobId) {
       return !exists(/databases/$(database)/documents/vaults/$(vaultId)/backupJobs/$(jobId)) ||
-        get(/databases/$(database)/documents/vaults/$(vaultId)/backupJobs/$(jobId)).data.state in ['COMPLETED', 'FAILED', 'CANCELLED'];
+      get(/databases/$(database)/documents/vaults/$(vaultId)/backupJobs/$(jobId)).data.state in ['COMPLETED', 'FAILED', 'CANCELLED'];
     }
 
     // --- Shared Vault Namespace: vaults/{vaultId} ---
@@ -67,22 +67,22 @@ service cloud.firestore {
       match /sources/{sourceId} {
         allow read: if isAdmin(vaultId) || isAuthorizedFriend(vaultId);
         allow create: if isAdmin(vaultId) || (
-          isAnonymous() &&
-          request.resource.data.sourceId == sourceId &&
-          request.resource.data.keys().hasOnly([
-            'sourceId', 'usbVendorId', 'usbProductId', 'serialNumber',
-            'volumeUuid', 'displayName', 'firstSeen', 'lastSeen', 'totalFilesBackedUp'
-          ])
+        isAnonymous() &&
+        request.resource.data.sourceId == sourceId &&
+        request.resource.data.keys().hasOnly([
+        'sourceId', 'usbVendorId', 'usbProductId', 'serialNumber',
+        'volumeUuid', 'displayName', 'firstSeen', 'lastSeen', 'totalFilesBackedUp'
+        ])
         );
         allow update: if isAdmin(vaultId) || (
-          isAnonymous() &&
-          request.resource.data.sourceId == resource.data.sourceId &&
-          (resource.data.volumeUuid == null || request.resource.data.volumeUuid == resource.data.volumeUuid) &&
-          (resource.data.firstSeen == null || request.resource.data.firstSeen == resource.data.firstSeen) &&
-          request.resource.data.keys().hasOnly([
-            'sourceId', 'usbVendorId', 'usbProductId', 'serialNumber',
-            'volumeUuid', 'displayName', 'firstSeen', 'lastSeen', 'totalFilesBackedUp'
-          ])
+        isAnonymous() &&
+        request.resource.data.sourceId == resource.data.sourceId &&
+        (resource.data.volumeUuid == null || request.resource.data.volumeUuid == resource.data.volumeUuid) &&
+        (resource.data.firstSeen == null || request.resource.data.firstSeen == resource.data.firstSeen) &&
+        request.resource.data.keys().hasOnly([
+        'sourceId', 'usbVendorId', 'usbProductId', 'serialNumber',
+        'volumeUuid', 'displayName', 'firstSeen', 'lastSeen', 'totalFilesBackedUp'
+        ])
         );
         allow delete: if isAdmin(vaultId);
       }
@@ -102,14 +102,14 @@ service cloud.firestore {
       // 4. Content Hash Index:
       // - Read: Admin, Friends, Anonymous Daemon (for deduplication lookup)
       // - Create: Admin, Anonymous Daemon (hash registration)
-      // - Update: NEVER (false)
+      // - Update: Admin only (needed to sync cloudObjectPath after file move)
       // - Delete: Admin only (for storage reset)
       match /contentHashes/{hashId} {
         allow read: if isAdmin(vaultId) || isAuthorizedFriend(vaultId) || isAnonymous();
         allow create: if (isAdmin(vaultId) || isAnonymous()) &&
-                         request.resource.data.sha256 == hashId &&
-                         hashId.size() == 64;
-        allow update: if false;
+          request.resource.data.sha256 == hashId &&
+          hashId.size() == 64;
+        allow update: if isAdmin(vaultId);
         allow delete: if isAdmin(vaultId);
       }
 
@@ -122,23 +122,23 @@ service cloud.firestore {
       match /backupJobs/{jobId} {
         allow read: if isAdmin(vaultId) || isAuthorizedFriend(vaultId);
         allow create: if isAdmin(vaultId) || (
-          isAnonymous() &&
-          request.resource.data.jobId == jobId &&
-          request.resource.data.keys().hasOnly([
-            'jobId', 'sourceId', 'state', 'startedAt', 'completedAt',
-            'totalFiles', 'skippedFiles', 'uploadedFiles', 'errorFiles'
-          ])
+        isAnonymous() &&
+        request.resource.data.jobId == jobId &&
+        request.resource.data.keys().hasOnly([
+        'jobId', 'sourceId', 'state', 'startedAt', 'completedAt',
+        'totalFiles', 'skippedFiles', 'uploadedFiles', 'errorFiles'
+        ])
         );
         allow update: if isAdmin(vaultId) || (
-          isAnonymous() &&
-          request.resource.data.jobId == resource.data.jobId &&
-          request.resource.data.sourceId == resource.data.sourceId &&
-          request.resource.data.startedAt == resource.data.startedAt &&
-          !(resource.data.state in ['COMPLETED', 'FAILED', 'CANCELLED']) &&
-          request.resource.data.keys().hasOnly([
-            'jobId', 'sourceId', 'state', 'startedAt', 'completedAt',
-            'totalFiles', 'skippedFiles', 'uploadedFiles', 'errorFiles'
-          ])
+        isAnonymous() &&
+        request.resource.data.jobId == resource.data.jobId &&
+        request.resource.data.sourceId == resource.data.sourceId &&
+        request.resource.data.startedAt == resource.data.startedAt &&
+        !(resource.data.state in ['COMPLETED', 'FAILED', 'CANCELLED']) &&
+        request.resource.data.keys().hasOnly([
+        'jobId', 'sourceId', 'state', 'startedAt', 'completedAt',
+        'totalFiles', 'skippedFiles', 'uploadedFiles', 'errorFiles'
+        ])
         );
         allow delete: if isAdmin(vaultId);
       }
@@ -150,34 +150,34 @@ service cloud.firestore {
       match /nameReservations/{resId} {
         allow read: if isAdmin(vaultId) || isAnonymous();
         allow create: if isAdmin(vaultId) || (
-          isAnonymous() &&
-          request.resource.data.reservationId == resId &&
-          request.resource.data.status == 'PENDING'
+        isAnonymous() &&
+        request.resource.data.reservationId == resId &&
+        request.resource.data.status == 'PENDING'
         );
         allow update: if isAdmin(vaultId) || (
-          isAnonymous() &&
-          resource.data.status != 'COMMITTED' &&
-          request.resource.data.reservationId == resource.data.reservationId &&
-          request.resource.data.b2ObjectKey == resource.data.b2ObjectKey &&
-          (
-            (request.resource.data.status == 'COMMITTED' && request.resource.data.jobId == resource.data.jobId) ||
-            (request.resource.data.jobId == resource.data.jobId) ||
-            (request.time > resource.data.expiresAt) ||
-            (
-              resource.data.status == 'PENDING' &&
-              request.resource.data.status == 'PENDING' &&
-              request.resource.data.sha256 == resource.data.sha256 &&
-              request.resource.data.sourceId == resource.data.sourceId &&
-              request.resource.data.relativePath == resource.data.relativePath &&
-              request.resource.data.originalName == resource.data.originalName &&
-              request.resource.data.storedName == resource.data.storedName &&
-              request.resource.data.storageBackend == resource.data.storageBackend &&
-              request.resource.data.vaultId == resource.data.vaultId &&
-              (!('version' in resource.data) || request.resource.data.version == resource.data.version) &&
-              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['jobId', 'ownerTaskId', 'createdAt', 'expiresAt']) &&
-              isJobTerminal(vaultId, resource.data.jobId)
-            )
-          )
+        isAnonymous() &&
+        resource.data.status != 'COMMITTED' &&
+        request.resource.data.reservationId == resource.data.reservationId &&
+        request.resource.data.b2ObjectKey == resource.data.b2ObjectKey &&
+        (
+        (request.resource.data.status == 'COMMITTED' && request.resource.data.jobId == resource.data.jobId) ||
+        (request.resource.data.jobId == resource.data.jobId) ||
+        (request.time > resource.data.expiresAt) ||
+        (
+        resource.data.status == 'PENDING' &&
+        request.resource.data.status == 'PENDING' &&
+        request.resource.data.sha256 == resource.data.sha256 &&
+        request.resource.data.sourceId == resource.data.sourceId &&
+        request.resource.data.relativePath == resource.data.relativePath &&
+        request.resource.data.originalName == resource.data.originalName &&
+        request.resource.data.storedName == resource.data.storedName &&
+        request.resource.data.storageBackend == resource.data.storageBackend &&
+        request.resource.data.vaultId == resource.data.vaultId &&
+        (!('version' in resource.data) || request.resource.data.version == resource.data.version) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['jobId', 'ownerTaskId', 'createdAt', 'expiresAt']) &&
+        isJobTerminal(vaultId, resource.data.jobId)
+        )
+        )
         );
         allow delete: if isAdmin(vaultId);
       }
@@ -200,12 +200,11 @@ service cloud.firestore {
         allow read: if isAdmin(vaultId) || (isGoogleUser() && request.auth.uid == userId);
         allow create: if isAdmin(vaultId) || (
           isGoogleUser() && request.auth.uid == userId &&
-          request.resource.data.uid == userId &&
-          request.resource.data.role == 'pending'
+          (!('role' in request.resource.data) || request.resource.data.role == 'pending')
         );
         allow update: if isAdmin(vaultId) || (
           isGoogleUser() && request.auth.uid == userId &&
-          request.resource.data.role == resource.data.role
+          (!('role' in request.resource.data) || request.resource.data.role == resource.data.role)
         );
         allow delete: if isAdmin(vaultId);
       }
@@ -219,7 +218,7 @@ service cloud.firestore {
       allow update: if (
         isGoogleUser() && request.auth.uid == userId &&
         resource.data.status == 'pending' &&
-        request.resource.data.createdAt == resource.data.createdAt &&
+        !('createdAt' in request.resource.data.diff(resource.data).affectedKeys()) &&
         isValidApprovalPayload(userId)
       ) || (
         isAdmin('default') &&
