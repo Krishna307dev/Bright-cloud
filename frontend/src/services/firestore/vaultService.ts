@@ -448,6 +448,14 @@ export class VaultService {
             lastLogin: new Date(p.registeredAt || Date.now()),
             role,
           });
+        } else {
+          // Enrich if existing has placeholder data
+          const existing = userMap.get(p.uid)!;
+          const isPlaceholderName = !existing.displayName || ['User', 'Authorized Friend', 'Authorized Collaborator', 'Google User'].includes(existing.displayName);
+          const isPlaceholderEmail = !existing.email || existing.email === 'friend@vault.local';
+          if (isPlaceholderName && p.displayName) existing.displayName = p.displayName;
+          if (isPlaceholderEmail && p.email) existing.email = p.email;
+          if (p.photoURL && !existing.photoURL) existing.photoURL = p.photoURL;
         }
       }
     } catch {
@@ -474,6 +482,14 @@ export class VaultService {
             role,
             createdAt: req.createdAt,
           });
+        } else {
+          // Enrich if existing has placeholder data
+          const existing = userMap.get(reqUid)!;
+          const isPlaceholderName = !existing.displayName || ['User', 'Authorized Friend', 'Authorized Collaborator', 'Google User'].includes(existing.displayName);
+          const isPlaceholderEmail = !existing.email || existing.email === 'friend@vault.local';
+          if (isPlaceholderName && req.name) existing.displayName = req.name;
+          if (isPlaceholderEmail && req.email) existing.email = req.email;
+          if (req.createdAt && !existing.createdAt) existing.createdAt = req.createdAt;
         }
       }
     } catch {
@@ -499,28 +515,69 @@ export class VaultService {
       await this.changeCollaboratorRole(vaultId, uid, 'REVOKED');
     }
 
-    // Also update settings/config.userDirectory
+    // Also update settings/config.userDirectory and friendDirectory
     try {
       const configRef = doc(db, 'vaults', vaultId, 'settings', 'config');
       const snap = await getDoc(configRef);
       if (snap.exists()) {
         const data = snap.data();
         const userDirectory = { ...(data.userDirectory || {}) };
-        if (userDirectory[uid]) {
-          userDirectory[uid].role = newRole;
-        } else {
-          userDirectory[uid] = {
-            uid,
-            role: newRole,
-            email: data.friendDirectory?.[uid]?.email || '',
-            displayName: data.friendDirectory?.[uid]?.label || 'User',
-            lastLogin: new Date().toISOString(),
-          };
+        const friendDirectory = { ...(data.friendDirectory || {}) };
+
+        // Look for real name/email from existing directories or user collection
+        let knownName = userDirectory[uid]?.displayName || friendDirectory[uid]?.label || '';
+        let knownEmail = userDirectory[uid]?.email || friendDirectory[uid]?.email || '';
+        let knownPhoto = userDirectory[uid]?.photoURL || '';
+
+        if (!knownName || !knownEmail) {
+          try {
+            const uSnap = await getDoc(doc(db, 'vaults', vaultId, 'users', uid));
+            if (uSnap.exists()) {
+              const uData = uSnap.data();
+              if (!knownName && uData.displayName) knownName = uData.displayName;
+              if (!knownEmail && uData.email) knownEmail = uData.email;
+              if (!knownPhoto && uData.photoURL) knownPhoto = uData.photoURL;
+            }
+          } catch {}
         }
-        await updateDoc(configRef, { userDirectory });
+
+        if (!knownName || !knownEmail) {
+          try {
+            const reqSnap = await getDoc(doc(db, 'approvalRequests', uid));
+            if (reqSnap.exists()) {
+              const rData = reqSnap.data();
+              if (!knownName && rData.name) knownName = rData.name;
+              if (!knownEmail && rData.email) knownEmail = rData.email;
+            }
+          } catch {}
+        }
+
+        const finalName = knownName || (knownEmail ? knownEmail.split('@')[0] : 'User');
+        const finalEmail = knownEmail || '';
+
+        userDirectory[uid] = {
+          uid,
+          role: newRole,
+          email: finalEmail,
+          displayName: finalName,
+          photoURL: knownPhoto,
+          lastLogin: new Date().toISOString(),
+        };
+
+        if (newRole === 'friend' || newRole === 'admin') {
+          friendDirectory[uid] = {
+            label: finalName,
+            email: finalEmail,
+            addedAt: friendDirectory[uid]?.addedAt || new Date().toISOString(),
+          };
+        } else if (newRole === 'ignored') {
+          delete friendDirectory[uid];
+        }
+
+        await updateDoc(configRef, { userDirectory, friendDirectory });
       }
     } catch (err) {
-      console.warn('Could not update userDirectory in settings/config:', err);
+      console.warn('Could not update userDirectory / friendDirectory in settings/config:', err);
     }
 
     // Also update vaults/{vaultId}/users/{uid} document if permitted

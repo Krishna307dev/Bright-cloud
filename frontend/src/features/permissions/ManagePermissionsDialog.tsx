@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Users, RefreshCw, Trash2 } from 'lucide-react';
+import { Shield, Users, RefreshCw, Trash2, Mail } from 'lucide-react';
 import { Dialog } from '../../components/ui/Dialog';
 import { Button } from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
-import type { FileRecord, FolderRule, VaultConfig } from '../../models';
+import { useAuth } from '../auth/AuthContext';
+import type { FileRecord, FolderRule, VaultConfig, UserProfile, ApprovalRequest } from '../../models';
 import { VaultService } from '../../services/firestore/vaultService';
+import { ApprovalService } from '../../services/firestore/approvalService';
 import { FileService } from '../../services/firestore/fileService';
 import { PropagationEngine } from '../../services/firestore/propagationEngine';
 
@@ -27,8 +29,11 @@ export const ManagePermissionsDialog: React.FC<ManagePermissionsDialogProps> = (
   file,
   onUpdated,
 }) => {
+  const { user } = useAuth();
   const toast = useToast();
   const [vaultConfig, setVaultConfig] = useState<VaultConfig | null>(null);
+  const [usersMap, setUsersMap] = useState<Map<string, UserProfile>>(new Map());
+  const [requestsMap, setRequestsMap] = useState<Map<string, ApprovalRequest>>(new Map());
   const [existingRule, setExistingRule] = useState<FolderRule | null>(null);
   const [isPublicToFriends, setIsPublicToFriends] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
@@ -52,10 +57,16 @@ export const ManagePermissionsDialog: React.FC<ManagePermissionsDialogProps> = (
     Promise.all([
       VaultService.getVaultConfig(vaultId),
       isFolder ? PropagationEngine.getFolderRule(vaultId, sourceId, relativePath) : Promise.resolve(null),
+      VaultService.listUsers(vaultId).catch(() => [] as UserProfile[]),
+      ApprovalService.listApprovalRequests().catch(() => new Map<string, ApprovalRequest>()),
     ])
-      .then(([config, rule]) => {
+      .then(([config, rule, userList, reqMap]) => {
         if (!isMounted) return;
         setVaultConfig(config);
+        const uMap = new Map<string, UserProfile>();
+        userList.forEach((u) => uMap.set(u.uid, u));
+        setUsersMap(uMap);
+        setRequestsMap(reqMap);
 
         if (file) {
           setIsPublicToFriends(file.isPublicToFriends ?? false);
@@ -161,8 +172,66 @@ export const ManagePermissionsDialog: React.FC<ManagePermissionsDialogProps> = (
     }
   };
 
-  const friendsList = vaultConfig?.authorizedFriends || [];
   const friendDirectory = vaultConfig?.friendDirectory || {};
+  const userDirectory = (vaultConfig as any)?.userDirectory || {};
+
+  // Gather all eligible collaborator UIDs:
+  // 1. UIDs in vaultConfig.authorizedFriends
+  // 2. Currently selected friends (if any)
+  // 3. Registered users with role 'friend'
+  const rawFriendUids = Array.from(
+    new Set([
+      ...(vaultConfig?.authorizedFriends || []),
+      ...selectedFriends,
+      ...Array.from(usersMap.values())
+        .filter((u) => u.role === 'friend')
+        .map((u) => u.uid),
+    ])
+  );
+
+  const getCollaboratorInfo = (uid: string) => {
+    const uProfile = usersMap.get(uid);
+    const req = requestsMap.get(uid);
+    const dir = friendDirectory[uid];
+    const uDir = userDirectory[uid];
+
+    const rawName =
+      uProfile?.displayName ||
+      req?.name ||
+      uDir?.displayName ||
+      dir?.label ||
+      '';
+    const rawEmail =
+      uProfile?.email ||
+      req?.email ||
+      uDir?.email ||
+      dir?.email ||
+      '';
+
+    let displayName = rawName;
+    if (
+      !displayName ||
+      ['User', 'Authorized Friend', 'Authorized Collaborator', 'Google User'].includes(displayName)
+    ) {
+      if (rawEmail) {
+        displayName = rawEmail.split('@')[0];
+      } else {
+        displayName = `Collaborator (${uid.slice(0, 8)})`;
+      }
+    }
+
+    return {
+      uid,
+      displayName,
+      email: rawEmail,
+      photoURL: uProfile?.photoURL || uDir?.photoURL,
+      role: uProfile?.role || uDir?.role,
+    };
+  };
+
+  const collaborators = rawFriendUids
+    .map((uid) => getCollaboratorInfo(uid))
+    .sort((a, b) => a.displayName.localeCompare(b.displayName));
 
   return (
     <Dialog
@@ -245,42 +314,83 @@ export const ManagePermissionsDialog: React.FC<ManagePermissionsDialogProps> = (
           {/* Collaborator Whitelist Checkboxes */}
           {!isPublicToFriends && (
             <div className="space-y-2">
-              <label className="font-semibold text-slate-800 dark:text-[#E6E6E6] flex items-center gap-1.5">
-                <Users className="w-4 h-4 text-slate-400 dark:text-[#8A8A8A]" />
-                Select Specific Collaborators
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="font-semibold text-slate-800 dark:text-[#E6E6E6] flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-slate-400 dark:text-[#8A8A8A]" />
+                  Select Specific Collaborators
+                </label>
+                {collaborators.length > 0 && (
+                  <span className="text-[11px] text-slate-500 dark:text-[#8A8A8A]">
+                    {selectedFriends.length} of {collaborators.length} selected
+                  </span>
+                )}
+              </div>
 
-              {friendsList.length === 0 ? (
+              {collaborators.length === 0 ? (
                 <div className="p-4 bg-slate-50 dark:bg-[#111111] rounded-lg border border-dashed border-slate-200 dark:border-[#242424] text-center text-slate-400 dark:text-[#8A8A8A]">
                   No friends added to this vault yet. Add users in the Manage Users section.
                 </div>
               ) : (
-                <div className="max-h-48 overflow-y-auto divide-y divide-slate-100 dark:divide-[#242424] border border-slate-200 dark:border-[#242424] rounded-lg bg-white dark:bg-[#0A0A0A]">
-                  {friendsList.map((uid) => {
-                    const info = friendDirectory[uid];
-                    const displayName = info?.label || info?.email || 'Authorized Collaborator';
-                    const secondaryText = info?.email && info?.label ? info.email : null;
-                    const isSelected = selectedFriends.includes(uid);
+                <div className="max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-[#242424] border border-slate-200 dark:border-[#242424] rounded-lg bg-white dark:bg-[#0A0A0A]">
+                  {collaborators.map((c) => {
+                    const isSelected = selectedFriends.includes(c.uid);
+                    const isCurrentUser = user?.uid === c.uid;
 
                     return (
                       <label
-                        key={uid}
-                        className="flex items-center justify-between px-3.5 py-2.5 hover:bg-slate-50 dark:hover:bg-[#181818] cursor-pointer select-none"
+                        key={c.uid}
+                        className={`flex items-center justify-between px-3.5 py-2.5 transition-colors cursor-pointer select-none ${
+                          isSelected
+                            ? 'bg-brand-50/50 dark:bg-[#1DB954]/10'
+                            : 'hover:bg-slate-50 dark:hover:bg-[#181818]'
+                        }`}
                       >
-                        <div className="min-w-0 pr-3">
-                          <p className="font-medium text-slate-800 dark:text-[#E6E6E6] text-xs truncate">
-                            {displayName}
-                          </p>
-                          {secondaryText && (
-                            <p className="text-[11px] text-slate-400 dark:text-[#8A8A8A] truncate">
-                              {secondaryText}
-                            </p>
+                        <div className="flex items-center gap-3 min-w-0 pr-3">
+                          {c.photoURL ? (
+                            <img
+                              src={c.photoURL}
+                              alt={c.displayName}
+                              className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-[#242424] shrink-0"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-brand-50 dark:bg-[#181818] border border-brand-200/60 dark:border-[#242424] text-brand-600 dark:text-[#1DB954] flex items-center justify-center font-bold text-xs shrink-0">
+                              {c.displayName.charAt(0).toUpperCase()}
+                            </div>
                           )}
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 truncate">
+                              <span className="font-medium text-slate-900 dark:text-[#E6E6E6] text-xs truncate">
+                                {c.displayName}
+                              </span>
+                              {isCurrentUser && (
+                                <span className="text-[10px] bg-slate-100 dark:bg-[#242424] text-slate-600 dark:text-[#E6E6E6] font-semibold px-1.5 py-0.5 rounded-full shrink-0">
+                                  You
+                                </span>
+                              )}
+                              {c.role === 'admin' && (
+                                <span className="text-[10px] text-brand-600 dark:text-[#1DB954] font-medium shrink-0">
+                                  • Admin
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[11px] text-slate-500 dark:text-[#8A8A8A] flex items-center gap-1 mt-0.5 truncate">
+                              {c.email ? (
+                                <>
+                                  <Mail className="w-3 h-3 shrink-0 text-slate-400 dark:text-[#8A8A8A]" />
+                                  <span className="truncate">{c.email}</span>
+                                </>
+                              ) : (
+                                <span className="font-mono text-[10px] truncate text-slate-400 dark:text-[#8A8A8A]">
+                                  UID: {c.uid.slice(0, 12)}...
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                         <input
                           type="checkbox"
                           checked={isSelected}
-                          onChange={() => toggleFriend(uid)}
+                          onChange={() => toggleFriend(c.uid)}
                           className="w-4 h-4 text-brand-600 dark:accent-[#1DB954] rounded border-slate-300 dark:border-[#242424] dark:bg-[#181818] focus:ring-brand-500 cursor-pointer shrink-0"
                         />
                       </label>

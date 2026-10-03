@@ -107,7 +107,7 @@ describe('Backblaze B2 Authorizer & Download Flow', () => {
   it('triggerDownload requests attachment disposition and triggers anchor click', async () => {
     const reqSpy = vi.spyOn(B2AuthorizerClient, 'requestDownloadAuthorization').mockResolvedValue({
       downloadUrl: 'https://b2.mock/download/test.pdf',
-      expiresAt: Date.now() + 3600000,
+      expiresAt: new Date(Date.now() + 3600000).toISOString(),
       fileId: 'file-999',
       storedName: 'test.pdf',
     });
