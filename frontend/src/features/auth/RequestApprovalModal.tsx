@@ -74,8 +74,11 @@ export const RequestApprovalModal: React.FC<RequestApprovalModalProps> = ({
         referredBy: cleanReferredBy,
       });
 
+      const isReapply = existingRequest?.status === 'rejected';
       toast.success(
-        existingRequest
+        isReapply
+          ? 'New access request submitted successfully!'
+          : existingRequest
           ? 'Approval request updated successfully!'
           : 'Approval request submitted! The administrator will review your application.'
       );
@@ -91,6 +94,8 @@ export const RequestApprovalModal: React.FC<RequestApprovalModalProps> = ({
     }
   };
 
+  const isReapply = existingRequest?.status === 'rejected';
+
   return (
     <Dialog
       isOpen={isOpen}
@@ -98,11 +103,19 @@ export const RequestApprovalModal: React.FC<RequestApprovalModalProps> = ({
       title={
         <div className="flex items-center gap-2 text-slate-900 dark:text-[#E6E6E6]">
           <ShieldCheck className="w-5 h-5 text-brand-600 dark:text-[#1DB954]" />
-          <span>{existingRequest ? 'Update Approval Request' : 'Request Vault Access'}</span>
+          <span>
+            {isReapply
+              ? 'Submit New Access Request'
+              : existingRequest
+              ? 'Update Approval Request'
+              : 'Request Vault Access'}
+          </span>
         </div>
       }
       description={
-        existingRequest
+        isReapply
+          ? 'Submit updated details to re-apply for access to the Bright Cloud Vault.'
+          : existingRequest
           ? 'You have already submitted an approval request. You may edit your submission below.'
           : 'Submit your details to request authorization from the Vault Administrator.'
       }

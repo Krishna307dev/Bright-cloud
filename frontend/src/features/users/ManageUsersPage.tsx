@@ -99,15 +99,18 @@ export const ManageUsersPage: React.FC = () => {
       setActionUid(targetUid);
       await VaultService.setUserRole(vaultId, targetUid, newRole);
 
-      // If this user has an approval request, sync its status accordingly
+      // If this user has an approval request, delete it from the database upon approval or rejection
       if (requestsMap.has(targetUid)) {
-        const reqStatus =
-          newRole === 'friend' || newRole === 'admin'
-            ? 'approved'
-            : newRole === 'ignored'
-            ? 'rejected'
-            : 'pending';
-        await ApprovalService.updateApprovalStatus(targetUid, reqStatus).catch(() => {});
+        if (newRole === 'friend' || newRole === 'admin' || newRole === 'ignored') {
+          await ApprovalService.deleteApprovalRequest(targetUid).catch(() => {});
+          setRequestsMap((prev) => {
+            const next = new Map(prev);
+            next.delete(targetUid);
+            return next;
+          });
+        } else {
+          await ApprovalService.updateApprovalStatus(targetUid, 'pending').catch(() => {});
+        }
       }
 
       toast.success(
@@ -116,7 +119,7 @@ export const ManageUsersPage: React.FC = () => {
           : newRole === 'friend'
           ? 'User authorized as Friend'
           : newRole === 'ignored'
-          ? 'User access revoked'
+          ? 'User access rejected / revoked'
           : 'User status set to Pending'
       );
       await loadUsers();
@@ -132,6 +135,12 @@ export const ManageUsersPage: React.FC = () => {
     try {
       setActionUid(userToDelete.uid);
       await VaultService.deleteUser(vaultId, userToDelete.uid);
+      await ApprovalService.deleteApprovalRequest(userToDelete.uid).catch(() => {});
+      setRequestsMap((prev) => {
+        const next = new Map(prev);
+        next.delete(userToDelete.uid);
+        return next;
+      });
       toast.success(`User '${userToDelete.displayName}' removed from vault`);
       setUserToDelete(null);
       await loadUsers();

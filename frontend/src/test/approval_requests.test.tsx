@@ -24,6 +24,7 @@ vi.mock('firebase/firestore', async (importOriginal) => {
     getDocs: vi.fn(),
     setDoc: vi.fn().mockResolvedValue(undefined),
     updateDoc: vi.fn().mockResolvedValue(undefined),
+    deleteDoc: vi.fn().mockResolvedValue(undefined),
     serverTimestamp: vi.fn().mockReturnValue('MOCK_TIMESTAMP'),
   };
 });
@@ -36,6 +37,7 @@ describe('ApprovalService Operations', () => {
     vi.spyOn(firestoreModule, 'serverTimestamp').mockReturnValue('MOCK_TIMESTAMP' as any);
     vi.spyOn(firestoreModule, 'setDoc').mockResolvedValue(undefined as any);
     vi.spyOn(firestoreModule, 'updateDoc').mockResolvedValue(undefined as any);
+    vi.spyOn(firestoreModule, 'deleteDoc').mockResolvedValue(undefined as any);
   });
 
   describe('submitApprovalRequest', () => {
@@ -100,8 +102,7 @@ describe('ApprovalService Operations', () => {
           name: 'Bob Dylan',
           reason: 'Need vault photos',
           status: 'pending',
-        }),
-        { merge: true }
+        })
       );
     });
 
@@ -137,8 +138,7 @@ describe('ApprovalService Operations', () => {
         expect.objectContaining({
           name: 'Updated Name',
           createdAt: originalCreatedAt,
-        }),
-        { merge: true }
+        })
       );
     });
   });
@@ -216,6 +216,18 @@ describe('ApprovalService Operations', () => {
         expect.objectContaining({
           status: 'approved',
           updatedAt: 'MOCK_TIMESTAMP',
+        })
+      );
+    });
+
+    it('deleteApprovalRequest calls deleteDoc with correct document reference', async () => {
+      const deleteDocSpy = vi.spyOn(firestoreModule, 'deleteDoc');
+
+      await ApprovalService.deleteApprovalRequest('uid-1');
+
+      expect(deleteDocSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path: expect.stringContaining('approvalRequests/uid-1'),
         })
       );
     });

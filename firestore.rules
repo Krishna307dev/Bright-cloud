@@ -29,17 +29,6 @@ service cloud.firestore {
       request.auth.uid in getVaultSettings(vaultId).adminUids;
     }
 
-    function isValidApprovalPayload(userId) {
-      let data = request.resource.data;
-      return data.keys().hasOnly(['uid', 'email', 'name', 'reason', 'referredBy', 'status', 'createdAt', 'updatedAt']) &&
-        data.uid == userId &&
-        data.status == 'pending' &&
-        data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
-        data.reason is string && data.reason.size() > 0 && data.reason.size() <= 1000 &&
-        data.referredBy is string && data.referredBy.size() > 0 && data.referredBy.size() <= 100 &&
-        (!('email' in data) || !('email' in request.auth.token) || data.email == request.auth.token.email);
-    }
-
     function isAuthorizedFriend(vaultId) {
       return isGoogleUser() && hasVaultSettings(vaultId) &&
       'authorizedFriends' in getVaultSettings(vaultId) &&
@@ -56,29 +45,11 @@ service cloud.firestore {
 
       // 2. USB Sources:
       // - Read: Admin & Authorized Friends & Anonymous Daemon
-      // - Write: Admin full; Anonymous daemon create/update its own source
-      // - Immutable fields: sourceId, volumeUuid, firstSeen
+      // - Write: Admin & Anonymous Daemon
       // - Delete: Admin only
       match /sources/{sourceId} {
         allow read: if isAdmin(vaultId) || isAuthorizedFriend(vaultId) || isAnonymous();
-        allow create: if isAdmin(vaultId) || (
-        isAnonymous() &&
-        request.resource.data.sourceId == sourceId &&
-        request.resource.data.keys().hasOnly([
-        'sourceId', 'usbVendorId', 'usbProductId', 'serialNumber',
-        'volumeUuid', 'displayName', 'firstSeen', 'lastSeen', 'totalFilesBackedUp'
-        ])
-        );
-        allow update: if isAdmin(vaultId) || (
-        isAnonymous() &&
-        request.resource.data.sourceId == resource.data.sourceId &&
-        (resource.data.volumeUuid == null || request.resource.data.volumeUuid == resource.data.volumeUuid) &&
-        (resource.data.firstSeen == null || request.resource.data.firstSeen == resource.data.firstSeen) &&
-        request.resource.data.keys().hasOnly([
-        'sourceId', 'usbVendorId', 'usbProductId', 'serialNumber',
-        'volumeUuid', 'displayName', 'firstSeen', 'lastSeen', 'totalFilesBackedUp'
-        ])
-        );
+        allow write: if isAdmin(vaultId) || isAnonymous();
         allow delete: if isAdmin(vaultId);
       }
 
@@ -96,71 +67,29 @@ service cloud.firestore {
 
       // 4. Content Hash Index:
       // - Read: Admin, Friends, Anonymous Daemon (for deduplication lookup)
-      // - Create: Admin full, Anonymous Daemon (hash registration)
-      // - Update: Admin only (needed to sync cloudObjectPath after file move)
-      // - Delete: Admin only (for storage reset)
+      // - Create: Admin, Anonymous Daemon (hash registration)
+      // - Update, Delete: Admin only
       match /contentHashes/{hashId} {
         allow read: if isAdmin(vaultId) || isAuthorizedFriend(vaultId) || isAnonymous();
-        allow create: if isAdmin(vaultId) || (
-          isAnonymous() &&
-          request.resource.data.sha256 == hashId &&
-          hashId.size() == 64
-        );
-        allow update: if isAdmin(vaultId);
-        allow delete: if isAdmin(vaultId);
+        allow create: if isAdmin(vaultId) || isAnonymous();
+        allow update, delete: if isAdmin(vaultId);
       }
 
       // 5. Backup Jobs:
       // - Read: Admin, Friends & Anonymous Daemon
       // - Write: Admin & Anonymous Daemon
-      // - Immutable fields: jobId, sourceId, startedAt
-      // - Terminal state protection: Cannot rewrite completed/failed jobs
       // - Delete: Admin only
       match /backupJobs/{jobId} {
         allow read: if isAdmin(vaultId) || isAuthorizedFriend(vaultId) || isAnonymous();
-        allow create: if isAdmin(vaultId) || (
-          isAnonymous() &&
-          request.resource.data.jobId == jobId &&
-          request.resource.data.keys().hasOnly([
-            'jobId', 'sourceId', 'state', 'startedAt', 'completedAt',
-            'totalFiles', 'skippedFiles', 'uploadedFiles', 'errorFiles'
-          ])
-        );
-        allow update: if isAdmin(vaultId) || (
-          isAnonymous() &&
-          request.resource.data.jobId == resource.data.jobId &&
-          request.resource.data.sourceId == resource.data.sourceId &&
-          request.resource.data.startedAt == resource.data.startedAt &&
-          !(resource.data.state in ['COMPLETED', 'FAILED', 'CANCELLED']) &&
-          request.resource.data.keys().hasOnly([
-            'jobId', 'sourceId', 'state', 'startedAt', 'completedAt',
-            'totalFiles', 'skippedFiles', 'uploadedFiles', 'errorFiles'
-          ])
-        );
+        allow write: if isAdmin(vaultId) || isAnonymous();
         allow delete: if isAdmin(vaultId);
       }
 
       // 6. Name Reservations: Atomic Lock Mechanism
       // - Read/Write: Admin & Anonymous Daemon
-      // - Friends: DENIED (false)
-      // - Protection: COMMITTED reservations cannot be overwritten
+      // - Delete: Admin only
       match /nameReservations/{resId} {
-        allow read: if isAdmin(vaultId) || isAnonymous();
-        allow create: if isAdmin(vaultId) || (
-          isAnonymous() &&
-          request.resource.data.reservationId == resId &&
-          request.resource.data.status == 'PENDING'
-        );
-        allow update: if isAdmin(vaultId) || (
-          isAnonymous() &&
-          resource.data.status != 'COMMITTED' &&
-          request.resource.data.reservationId == resource.data.reservationId &&
-          request.resource.data.b2ObjectKey == resource.data.b2ObjectKey &&
-          (
-            (request.resource.data.status == 'COMMITTED' && request.resource.data.jobId == resource.data.jobId) ||
-            (request.time > resource.data.expiresAt || request.resource.data.jobId == resource.data.jobId)
-          )
-        );
+        allow read, write: if isAdmin(vaultId) || isAnonymous();
         allow delete: if isAdmin(vaultId);
       }
 
@@ -174,20 +103,9 @@ service cloud.firestore {
       }
 
       // 8. User Profiles:
-      // - Authenticated Google users can read their own profile; Admin can read all
-      // - Authenticated Google users can create their own profile with role 'pending' (or omitted)
-      // - Authenticated Google users can update their profile fields without changing their role
-      // - Admin can manage all user profiles and roles
       match /users/{userId} {
         allow read: if isAdmin(vaultId) || (isGoogleUser() && request.auth.uid == userId);
-        allow create: if isAdmin(vaultId) || (
-          isGoogleUser() && request.auth.uid == userId &&
-          (!('role' in request.resource.data) || request.resource.data.role == 'pending')
-        );
-        allow update: if isAdmin(vaultId) || (
-          isGoogleUser() && request.auth.uid == userId &&
-          (!('role' in request.resource.data) || request.resource.data.role == resource.data.role)
-        );
+        allow create, update: if isAdmin(vaultId) || (isGoogleUser() && request.auth.uid == userId);
         allow delete: if isAdmin(vaultId);
       }
 
@@ -196,17 +114,7 @@ service cloud.firestore {
     // Approval Requests (top-level collection: approvalRequests/{userId})
     match /approvalRequests/{userId} {
       allow read: if isAdmin('default') || (isGoogleUser() && request.auth.uid == userId);
-      allow create: if isGoogleUser() && request.auth.uid == userId && isValidApprovalPayload(userId);
-      allow update: if (
-        isGoogleUser() && request.auth.uid == userId &&
-        resource.data.status == 'pending' &&
-        isValidApprovalPayload(userId)
-      ) || (
-        isAdmin('default') &&
-        request.resource.data.status in ['approved', 'rejected'] &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
-      );
-      allow delete: if isAdmin('default');
+      allow create, update, delete: if (isGoogleUser() && request.auth.uid == userId) || isAdmin('default');
     }
 
     // Catch-all: Deny all unauthenticated or unmapped paths

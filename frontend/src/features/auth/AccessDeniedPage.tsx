@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldAlert, LogOut, RefreshCw, Sun, Moon, Monitor, Send, CheckCircle2 } from 'lucide-react';
+import { ShieldAlert, LogOut, RefreshCw, Sun, Moon, Monitor, Send, CheckCircle2, XCircle } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Button } from '../../components/ui/Button';
@@ -8,7 +8,7 @@ import { Footer } from '../../components/layout/Footer';
 import { RequestApprovalModal } from './RequestApprovalModal';
 import { ApprovalService } from '../../services/firestore/approvalService';
 import { VaultService } from '../../services/firestore/vaultService';
-import type { ApprovalRequest } from '../../models';
+import type { ApprovalRequest, UserRole } from '../../models';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { formatDate } from '../../utils/format';
 
@@ -20,6 +20,7 @@ export const AccessDeniedPage: React.FC = () => {
 
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
   const [existingRequest, setExistingRequest] = useState<ApprovalRequest | null>(null);
+  const [userProfileRole, setUserProfileRole] = useState<UserRole | null>(null);
 
   useEffect(() => {
     if (isAdmin || isFriend || role?.toUpperCase() === 'ADMIN' || role?.toUpperCase() === 'FRIEND') {
@@ -27,16 +28,32 @@ export const AccessDeniedPage: React.FC = () => {
     }
   }, [isAdmin, isFriend, role, navigate]);
 
-  // Ensure unapproved signed-in user is always registered as pending in Firestore
-  // and load any existing approval request
+  // Load user profile and approval request
   useEffect(() => {
     if (user && vaultId) {
-      VaultService.syncUserProfile(vaultId, user, 'pending').catch(() => {});
+      VaultService.syncUserProfile(vaultId, user).catch(() => {});
+      VaultService.getUserProfile(vaultId, user.uid).then((prof) => {
+        if (prof?.role) setUserProfileRole(prof.role);
+      });
       ApprovalService.getApprovalRequest(user.uid).then((req) => {
-        if (req) setExistingRequest(req);
+        setExistingRequest(req);
       });
     }
   }, [user, vaultId]);
+
+  const handleCheckStatus = async () => {
+    await refreshRole();
+    if (user && vaultId) {
+      const [prof, req] = await Promise.all([
+        VaultService.getUserProfile(vaultId, user.uid),
+        ApprovalService.getApprovalRequest(user.uid),
+      ]);
+      if (prof?.role) setUserProfileRole(prof.role);
+      setExistingRequest(req);
+    }
+  };
+
+  const isRejected = userProfileRole === 'ignored' || existingRequest?.status === 'rejected';
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-black font-sans antialiased text-slate-900 dark:text-[#E6E6E6] transition-colors duration-150">
@@ -124,14 +141,43 @@ export const AccessDeniedPage: React.FC = () => {
             </div>
             <div className="mt-3 pt-3 border-t border-slate-200/60 dark:border-[#242424] flex items-center justify-between text-xs">
               <span className="text-slate-500 dark:text-[#8A8A8A]">Authorization Status:</span>
-              <span className="font-semibold text-amber-700 dark:text-amber-400 bg-amber-100/70 dark:bg-amber-950/60 px-2 py-0.5 rounded text-[11px]">
-                {role === 'UNAUTHORIZED' ? 'Pending Approval' : role}
+              <span
+                className={`font-semibold px-2 py-0.5 rounded text-[11px] ${
+                  isRejected
+                    ? 'text-rose-700 dark:text-rose-400 bg-rose-100/70 dark:bg-rose-950/60'
+                    : existingRequest
+                    ? 'text-amber-700 dark:text-amber-400 bg-amber-100/70 dark:bg-amber-950/60'
+                    : 'text-slate-700 dark:text-slate-300 bg-slate-100/70 dark:bg-slate-800/60'
+                }`}
+              >
+                {isRejected
+                  ? 'Request Declined'
+                  : existingRequest
+                  ? 'Pending Review'
+                  : role === 'UNAUTHORIZED'
+                  ? 'Not Authorized'
+                  : role}
               </span>
             </div>
           </div>
 
-          {/* Existing Request Status Banner */}
-          {existingRequest && (
+          {/* Rejection Banner */}
+          {isRejected && (
+            <div className="p-3.5 bg-rose-50/90 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900/50 rounded-xl text-left flex items-start gap-3">
+              <XCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <div className="text-xs font-semibold text-rose-800 dark:text-rose-300">
+                  Access Request Declined
+                </div>
+                <div className="text-[11px] text-rose-700/90 dark:text-rose-300/80 leading-relaxed">
+                  The vault administrator reviewed and declined this access request. You may submit a new application with updated details or references if you believe this was in error.
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Existing Pending Request Status Banner */}
+          {!isRejected && existingRequest && (
             <div className="p-3.5 bg-emerald-50/80 dark:bg-[#1DB954]/10 border border-emerald-200/80 dark:border-[#1DB954]/25 rounded-xl text-left flex items-start gap-3">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-[#1DB954] shrink-0 mt-0.5" />
               <div className="space-y-0.5">
@@ -163,14 +209,18 @@ export const AccessDeniedPage: React.FC = () => {
               onClick={() => setIsApprovalModalOpen(true)}
             >
               <Send className="w-4 h-4" />
-              {existingRequest ? 'Update Approval Request' : 'Request Approval'}
+              {isRejected
+                ? 'Submit New Request'
+                : existingRequest
+                ? 'Update Approval Request'
+                : 'Request Vault Access'}
             </Button>
 
             <div className="flex flex-col sm:flex-row gap-2">
               <Button
                 variant="secondary"
                 className="flex-1 justify-center gap-2 text-xs"
-                onClick={refreshRole}
+                onClick={handleCheckStatus}
                 disabled={isLoading}
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-brand-600 dark:text-[#1DB954]' : ''}`} />
@@ -198,7 +248,13 @@ export const AccessDeniedPage: React.FC = () => {
         onClose={() => setIsApprovalModalOpen(false)}
         user={user}
         existingRequest={existingRequest}
-        onSuccess={(req) => setExistingRequest(req)}
+        onSuccess={(req) => {
+          setExistingRequest(req);
+          setUserProfileRole('pending');
+          if (user && vaultId) {
+            VaultService.syncUserProfile(vaultId, user, 'pending').catch(() => {});
+          }
+        }}
       />
     </div>
   );

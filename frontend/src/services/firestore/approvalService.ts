@@ -3,6 +3,7 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
   collection,
   getDocs,
   serverTimestamp,
@@ -57,7 +58,7 @@ export class ApprovalService {
       updatedAt: serverTimestamp(),
     };
 
-    await setDoc(docRef, dataToSave, { merge: true });
+    await setDoc(docRef, dataToSave);
 
     return {
       uid: params.uid,
@@ -131,5 +132,13 @@ export class ApprovalService {
       status,
       updatedAt: serverTimestamp(),
     });
+  }
+
+  /**
+   * Deletes an approval request from approvalRequests/{uid}.
+   */
+  static async deleteApprovalRequest(uid: string): Promise<void> {
+    const docRef = doc(db, 'approvalRequests', uid);
+    await deleteDoc(docRef);
   }
 }

@@ -197,6 +197,29 @@ export class VaultService {
   }
 
   /**
+   * Fetches user profile for a specific UID in the vault.
+   */
+  static async getUserProfile(vaultId: string, uid: string): Promise<UserProfile | null> {
+    try {
+      const userRef = doc(db, 'vaults', vaultId, 'users', uid);
+      const snap = await getDoc(userRef);
+      if (!snap.exists()) return null;
+      const data = snap.data();
+      return {
+        uid,
+        email: data.email || '',
+        displayName: data.displayName || data.email?.split('@')[0] || 'User',
+        photoURL: data.photoURL || undefined,
+        lastLogin: data.lastLogin?.toDate ? data.lastLogin.toDate() : new Date(data.lastLogin || Date.now()),
+        role: (data.role as UserRole) || 'pending',
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : undefined,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Automatically records / updates Google Sign-In user profile in vaults/{vaultId}/users/{uid}
    * and mirrors into vaults/{vaultId}/settings/config for resilient access.
    */
