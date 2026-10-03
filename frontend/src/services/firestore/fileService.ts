@@ -707,7 +707,7 @@ export class FileService {
           // Keep contentHashes synchronized with new cloudObjectPath
           if (d.sha256) {
             const hashRef = doc(db, 'vaults', vaultId, 'contentHashes', d.sha256);
-            batch.set(hashRef, { cloudObjectPath: newB2Key }, { merge: true });
+            batch.set(hashRef, { sha256: d.sha256, cloudObjectPath: newB2Key }, { merge: true });
           }
 
           // Clean up old name reservation
