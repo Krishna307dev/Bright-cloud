@@ -171,9 +171,9 @@ export const AccessDeniedPage: React.FC = () => {
                 variant="secondary"
                 className="flex-1 justify-center gap-2 text-xs"
                 onClick={refreshRole}
-                isLoading={isLoading}
+                disabled={isLoading}
               >
-                <RefreshCw className="w-3.5 h-3.5" />
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-brand-600 dark:text-[#1DB954]' : ''}`} />
                 Check Status
               </Button>
               <Button

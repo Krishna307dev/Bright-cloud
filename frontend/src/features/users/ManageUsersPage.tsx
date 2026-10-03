@@ -83,6 +83,16 @@ export const ManageUsersPage: React.FC = () => {
     loadUsers();
   }, [vaultId]);
 
+  const handleManualRefresh = async () => {
+    if (!vaultId) return;
+    try {
+      await loadUsers();
+      toast.success('Users list refreshed');
+    } catch (err: any) {
+      toast.error(`Refresh failed: ${err.message}`);
+    }
+  };
+
   const handleRoleChange = async (targetUid: string, newRole: UserRole) => {
     if (!vaultId) return;
     try {
@@ -213,11 +223,11 @@ export const ManageUsersPage: React.FC = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={loadUsers}
+            onClick={handleManualRefresh}
             disabled={isLoading}
             className="text-slate-600 dark:text-[#8A8A8A] hover:text-slate-900 dark:hover:text-[#E6E6E6] gap-1.5 text-xs"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-brand-600 dark:text-[#1DB954]' : ''}`} />
             Refresh
           </Button>
 
@@ -315,16 +325,16 @@ export const ManageUsersPage: React.FC = () => {
           description="Try adjusting your search criteria or invite a new collaborator."
         />
       ) : (
-        <div className="bg-white dark:bg-[#0A0A0A] rounded-xl border border-slate-200 dark:border-[#242424] shadow-xs overflow-hidden">
+        <div className="bg-white dark:bg-[#0A0A0A] rounded-xl border border-slate-200 dark:border-[#242424] shadow-xs overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="bg-slate-50/75 dark:bg-[#111111] border-b border-slate-200 dark:border-[#242424]">
-                <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3">User</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3">Role</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 hidden md:table-cell">Last Login</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 hidden lg:table-cell">Account UID</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3">Approval Request</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 text-right">Actions</TableHead>
+                <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 whitespace-nowrap">User</TableHead>
+                <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 whitespace-nowrap">Role</TableHead>
+                <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 hidden md:table-cell whitespace-nowrap">Last Login</TableHead>
+                <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 hidden lg:table-cell whitespace-nowrap">Account UID</TableHead>
+                <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 whitespace-nowrap">Approval Request</TableHead>
+                <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 text-right whitespace-nowrap">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -366,7 +376,7 @@ export const ManageUsersPage: React.FC = () => {
                     </TableCell>
 
                     {/* Role Status Pill */}
-                    <TableCell className="py-3">
+                    <TableCell className="py-3 whitespace-nowrap">
                       {u.role === 'admin' ? (
                         <Badge variant="brand" size="sm" className="gap-1 font-semibold">
                           <ShieldCheck className="w-3 h-3" />
@@ -391,7 +401,7 @@ export const ManageUsersPage: React.FC = () => {
                     </TableCell>
 
                     {/* Last Login */}
-                    <TableCell className="py-3 hidden md:table-cell text-xs text-slate-500 dark:text-[#8A8A8A] font-mono">
+                    <TableCell className="py-3 hidden md:table-cell text-xs text-slate-500 dark:text-[#8A8A8A] font-mono whitespace-nowrap">
                       {formatDate(u.lastLogin)}
                     </TableCell>
 
@@ -401,28 +411,28 @@ export const ManageUsersPage: React.FC = () => {
                     </TableCell>
 
                     {/* Approval Request */}
-                    <TableCell className="py-3">
+                    <TableCell className="py-3 whitespace-nowrap">
                       {requestsMap.has(u.uid) ? (
                         <Button
                           variant="secondary"
                           size="sm"
                           onClick={() => setViewingRequest({ user: u, request: requestsMap.get(u.uid)! })}
-                          className="gap-1.5 text-xs text-brand-700 dark:text-[#1DB954] bg-brand-50 dark:bg-[#1DB954]/10 hover:bg-brand-100 dark:hover:bg-[#1DB954]/20 border-brand-200 dark:border-[#1DB954]/30 h-7 px-2.5 font-medium"
+                          className="inline-flex items-center gap-1.5 text-xs text-brand-700 dark:text-[#1DB954] bg-brand-50 dark:bg-[#1DB954]/10 hover:bg-brand-100 dark:hover:bg-[#1DB954]/20 border-brand-200 dark:border-[#1DB954]/30 min-h-[30px] px-3 whitespace-nowrap font-medium shrink-0"
                           title="View submitted approval request"
                         >
-                          <FileText className="w-3.5 h-3.5" />
-                          <span>View Request</span>
+                          <FileText className="w-3.5 h-3.5 shrink-0" />
+                          <span className="whitespace-nowrap">View Request</span>
                         </Button>
                       ) : (
-                        <span className="text-xs text-slate-400 dark:text-[#8A8A8A] italic">
+                        <span className="text-xs text-slate-400 dark:text-[#8A8A8A] italic whitespace-nowrap">
                           No request submitted
                         </span>
                       )}
                     </TableCell>
 
                     {/* One-Click Action Buttons */}
-                    <TableCell className="py-3 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                    <TableCell className="py-3 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-1.5 flex-nowrap">
                         {/* 1. Authorize as Friend */}
                         {u.role !== 'friend' && u.role !== 'admin' && (
                           <Button
@@ -430,11 +440,11 @@ export const ManageUsersPage: React.FC = () => {
                             size="sm"
                             disabled={isItemLoading}
                             onClick={() => handleRoleChange(u.uid, 'friend')}
-                            className="gap-1 text-xs text-emerald-700 dark:text-[#1DB954] bg-emerald-50 dark:bg-[#1DB954]/10 hover:bg-emerald-100 dark:hover:bg-[#1DB954]/20 border-emerald-200 dark:border-[#1DB954]/30 h-7 px-2"
-                            title="Authorize user to read and download files"
+                            className="inline-flex items-center gap-1 text-xs text-emerald-700 dark:text-[#1DB954] bg-emerald-50 dark:bg-[#1DB954]/10 hover:bg-emerald-100 dark:hover:bg-[#1DB954]/20 border-emerald-200 dark:border-[#1DB954]/30 min-h-[30px] px-2.5 whitespace-nowrap shrink-0 font-medium"
+                            title="Authorize user to view and download files"
                           >
-                            <UserCheck className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Authorize Friend</span>
+                            <UserCheck className="w-3.5 h-3.5 shrink-0" />
+                            <span className="whitespace-nowrap">Authorize</span>
                           </Button>
                         )}
 
@@ -445,11 +455,11 @@ export const ManageUsersPage: React.FC = () => {
                             size="sm"
                             disabled={isItemLoading}
                             onClick={() => handleRoleChange(u.uid, 'admin')}
-                            className="gap-1 text-xs text-brand-700 dark:text-[#1DB954] hover:bg-brand-50 dark:hover:bg-[#181818] h-7 px-2"
+                            className="inline-flex items-center gap-1 text-xs text-brand-700 dark:text-[#1DB954] hover:bg-brand-50 dark:hover:bg-[#181818] min-h-[30px] px-2.5 whitespace-nowrap shrink-0"
                             title="Promote user to full Administrator"
                           >
-                            <ShieldCheck className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Make Admin</span>
+                            <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                            <span className="whitespace-nowrap">Make Admin</span>
                           </Button>
                         ) : !isCurrentUser ? (
                           <Button
@@ -457,11 +467,11 @@ export const ManageUsersPage: React.FC = () => {
                             size="sm"
                             disabled={isItemLoading}
                             onClick={() => handleRoleChange(u.uid, 'friend')}
-                            className="gap-1 text-xs text-slate-600 dark:text-[#E6E6E6] hover:bg-slate-100 dark:hover:bg-[#181818] h-7 px-2"
+                            className="inline-flex items-center gap-1 text-xs text-slate-600 dark:text-[#E6E6E6] hover:bg-slate-100 dark:hover:bg-[#181818] min-h-[30px] px-2.5 whitespace-nowrap shrink-0"
                             title="Demote administrator to Friend"
                           >
-                            <Shield className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Demote</span>
+                            <Shield className="w-3.5 h-3.5 shrink-0" />
+                            <span className="whitespace-nowrap">Demote</span>
                           </Button>
                         ) : null}
 
@@ -472,11 +482,11 @@ export const ManageUsersPage: React.FC = () => {
                             size="sm"
                             disabled={isItemLoading}
                             onClick={() => handleRoleChange(u.uid, 'ignored')}
-                            className="gap-1 text-xs text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-[#181818] h-7 px-2"
+                            className="inline-flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-[#181818] min-h-[30px] px-2.5 whitespace-nowrap shrink-0"
                             title="Revoke vault access"
                           >
-                            <Ban className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Revoke</span>
+                            <Ban className="w-3.5 h-3.5 shrink-0" />
+                            <span className="whitespace-nowrap">Revoke</span>
                           </Button>
                         )}
 
@@ -487,7 +497,7 @@ export const ManageUsersPage: React.FC = () => {
                             size="sm"
                             disabled={isItemLoading}
                             onClick={() => setUserToDelete(u)}
-                            className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-[#181818] h-7 w-7 p-0"
+                            className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-[#181818] min-h-[30px] h-8 w-8 p-0 shrink-0"
                             title="Delete user record"
                           >
                             <Trash2 className="w-3.5 h-3.5" />

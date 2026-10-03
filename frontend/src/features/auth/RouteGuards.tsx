@@ -40,9 +40,10 @@ export const ProtectedRoute: React.FC = () => {
           </div>
           <button
             onClick={() => retryRoleResolution()}
-            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-amber-900 dark:text-amber-100 bg-amber-100 dark:bg-amber-900/80 hover:bg-amber-200 dark:hover:bg-amber-800 rounded transition-colors"
+            disabled={isLoading}
+            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-amber-900 dark:text-amber-100 bg-amber-100 dark:bg-amber-900/80 hover:bg-amber-200 dark:hover:bg-amber-800 rounded transition-colors disabled:opacity-50"
           >
-            <RefreshCw className="w-3 h-3" />
+            <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
             Retry
           </button>
         </div>

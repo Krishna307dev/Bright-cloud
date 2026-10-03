@@ -11,6 +11,7 @@ import {
   Layers,
   Trash2,
   AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { VaultService } from '../../services/firestore/vaultService';
@@ -35,8 +36,22 @@ export const AdminVaultSettingsPage: React.FC = () => {
   const [vaultConfig, setVaultConfig] = useState<VaultConfig | null>(null);
   const [vaultNameInput, setVaultNameInput] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSavingName, setIsSavingName] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleManualRefresh = async () => {
+    if (!vaultId) return;
+    try {
+      setIsRefreshing(true);
+      await loadConfig();
+      toast.success('Vault settings refreshed');
+    } catch (err: any) {
+      toast.error(`Refresh failed: ${err.message}`);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // B2 Health State
   const [isCheckingHealth, setIsCheckingHealth] = useState(false);
@@ -201,9 +216,21 @@ export const AdminVaultSettingsPage: React.FC = () => {
           </div>
         </div>
 
-        <Badge variant="brand" size="md">
-          Administrator
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleManualRefresh}
+            disabled={isLoading || isRefreshing}
+            className="p-2 text-slate-500 hover:text-slate-700 dark:text-[#8A8A8A] dark:hover:text-[#E6E6E6]"
+            title="Refresh vault settings"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing || isLoading ? 'animate-spin text-brand-600 dark:text-[#1DB954]' : ''}`} />
+          </Button>
+          <Badge variant="brand" size="md">
+            Administrator
+          </Badge>
+        </div>
       </div>
 
       {isLoading ? (

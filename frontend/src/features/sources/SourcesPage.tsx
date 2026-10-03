@@ -22,8 +22,22 @@ export const SourcesPage: React.FC = () => {
 
   const [sources, setSources] = useState<SourceEntity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [targetDeleteSource, setTargetDeleteSource] = useState<SourceEntity | null>(null);
+
+  const handleManualRefresh = async () => {
+    if (!vaultId) return;
+    try {
+      setIsRefreshing(true);
+      await loadSources();
+      toast.success('USB sources refreshed');
+    } catch (err: any) {
+      toast.error(`Refresh failed: ${err.message}`);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const loadSources = async () => {
     if (!vaultId) return;
@@ -122,11 +136,12 @@ export const SourcesPage: React.FC = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={loadSources}
+          onClick={handleManualRefresh}
+          disabled={isLoading || isRefreshing}
           className="p-2 self-end sm:self-auto text-slate-500 hover:text-slate-700 dark:text-[#8A8A8A] dark:hover:text-[#E6E6E6]"
           title="Refresh hardware sources"
         >
-          <RefreshCw className="w-4 h-4" />
+          <RefreshCw className={`w-4 h-4 ${isRefreshing || isLoading ? 'animate-spin text-brand-600 dark:text-[#1DB954]' : ''}`} />
         </Button>
       </div>
 

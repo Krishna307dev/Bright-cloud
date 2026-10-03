@@ -29,12 +29,14 @@ import { FilePreviewModal } from '../../components/FilePreviewModal';
 import { WebUploadDialog } from '../../components/WebUploadDialog';
 import { useDownload } from '../../hooks/useDownload';
 import { usePageTitle } from '../../hooks/usePageTitle';
+import { useToast } from '../../components/ui/Toast';
 
 export const DashboardPage: React.FC = () => {
   usePageTitle('Dashboard');
   const { vaultId, isAdmin, user } = useAuth();
   const navigate = useNavigate();
   const { downloadFile, isDownloading } = useDownload();
+  const toast = useToast();
 
   const [sources, setSources] = useState<SourceEntity[]>([]);
   const [recentFiles, setRecentFiles] = useState<FileRecord[]>([]);
@@ -42,7 +44,21 @@ export const DashboardPage: React.FC = () => {
   const [previewFile, setPreviewFile] = useState<FileRecord | null>(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleManualRefresh = async () => {
+    if (!vaultId) return;
+    try {
+      setIsRefreshing(true);
+      await loadDashboardData();
+      toast.success('Dashboard refreshed');
+    } catch (err: any) {
+      toast.error(`Refresh failed: ${err.message}`);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const loadDashboardData = async () => {
     if (!vaultId) return;
@@ -119,11 +135,12 @@ export const DashboardPage: React.FC = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={loadDashboardData}
+            onClick={handleManualRefresh}
+            disabled={isLoading || isRefreshing}
             className="p-2 text-slate-500 hover:text-slate-700 dark:text-[#8A8A8A] dark:hover:text-[#E6E6E6]"
             title="Refresh dashboard"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className={`w-4 h-4 ${isRefreshing || isLoading ? 'animate-spin text-brand-600 dark:text-[#1DB954]' : ''}`} />
           </Button>
 
           <Button

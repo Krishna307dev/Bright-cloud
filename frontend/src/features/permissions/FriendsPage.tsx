@@ -20,7 +20,21 @@ export const FriendsPage: React.FC = () => {
 
   const [vaultConfig, setVaultConfig] = useState<VaultConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleManualRefresh = async () => {
+    if (!vaultId) return;
+    try {
+      setIsRefreshing(true);
+      await loadConfig();
+      toast.success('Collaborators list refreshed');
+    } catch (err: any) {
+      toast.error(`Refresh failed: ${err.message}`);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // Add Collaborator Dialog State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -137,11 +151,12 @@ export const FriendsPage: React.FC = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={loadConfig}
+            onClick={handleManualRefresh}
+            disabled={isLoading || isRefreshing}
             className="p-2"
             title="Refresh list"
           >
-            <RefreshCw className="w-4 h-4 text-slate-500" />
+            <RefreshCw className={`w-4 h-4 text-slate-500 ${isRefreshing || isLoading ? 'animate-spin text-brand-600 dark:text-[#1DB954]' : ''}`} />
           </Button>
           <Button
             variant="primary"

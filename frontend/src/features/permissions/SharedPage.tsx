@@ -24,20 +24,36 @@ import { FileInspector } from '../files/FileInspector';
 import { FilePreviewModal } from '../../components/FilePreviewModal';
 import { useDownload } from '../../hooks/useDownload';
 import { usePageTitle } from '../../hooks/usePageTitle';
+import { useToast } from '../../components/ui/Toast';
 
 export const SharedPage: React.FC = () => {
   usePageTitle('Shared');
   const { vaultId, isAdmin, user } = useAuth();
   const { downloadFile, isDownloading } = useDownload();
+  const toast = useToast();
 
   const [files, setFiles] = useState<FileRecord[]>([]);
   const [selectedFile, setSelectedFile] = useState<FileRecord | null>(null);
   const [previewFile, setPreviewFile] = useState<FileRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<'name' | 'size' | 'date'>('date');
   const [sortAsc, setSortAsc] = useState(false);
+
+  const handleManualRefresh = async () => {
+    if (!vaultId) return;
+    try {
+      setIsRefreshing(true);
+      await loadSharedFiles();
+      toast.success('Shared files refreshed');
+    } catch (err: any) {
+      toast.error(`Refresh failed: ${err.message}`);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const loadSharedFiles = async () => {
     if (!vaultId) return;
@@ -115,11 +131,12 @@ export const SharedPage: React.FC = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={loadSharedFiles}
+            onClick={handleManualRefresh}
+            disabled={isLoading || isRefreshing}
             className="p-2 self-end sm:self-auto text-slate-500 hover:text-slate-700 dark:text-[#8A8A8A] dark:hover:text-[#E6E6E6]"
             title="Refresh shared files"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className={`w-4 h-4 ${isRefreshing || isLoading ? 'animate-spin text-brand-600 dark:text-[#1DB954]' : ''}`} />
           </Button>
         </div>
 

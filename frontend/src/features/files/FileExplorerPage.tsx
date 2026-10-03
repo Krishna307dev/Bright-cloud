@@ -48,6 +48,7 @@ import { ManagePermissionsDialog } from '../permissions/ManagePermissionsDialog'
 import { CreateFolderModal } from '../../components/CreateFolderModal';
 import { useDownload } from '../../hooks/useDownload';
 import { usePageTitle } from '../../hooks/usePageTitle';
+import { useToast } from '../../components/ui/Toast';
 
 export const FileExplorerPage: React.FC = () => {
   usePageTitle('Files');
@@ -55,6 +56,7 @@ export const FileExplorerPage: React.FC = () => {
   const { sourceId: routeSourceId, '*': splatPath } = useParams<{ sourceId?: string; '*'?: string }>();
   const navigate = useNavigate();
   const { downloadFile, isDownloading, errorModal, closeErrorModal } = useDownload();
+  const toast = useToast();
 
   // State
   const [sources, setSources] = useState<SourceEntity[]>([]);
@@ -65,6 +67,7 @@ export const FileExplorerPage: React.FC = () => {
   const [sortField, setSortField] = useState<'name' | 'size' | 'date'>('name');
   const [sortAsc, setSortAsc] = useState(true);
   const [showHiddenFiles, setShowHiddenFiles] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Multi-select & Clipboard
   const [selectedFileIds, setSelectedFileIds] = useState<Set<string>>(new Set());
@@ -186,6 +189,22 @@ export const FileExplorerPage: React.FC = () => {
       setIsLoading(false);
     }
   }, [vaultId, selectedSourceId, user?.uid, isAdmin]);
+
+  const handleManualRefresh = async () => {
+    if (!vaultId) return;
+    try {
+      setIsRefreshing(true);
+      await Promise.all([
+        loadFiles(),
+        SourceService.listSourcesWithAuthoritativeCount(vaultId, isAdmin).then(setSources),
+      ]);
+      toast.success('Directory refreshed');
+    } catch (err: any) {
+      toast.error(`Refresh failed: ${err.message}`);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // Trigger load on source change
   useEffect(() => {
@@ -531,11 +550,12 @@ export const FileExplorerPage: React.FC = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => loadFiles()}
+                onClick={handleManualRefresh}
+                disabled={isLoading || isRefreshing}
                 className="p-1.5 h-8 w-8 text-slate-500 hover:text-slate-700 dark:text-[#8A8A8A] dark:hover:text-[#E6E6E6]"
                 title="Refresh directory"
               >
-                <RefreshCw className="w-3.5 h-3.5" />
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing || isLoading ? 'animate-spin text-brand-600 dark:text-[#1DB954]' : ''}`} />
               </Button>
             </div>
           </div>

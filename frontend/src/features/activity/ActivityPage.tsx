@@ -28,6 +28,7 @@ import { LoadingState } from '../../components/feedback/LoadingState';
 import { ErrorState } from '../../components/feedback/ErrorState';
 import { EmptyState } from '../../components/feedback/EmptyState';
 import { usePageTitle } from '../../hooks/usePageTitle';
+import { useToast } from '../../components/ui/Toast';
 
 interface ContentHashRecord {
   sha256: string;
@@ -40,13 +41,28 @@ interface ContentHashRecord {
 export const ActivityPage: React.FC = () => {
   usePageTitle('Activity');
   const { vaultId, isAdmin } = useAuth();
+  const toast = useToast();
   const [jobs, setJobs] = useState<BackupJob[]>([]);
   const [contentHashes, setContentHashes] = useState<ContentHashRecord[]>([]);
   const [isHashesExpanded, setIsHashesExpanded] = useState(false);
   const [copiedHash, setCopiedHash] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dismissingId, setDismissingId] = useState<string | null>(null);
+
+  const handleManualRefresh = async () => {
+    if (!vaultId) return;
+    try {
+      setIsRefreshing(true);
+      await loadJobs();
+      toast.success('Activity timeline refreshed');
+    } catch (err: any) {
+      toast.error(`Refresh failed: ${err.message}`);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const loadJobs = async () => {
     if (!vaultId) return;
@@ -178,11 +194,12 @@ export const ActivityPage: React.FC = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={loadJobs}
+          onClick={handleManualRefresh}
+          disabled={isLoading || isRefreshing}
           className="p-2 self-end sm:self-auto text-slate-500 hover:text-slate-700 dark:text-[#8A8A8A] dark:hover:text-[#E6E6E6]"
           title="Refresh activity"
         >
-          <RefreshCw className="w-4 h-4" />
+          <RefreshCw className={`w-4 h-4 ${isRefreshing || isLoading ? 'animate-spin text-brand-600 dark:text-[#1DB954]' : ''}`} />
         </Button>
       </div>
 
