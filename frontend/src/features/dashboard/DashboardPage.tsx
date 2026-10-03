@@ -237,9 +237,10 @@ export const DashboardPage: React.FC = () => {
         )}
       </div>
 
-      {/* Recent Files Table */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
+      {/* Recent Files Table & Side Inspector */}
+      <div className="flex flex-col md:flex-row gap-6 items-start">
+        <div className="flex-1 min-w-0 w-full space-y-3">
+          <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold text-slate-900 dark:text-[#E6E6E6] uppercase tracking-wider text-[11px]">
             Recent Files Stream
           </h2>
@@ -419,16 +420,17 @@ export const DashboardPage: React.FC = () => {
             </div>
           </>
         )}
-      </div>
+        </div>
 
-      {/* Right Inspector */}
-      {selectedFile && (
-        <FileInspector
-          file={selectedFile}
-          onClose={() => setSelectedFile(null)}
-          onPreview={(f) => setPreviewFile(f)}
-        />
-      )}
+        {/* Right Inspector */}
+        {selectedFile && (
+          <FileInspector
+            file={selectedFile}
+            onClose={() => setSelectedFile(null)}
+            onPreview={(f) => setPreviewFile(f)}
+          />
+        )}
+      </div>
 
       {/* File Preview Modal */}
       {vaultId && (
