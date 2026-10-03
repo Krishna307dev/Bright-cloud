@@ -218,10 +218,17 @@ export default {
           );
         }
 
+        const effectiveFilename = authResult.originalName || body.filename || authResult.storedName || "download";
+
         const authorization = await generateDownloadAuthorization(
           authResult.b2ObjectKey,
           verifiedToken.uid,
-          env
+          env,
+          3600,
+          {
+            disposition: body.disposition,
+            filename: effectiveFilename
+          }
         );
 
         return jsonResponse({

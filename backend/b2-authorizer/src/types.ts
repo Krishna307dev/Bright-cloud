@@ -43,6 +43,8 @@ export interface HeadAuthorizeResponse {
 export interface DownloadAuthorizeRequest {
   fileId: string;
   vaultId?: string;
+  disposition?: 'inline' | 'attachment';
+  filename?: string;
 }
 
 export interface DownloadAuthorizeResponse {

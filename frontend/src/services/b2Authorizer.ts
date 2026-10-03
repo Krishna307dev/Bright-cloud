@@ -89,7 +89,11 @@ export class B2AuthorizerClient {
    */
   static async requestDownloadAuthorization(
     vaultId: string,
-    fileId: string
+    fileId: string,
+    options?: {
+      disposition?: 'inline' | 'attachment';
+      filename?: string;
+    }
   ): Promise<DownloadAuthorization> {
     const user = auth.currentUser;
     if (!user) {
@@ -98,13 +102,21 @@ export class B2AuthorizerClient {
 
     const token = await user.getIdToken();
 
+    const payload: Record<string, any> = { vaultId, fileId };
+    if (options?.disposition) {
+      payload.disposition = options.disposition;
+    }
+    if (options?.filename) {
+      payload.filename = options.filename;
+    }
+
     const response = await fetch(`${B2_AUTHORIZER_URL}/b2/download-authorize`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ vaultId, fileId }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -131,7 +143,10 @@ export class B2AuthorizerClient {
     fileId: string,
     fallbackStoredName: string
   ): Promise<void> {
-    const authData = await this.requestDownloadAuthorization(vaultId, fileId);
+    const authData = await this.requestDownloadAuthorization(vaultId, fileId, {
+      disposition: 'attachment',
+      filename: fallbackStoredName,
+    });
     const filename = authData.storedName || fallbackStoredName || 'download';
 
     // Verify object existence before launching browser download via Range: bytes=0-0

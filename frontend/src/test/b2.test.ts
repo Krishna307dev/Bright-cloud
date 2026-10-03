@@ -65,4 +65,75 @@ describe('Backblaze B2 Authorizer & Download Flow', () => {
       undefined
     );
   });
+
+  it('sends disposition and filename in requestDownloadAuthorization payload', async () => {
+    const { auth } = await import('../services/firebase');
+    (auth as any).currentUser = {
+      getIdToken: vi.fn().mockResolvedValue('mock-token'),
+    };
+
+    let capturedPayload: any = null;
+    globalThis.fetch = vi.fn().mockImplementation(async (_url, init) => {
+      if (init && init.body) {
+        capturedPayload = JSON.parse(init.body);
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          downloadUrl: 'https://b2.mock/download?response-content-disposition=attachment',
+          expiresAt: Date.now() + 3600000,
+          fileId: 'file-123',
+          storedName: 'my-doc.pdf',
+        }),
+      } as any;
+    });
+
+    const res = await B2AuthorizerClient.requestDownloadAuthorization('vault-1', 'file-123', {
+      disposition: 'attachment',
+      filename: 'my-doc.pdf',
+    });
+
+    expect(capturedPayload).toEqual({
+      vaultId: 'vault-1',
+      fileId: 'file-123',
+      disposition: 'attachment',
+      filename: 'my-doc.pdf',
+    });
+    expect(res.downloadUrl).toContain('response-content-disposition=attachment');
+
+    (auth as any).currentUser = null;
+  });
+
+  it('triggerDownload requests attachment disposition and triggers anchor click', async () => {
+    const reqSpy = vi.spyOn(B2AuthorizerClient, 'requestDownloadAuthorization').mockResolvedValue({
+      downloadUrl: 'https://b2.mock/download/test.pdf',
+      expiresAt: Date.now() + 3600000,
+      fileId: 'file-999',
+      storedName: 'test.pdf',
+    });
+
+    globalThis.fetch = vi.fn().mockResolvedValue({ status: 200 } as any);
+
+    let clicked = false;
+    let createdAnchor: any = null;
+    const origCreateElement = document.createElement.bind(document);
+    vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
+      const el = origCreateElement(tag);
+      if (tag === 'a') {
+        createdAnchor = el;
+        el.click = () => { clicked = true; };
+      }
+      return el;
+    });
+
+    await B2AuthorizerClient.triggerDownload('vault-1', 'file-999', 'test.pdf');
+
+    expect(reqSpy).toHaveBeenCalledWith('vault-1', 'file-999', {
+      disposition: 'attachment',
+      filename: 'test.pdf',
+    });
+    expect(clicked).toBe(true);
+    expect(createdAnchor.href).toBe('https://b2.mock/download/test.pdf');
+    expect(createdAnchor.target).toBe('_blank');
+  });
 });

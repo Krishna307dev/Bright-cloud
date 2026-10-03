@@ -158,6 +158,7 @@ export interface ParsedDownloadRequest {
 export interface AuthorizedDownloadFile {
   b2ObjectKey: string;
   storedName?: string;
+  originalName?: string;
 }
 
 export function validateDownloadRequest(
@@ -225,7 +226,8 @@ export async function isAuthorizedToDownload(
   if (env?.FIRESTORE_GET_FILE) {
     const fileDoc = await env.FIRESTORE_GET_FILE(vaultId, fileId, authHeader);
     const sourceId = fileDoc.sourceId || fileDoc.fields?.sourceId?.stringValue;
-    const storedName = fileDoc.storedName || fileDoc.fields?.storedName?.stringValue || fileDoc.originalName || fileDoc.fields?.originalName?.stringValue || fileId;
+    const originalName = fileDoc.originalName || fileDoc.fields?.originalName?.stringValue;
+    const storedName = fileDoc.storedName || fileDoc.fields?.storedName?.stringValue || originalName || fileId;
     const relPath = fileDoc.relativePath || fileDoc.fields?.relativePath?.stringValue || "";
     const b2ObjectKey =
       fileDoc.b2ObjectKey ||
@@ -236,7 +238,8 @@ export async function isAuthorizedToDownload(
     validateObjectKey(b2ObjectKey, vaultId);
     return {
       b2ObjectKey,
-      storedName
+      storedName,
+      originalName
     };
   }
 
@@ -274,7 +277,8 @@ export async function isAuthorizedToDownload(
     };
 
     const sourceId = doc.fields?.sourceId?.stringValue;
-    const storedName = doc.fields?.storedName?.stringValue || doc.fields?.originalName?.stringValue || fileId;
+    const originalName = doc.fields?.originalName?.stringValue;
+    const storedName = doc.fields?.storedName?.stringValue || originalName || fileId;
     const relPath = doc.fields?.relativePath?.stringValue || "";
     const b2ObjectKey =
       doc.fields?.b2ObjectKey?.stringValue ||
@@ -289,7 +293,8 @@ export async function isAuthorizedToDownload(
 
     return {
       b2ObjectKey,
-      storedName
+      storedName,
+      originalName
     };
   } catch (err) {
     console.error(`Failed checking Firestore permissions for file ${fileId} in vault ${vaultId}:`, err);

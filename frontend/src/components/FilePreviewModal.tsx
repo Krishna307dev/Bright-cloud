@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Download, AlertCircle, RefreshCw, ZoomIn, ZoomOut, Maximize2, Minimize2 } from 'lucide-react';
 import type { FileRecord } from '../models';
 import { B2AuthorizerClient } from '../services/b2Authorizer';
@@ -25,9 +25,21 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [playbackError, setPlaybackError] = useState(false);
   const [textContent, setTextContent] = useState<string | null>(null);
-  const [imageZoom, setImageZoom] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [naturalDims, setNaturalDims] = useState<{ width: number; height: number } | null>(null);
+  const [fitDims, setFitDims] = useState<{ width: number; height: number } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [downloading, setDownloading] = useState(false);
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  const isMouseDownRef = useRef(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const scrollStartRef = useRef({ left: 0, top: 0 });
+  const didDragRef = useRef(false);
+  const lastTapTimeRef = useRef(0);
+  const lastTapPosRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     if (!isOpen || !file) {
@@ -35,7 +47,10 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
       setError(null);
       setPlaybackError(false);
       setTextContent(null);
-      setImageZoom(false);
+      setZoom(1);
+      setNaturalDims(null);
+      setFitDims(null);
+      setIsDragging(false);
       setIsFullscreen(false);
       return;
     }
@@ -83,6 +98,195 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
       isMounted = false;
     };
   }, [isOpen, file, vaultId]);
+
+  const updateFitDims = useCallback((nw: number, nh: number) => {
+    if (!containerRef.current) return;
+    const cw = containerRef.current.clientWidth || window.innerWidth;
+    const ch = containerRef.current.clientHeight || Math.round(window.innerHeight * 0.68);
+    const pad = 16;
+    const availW = Math.max(cw - pad, 50);
+    const availH = Math.max(ch - pad, 50);
+    const ratio = Math.min(availW / nw, availH / nh, 1);
+    setFitDims({
+      width: Math.round(nw * ratio),
+      height: Math.round(nh * ratio),
+    });
+  }, []);
+
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    const nw = img.naturalWidth || 800;
+    const nh = img.naturalHeight || 600;
+    setNaturalDims({ width: nw, height: nh });
+    updateFitDims(nw, nh);
+  };
+
+  useEffect(() => {
+    if (naturalDims) {
+      updateFitDims(naturalDims.width, naturalDims.height);
+    }
+  }, [isFullscreen, naturalDims, updateFitDims]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (naturalDims) {
+        updateFitDims(naturalDims.width, naturalDims.height);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [naturalDims, updateFitDims]);
+
+  const applyZoomAtPoint = useCallback((newZoomRaw: number, clientX?: number, clientY?: number) => {
+    const newZoom = Math.min(5, Math.max(1, Math.round(newZoomRaw * 100) / 100));
+    const container = containerRef.current;
+    if (!container || !fitDims) {
+      setZoom(newZoom);
+      return;
+    }
+
+    const cw = container.clientWidth;
+    const ch = container.clientHeight;
+    const rect = container.getBoundingClientRect();
+
+    const vx = clientX !== undefined ? clientX - rect.left : cw / 2;
+    const vy = clientY !== undefined ? clientY - rect.top : ch / 2;
+
+    const currentW = fitDims.width * zoom;
+    const currentH = fitDims.height * zoom;
+
+    const currentImgLeft = currentW < cw ? (cw - currentW) / 2 : 0;
+    const currentImgTop = currentH < ch ? (ch - currentH) / 2 : 0;
+
+    const imgX = container.scrollLeft + vx - currentImgLeft;
+    const imgY = container.scrollTop + vy - currentImgTop;
+    const fx = currentW > 0 ? Math.max(0, Math.min(1, imgX / currentW)) : 0.5;
+    const fy = currentH > 0 ? Math.max(0, Math.min(1, imgY / currentH)) : 0.5;
+
+    const newW = fitDims.width * newZoom;
+    const newH = fitDims.height * newZoom;
+    const newImgLeft = newW < cw ? (cw - newW) / 2 : 0;
+    const newImgTop = newH < ch ? (ch - newH) / 2 : 0;
+
+    setZoom(newZoom);
+
+    if (newZoom > 1) {
+      const targetScrollLeft = newImgLeft + fx * newW - vx;
+      const targetScrollTop = newImgTop + fy * newH - vy;
+      requestAnimationFrame(() => {
+        if (container) {
+          container.scrollLeft = Math.max(0, targetScrollLeft);
+          container.scrollTop = Math.max(0, targetScrollTop);
+        }
+      });
+    } else {
+      requestAnimationFrame(() => {
+        if (container) {
+          container.scrollLeft = 0;
+          container.scrollTop = 0;
+        }
+      });
+    }
+  }, [fitDims, zoom]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const step = e.deltaY < 0 ? 0.25 : -0.25;
+        applyZoomAtPoint(zoom + step, e.clientX, e.clientY);
+      }
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+    };
+  }, [applyZoomAtPoint, zoom]);
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    isMouseDownRef.current = true;
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
+    scrollStartRef.current = { left: container.scrollLeft, top: container.scrollTop };
+    didDragRef.current = false;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isMouseDownRef.current) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    const dx = e.clientX - dragStartRef.current.x;
+    const dy = e.clientY - dragStartRef.current.y;
+
+    if (!didDragRef.current && Math.hypot(dx, dy) > 4) {
+      didDragRef.current = true;
+      if (zoom > 1) {
+        setIsDragging(true);
+      }
+    }
+
+    if (didDragRef.current && zoom > 1) {
+      container.scrollLeft = scrollStartRef.current.left - dx;
+      container.scrollTop = scrollStartRef.current.top - dy;
+    }
+  };
+
+  const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isMouseDownRef.current) return;
+    isMouseDownRef.current = false;
+    setIsDragging(false);
+
+    if (!didDragRef.current) {
+      const nextZoom = zoom < 2 ? 2 : (zoom < 3 ? 3 : 1);
+      applyZoomAtPoint(nextZoom, e.clientX, e.clientY);
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.changedTouches.length === 1) {
+      const touch = e.changedTouches[0];
+      const now = Date.now();
+      const dt = now - lastTapTimeRef.current;
+      const dist = Math.hypot(
+        touch.clientX - lastTapPosRef.current.x,
+        touch.clientY - lastTapPosRef.current.y
+      );
+
+      if (dt < 300 && dist < 25) {
+        e.preventDefault();
+        const nextZoom = zoom < 2 ? 2 : (zoom < 3 ? 3 : 1);
+        applyZoomAtPoint(nextZoom, touch.clientX, touch.clientY);
+        lastTapTimeRef.current = 0;
+      } else {
+        lastTapTimeRef.current = now;
+        lastTapPosRef.current = { x: touch.clientX, y: touch.clientY };
+      }
+    }
+  };
+
+  const handleZoomIn = () => {
+    applyZoomAtPoint(zoom + 0.5);
+  };
+
+  const handleZoomOut = () => {
+    applyZoomAtPoint(zoom - 0.5);
+  };
+
+  const handleZoomToggle = () => {
+    if (zoom > 1) {
+      applyZoomAtPoint(1);
+    } else {
+      applyZoomAtPoint(2);
+    }
+  };
 
   if (!isOpen || !file) return null;
 
@@ -168,13 +372,41 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
 
           <div className="flex items-center gap-2 shrink-0">
             {category === 'image' && previewUrl && (
-              <button
-                onClick={() => setImageZoom(!imageZoom)}
-                className="p-1.5 text-slate-500 dark:text-[#8A8A8A] hover:text-slate-700 dark:hover:text-[#E6E6E6] hover:bg-slate-200/60 dark:hover:bg-[#181818] rounded-md transition-colors"
-                title={imageZoom ? 'Fit to Screen' : 'Zoom In'}
-              >
-                {imageZoom ? <ZoomOut className="w-4 h-4" /> : <ZoomIn className="w-4 h-4" />}
-              </button>
+              <div className="flex items-center gap-0.5">
+                <button
+                  onClick={handleZoomOut}
+                  disabled={zoom <= 1}
+                  className="hidden sm:inline-flex p-1.5 text-slate-500 dark:text-[#8A8A8A] hover:text-slate-700 dark:hover:text-[#E6E6E6] hover:bg-slate-200/60 dark:hover:bg-[#181818] rounded-md disabled:opacity-30 transition-colors"
+                  title="Zoom Out"
+                  aria-label="Zoom Out"
+                >
+                  <ZoomOut className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={handleZoomToggle}
+                  className="p-1.5 text-slate-500 dark:text-[#8A8A8A] hover:text-slate-700 dark:hover:text-[#E6E6E6] hover:bg-slate-200/60 dark:hover:bg-[#181818] rounded-md transition-colors"
+                  title={zoom > 1 ? 'Fit to Screen' : 'Zoom In'}
+                  aria-label={zoom > 1 ? 'Fit to Screen' : 'Zoom In'}
+                >
+                  {zoom > 1 ? (
+                    <ZoomOut className="w-4 h-4 sm:hidden" />
+                  ) : (
+                    <ZoomIn className="w-4 h-4 sm:hidden" />
+                  )}
+                  <span className="hidden sm:inline text-xs font-mono font-medium">
+                    {Math.round(zoom * 100)}%
+                  </span>
+                </button>
+                <button
+                  onClick={handleZoomIn}
+                  disabled={zoom >= 5}
+                  className="hidden sm:inline-flex p-1.5 text-slate-500 dark:text-[#8A8A8A] hover:text-slate-700 dark:hover:text-[#E6E6E6] hover:bg-slate-200/60 dark:hover:bg-[#181818] rounded-md disabled:opacity-30 transition-colors"
+                  title="Zoom In"
+                  aria-label="Zoom In"
+                >
+                  <ZoomIn className="w-4 h-4" />
+                </button>
+              </div>
             )}
             <button
               onClick={() => setIsFullscreen(!isFullscreen)}
@@ -206,7 +438,9 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
 
         {/* Content Body */}
         <div
-          className={`flex-1 overflow-auto p-4 sm:p-6 flex items-center justify-center bg-slate-900/5 dark:bg-black ${
+          className={`flex-1 overflow-auto ${
+            category === 'image' && previewUrl && !loading && !error ? 'p-0' : 'p-4 sm:p-6'
+          } flex items-center justify-center bg-slate-900/5 dark:bg-black ${
             isFullscreen ? 'h-full max-h-none' : 'min-h-[300px]'
           }`}
         >
@@ -248,18 +482,37 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
 
               {/* Image Preview */}
               {category === 'image' && (
-                <div className="w-full h-full flex items-center justify-center overflow-auto p-2">
+                <div
+                  ref={containerRef}
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onTouchEnd={handleTouchEnd}
+                  className={`w-full h-full overflow-auto overscroll-contain flex p-4 select-none [touch-action:pan-x_pan-y_pinch-zoom] ${
+                    zoom > 1 ? (isDragging ? 'cursor-grabbing' : 'cursor-grab') : 'cursor-zoom-in'
+                  }`}
+                >
                   <img
+                    ref={imgRef}
                     src={previewUrl}
                     alt={file.originalName}
-                    className={`rounded-lg transition-transform duration-200 ${
-                      imageZoom
-                        ? 'max-w-none cursor-zoom-out'
-                        : isFullscreen
-                        ? 'max-h-[calc(100vh-100px)] max-w-full object-contain cursor-zoom-in'
-                        : 'max-h-[68vh] max-w-full object-contain cursor-zoom-in shadow-md'
+                    onLoad={handleImageLoad}
+                    style={
+                      fitDims
+                        ? {
+                            width: `${Math.round(fitDims.width * zoom)}px`,
+                            height: `${Math.round(fitDims.height * zoom)}px`,
+                          }
+                        : undefined
+                    }
+                    className={`m-auto block shrink-0 select-none rounded-lg ${
+                      zoom === 1
+                        ? isFullscreen
+                          ? 'max-h-[calc(100vh-100px)] max-w-full object-contain shadow-md'
+                          : 'max-h-[68vh] max-w-full object-contain shadow-md'
+                        : ''
                     }`}
-                    onClick={() => setImageZoom(!imageZoom)}
+                    draggable={false}
                   />
                 </div>
               )}

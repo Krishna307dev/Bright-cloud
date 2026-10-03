@@ -969,6 +969,103 @@ test("Backblaze B2 Authorizer Shared Vault Test Suite", async (t) => {
     assert.equal(res2.status, 400);
   });
 
+  await t.test("DownloadAuth 11: Attachment request URL contains response-content-disposition in signed query; inline request does not", async () => {
+    setupMockFirestoreFetch();
+    const env = {
+      FIREBASE_PROJECT_ID: projectId,
+      VAULT_ID: defaultVaultId,
+      B2_ENDPOINT: "https://s3.eu-central-003.backblazeb2.com",
+      B2_BUCKET: "BrightCloud",
+      B2_REGION: "eu-central-003",
+      B2_KEY_ID: "key_b2_prod",
+      B2_APPLICATION_KEY: "secret_b2_prod"
+    };
+
+    const now = Math.floor(Date.now() / 1000);
+    const token = await createSignedTestFirebaseToken(
+      {
+        iss: `https://securetoken.google.com/${projectId}`,
+        aud: projectId,
+        sub: "google_admin_uid_1",
+        firebase: { sign_in_provider: "google.com" },
+        exp: now + 3600,
+        auth_time: now
+      },
+      keyPair
+    );
+
+    // 1. Attachment request with custom filename containing quotes & path separators to sanitize
+    const attachRes = await worker.fetch(
+      new Request("https://b2-auth.local/b2/download-authorize", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          fileId: "file-public",
+          disposition: "attachment",
+          filename: 'report"2026/test\\file.pdf'
+        })
+      }),
+      env,
+      {}
+    );
+
+    assert.equal(attachRes.status, 200);
+    const attachJson = await attachRes.json();
+    const attachUrl = new URL(attachJson.downloadUrl);
+    const dispositionParam = attachUrl.searchParams.get("response-content-disposition");
+    assert.ok(dispositionParam, "Attachment URL must contain response-content-disposition query parameter");
+    assert.ok(dispositionParam.startsWith("attachment;"));
+    assert.ok(dispositionParam.includes('filename="report2026testfile.pdf"'));
+    assert.ok(dispositionParam.includes("filename*=UTF-8''report2026testfile.pdf"));
+    assert.ok(attachUrl.searchParams.get("X-Amz-Signature"), "Signature must be present");
+
+    // 2. Inline request (or missing disposition) must NOT have response-content-disposition
+    const inlineRes = await worker.fetch(
+      new Request("https://b2-auth.local/b2/download-authorize", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          fileId: "file-public",
+          disposition: "inline"
+        })
+      }),
+      env,
+      {}
+    );
+
+    assert.equal(inlineRes.status, 200);
+    const inlineJson = await inlineRes.json();
+    const inlineUrl = new URL(inlineJson.downloadUrl);
+    assert.equal(inlineUrl.searchParams.get("response-content-disposition"), null, "Inline URL must not have response-content-disposition");
+
+    // 3. Direct generateDownloadAuthorization check
+    const directAttachAuth = await generateDownloadAuthorization(
+      "backups/default/src1/test.pdf",
+      "google_admin_uid_1",
+      env,
+      3600,
+      { disposition: "attachment", filename: "my-download.pdf" }
+    );
+    const directUrl = new URL(directAttachAuth.downloadUrl);
+    assert.ok(directUrl.searchParams.get("response-content-disposition")?.includes("my-download.pdf"));
+
+    const directInlineAuth = await generateDownloadAuthorization(
+      "backups/default/src1/test.pdf",
+      "google_admin_uid_1",
+      env,
+      3600
+    );
+    const directInlineUrl = new URL(directInlineAuth.downloadUrl);
+    assert.equal(directInlineUrl.searchParams.get("response-content-disposition"), null);
+  });
+
+
 
   await t.test("DeleteAuth 1: Successfully generates presigned DELETE authorization for cleanup", async () => {
     const env = {

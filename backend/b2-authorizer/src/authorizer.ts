@@ -94,11 +94,38 @@ export async function generateHeadAuthorization(
   };
 }
 
+export function sanitizeFilename(name: string): string {
+  // Strip quotes, backslashes, CR/LF, path separators (/ and \), and control characters
+  const clean = name.replace(/["'\\/\r\n\x00-\x1f\x7f]/g, "").trim().slice(0, 200);
+  return clean || "download";
+}
+
+export function toAsciiSafe(name: string): string {
+  // Replace non-ASCII and characters problematic in quoted headers with underscores
+  const ascii = name.replace(/[^\x20-\x7E]|["\\;]/g, "_").trim();
+  return ascii || "download";
+}
+
+export function encodeRfc5987(name: string): string {
+  return encodeURIComponent(name).replace(/['()*]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase());
+}
+
+export function buildContentDisposition(filename: string): string {
+  const sanitized = sanitizeFilename(filename);
+  const asciiSafe = toAsciiSafe(sanitized);
+  const rfc5987 = encodeRfc5987(sanitized);
+  return `attachment; filename="${asciiSafe}"; filename*=UTF-8''${rfc5987}`;
+}
+
 export async function generateDownloadAuthorization(
   objectKey: string,
   callerUid: string,
   env: Env,
-  expiresInSeconds: number = 3600
+  expiresInSeconds: number = 3600,
+  options?: {
+    disposition?: 'inline' | 'attachment';
+    filename?: string;
+  }
 ): Promise<DownloadAuthorizeResponse> {
   const ttlMs = expiresInSeconds * 1000;
   const expiresAt = Date.now() + ttlMs;
@@ -108,6 +135,12 @@ export async function generateDownloadAuthorization(
   const region = env.B2_REGION || "eu-central-003";
   const keyId = env.B2_KEY_ID || "dev-b2-key-id";
   const applicationKey = env.B2_APPLICATION_KEY || "dev-b2-app-key-1234567890abcdef";
+
+  const queryParams: Record<string, string> = {};
+  if (options?.disposition === 'attachment') {
+    const rawFilename = options.filename || objectKey.split('/').pop() || 'download';
+    queryParams['response-content-disposition'] = buildContentDisposition(rawFilename);
+  }
 
   const downloadUrl = await createB2PresignedUrl(
     {
@@ -120,13 +153,15 @@ export async function generateDownloadAuthorization(
     {
       method: "GET",
       objectKey,
-      expiresInSeconds
+      expiresInSeconds,
+      ...(Object.keys(queryParams).length > 0 ? { queryParams } : {})
     }
   );
 
   return {
     downloadUrl,
     expiresAt,
+    fileId: "",
     headers: {}
   };
 }
