@@ -201,9 +201,9 @@ export const AdminVaultSettingsPage: React.FC = () => {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Header */}
-      <div className="bg-white dark:bg-[#0A0A0A] p-6 rounded-xl border border-slate-200/80 dark:border-[#242424] shadow-sm flex items-center justify-between">
+      <div className="bg-white dark:bg-[#0A0A0A] p-4 sm:p-6 rounded-xl border border-slate-200/80 dark:border-[#242424] shadow-sm flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-brand-50 dark:bg-[#111111] border border-brand-200/60 dark:border-[#242424] flex items-center justify-center text-brand-600 dark:text-[#1DB954]">
+          <div className="w-12 h-12 rounded-xl bg-brand-50 dark:bg-[#111111] border border-brand-200/60 dark:border-[#242424] flex items-center justify-center text-brand-600 dark:text-[#1DB954] shrink-0">
             <ShieldCheck className="w-6 h-6" />
           </div>
           <div>
@@ -216,14 +216,15 @@ export const AdminVaultSettingsPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleManualRefresh}
             disabled={isLoading || isRefreshing}
-            className="p-2 text-slate-500 hover:text-slate-700 dark:text-[#8A8A8A] dark:hover:text-[#E6E6E6]"
+            className="w-10 h-10 sm:w-9 sm:h-9 p-0 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:text-[#8A8A8A] dark:hover:text-[#E6E6E6] active:scale-95 transition-transform"
             title="Refresh vault settings"
+            aria-label="Refresh vault settings"
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing || isLoading ? 'animate-spin text-brand-600 dark:text-[#1DB954]' : ''}`} />
           </Button>

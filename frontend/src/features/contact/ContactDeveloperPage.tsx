@@ -14,7 +14,7 @@ export const ContactDeveloperPage: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-black font-sans antialiased text-slate-900 dark:text-[#E6E6E6] transition-colors duration-150">
+    <div className="min-h-screen supports-[height:100dvh]:min-h-dvh flex flex-col bg-slate-50 dark:bg-black font-sans antialiased text-slate-900 dark:text-[#E6E6E6] transition-colors duration-150">
       {/* Top Header Bar */}
       <header className="px-4 sm:px-6 py-4 flex items-center justify-between border-b border-slate-200/80 dark:border-[#242424] bg-white/70 dark:bg-[#0A0A0A]/70 backdrop-blur-md shrink-0">
         <div className="flex items-center gap-3">
@@ -84,7 +84,7 @@ export const ContactDeveloperPage: React.FC = () => {
 
       {/* Main Content Area: flex-1 ensures footer pushed to bottom */}
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8">
-        <div className="w-full max-w-md bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200 dark:border-[#242424] shadow-modal p-6 sm:p-8 space-y-6 text-center animate-fadeIn">
+        <div className="w-full max-w-md bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200 dark:border-[#242424] shadow-modal p-5 sm:p-8 space-y-6 text-center animate-fadeIn">
           {/* Badge Icon */}
           <div className="mx-auto w-14 h-14 rounded-2xl bg-brand-50 dark:bg-[#111111] border border-brand-100 dark:border-[#242424] flex items-center justify-center text-brand-600 dark:text-[#1DB954] shadow-xs">
             <MessageSquare className="w-7 h-7" />

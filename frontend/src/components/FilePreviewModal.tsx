@@ -120,8 +120,8 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center ${
-        isFullscreen ? 'p-0' : 'p-2 sm:p-6'
+      className={`fixed inset-0 z-50 flex ${
+        isFullscreen ? 'items-center justify-center p-0' : 'items-end sm:items-center justify-center p-0 sm:p-6'
       } animate-fadeIn`}
     >
       {/* Backdrop */}
@@ -138,8 +138,8 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
         aria-labelledby="preview-title"
         className={`relative w-full bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-[#242424] shadow-modal z-10 overflow-hidden flex flex-col transition-all duration-150 ${
           isFullscreen
-            ? 'w-screen h-screen max-w-none max-h-none rounded-none border-0'
-            : 'max-w-4xl rounded-xl max-h-[92vh] h-full sm:h-auto'
+            ? 'w-screen h-screen supports-[height:100dvh]:h-dvh max-w-none max-h-none rounded-none border-0'
+            : 'max-w-4xl rounded-t-2xl sm:rounded-xl max-h-[92dvh] sm:max-h-[92vh] h-full sm:h-auto'
         }`}
       >
         {/* Header */}

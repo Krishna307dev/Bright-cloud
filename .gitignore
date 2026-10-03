@@ -33,3 +33,4 @@ dist/
 .kotlin/
 graphify-out/
 *.tsbuildinfo
+.freebuff/

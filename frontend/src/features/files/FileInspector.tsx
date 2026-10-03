@@ -59,18 +59,32 @@ export const FileInspector: React.FC<FileInspectorProps> = ({
     downloadFile(vaultId, file.fileId, file.storedName);
   };
 
+  // Close inspector on Escape key if no modal dialog is open on top
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        const hasOpenModal = document.querySelector('[role="dialog"]');
+        if (!hasOpenModal) {
+          onClose();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   return (
     <>
-      {/* Mobile backdrop */}
+      {/* Backdrop (Closes inspector on click) */}
       <div
-        className="fixed inset-0 bg-slate-950/30 backdrop-blur-[1px] z-40 md:hidden animate-fadeIn"
+        className="fixed inset-0 bg-slate-950/20 dark:bg-black/50 backdrop-blur-2xs z-40 transition-opacity animate-fadeIn"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Slide-out Panel (Desktop: Fixed Right 320px, Mobile: Slide-Up Bottom Sheet) */}
+      {/* Slide-out Panel (Desktop: Fixed Right Drawer, Mobile: Slide-Up Bottom Sheet) */}
       <aside
-        className="fixed md:static inset-x-0 bottom-0 max-h-[85vh] md:max-h-none md:h-full md:w-80 bg-white dark:bg-[#0A0A0A] border-t md:border-t-0 md:border-l border-slate-200 dark:border-[#242424] z-50 md:z-10 flex flex-col shadow-2xl md:shadow-none rounded-t-2xl md:rounded-none overflow-hidden transition-all duration-300"
+        className="fixed inset-x-0 bottom-0 max-h-[88dvh] md:max-h-none md:inset-x-auto md:top-0 md:bottom-0 md:right-0 md:w-80 lg:w-96 bg-white dark:bg-[#0A0A0A] border-t md:border-t-0 md:border-l border-slate-200 dark:border-[#242424] z-[45] flex flex-col shadow-2xl rounded-t-2xl md:rounded-none overflow-hidden transition-all duration-300 animate-in slide-in-from-bottom md:slide-in-from-right pb-[max(0.75rem,env(safe-area-inset-bottom))] md:pb-0"
       >
         {/* Header */}
         <div className="p-4 border-b border-slate-100 dark:border-[#242424] flex items-center justify-between bg-slate-50/50 dark:bg-[#111111]">
@@ -82,7 +96,7 @@ export const FileInspector: React.FC<FileInspectorProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-[#E6E6E6] p-1 rounded-md hover:bg-slate-100 dark:hover:bg-[#181818] transition-colors"
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-[#E6E6E6] w-9 h-9 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-[#181818] transition-colors"
             aria-label="Close inspector"
           >
             <X className="w-4 h-4" />

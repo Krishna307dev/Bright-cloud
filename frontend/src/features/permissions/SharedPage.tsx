@@ -141,14 +141,14 @@ export const SharedPage: React.FC = () => {
         </div>
 
         {/* Search & Filter Toolbar */}
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-3 sm:gap-4">
           <div className="relative flex-1 max-w-sm">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3 sm:top-2.5" />
             <Input
               placeholder="Search shared files or folders..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9 text-xs"
+              className="pl-9 h-10 sm:h-9 text-base sm:text-xs"
             />
           </div>
 
@@ -156,10 +156,10 @@ export const SharedPage: React.FC = () => {
             variant="ghost"
             size="sm"
             onClick={() => setSortAsc(!sortAsc)}
-            className="gap-1 text-xs text-slate-600 dark:text-[#E6E6E6] hover:bg-slate-100 dark:hover:bg-[#181818]"
+            className="gap-1 text-xs text-slate-600 dark:text-[#E6E6E6] hover:bg-slate-100 dark:hover:bg-[#181818] shrink-0"
           >
             <ArrowUpDown className="w-3.5 h-3.5" />
-            <span>{sortAsc ? 'Ascending' : 'Descending'}</span>
+            <span className="hidden xs:inline">{sortAsc ? 'Ascending' : 'Descending'}</span>
           </Button>
         </div>
 
@@ -179,135 +179,215 @@ export const SharedPage: React.FC = () => {
             }
           />
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-10 text-center">Type</TableHead>
-                <TableHead
-                  className="cursor-pointer hover:text-slate-700 dark:hover:text-[#E6E6E6] min-w-0"
-                  onClick={() => {
-                    setSortField('name');
-                    setSortAsc(!sortAsc);
-                  }}
+          <>
+            {/* Mobile Card List (md:hidden) */}
+            <div className="md:hidden space-y-2">
+              {displayedFiles.map((file) => (
+                <div
+                  key={file.fileId}
+                  onClick={() => setPreviewFile(file)}
+                  className="w-full min-h-[64px] py-3 px-3 rounded-xl border border-slate-200 dark:border-[#242424] bg-white dark:bg-[#0A0A0A] hover:bg-slate-50 dark:hover:bg-[#111111] transition-colors flex items-center gap-3 cursor-pointer"
                 >
-                  File Name & Path
-                </TableHead>
-                <TableHead
-                  className="w-24 text-right cursor-pointer hover:text-slate-700 dark:hover:text-[#E6E6E6] hidden md:table-cell"
-                  onClick={() => {
-                    setSortField('size');
-                    setSortAsc(!sortAsc);
-                  }}
-                >
-                  Size
-                </TableHead>
-                <TableHead
-                  className="w-36 cursor-pointer hover:text-slate-700 dark:hover:text-[#E6E6E6] hidden md:table-cell"
-                  onClick={() => {
-                    setSortField('date');
-                    setSortAsc(!sortAsc);
-                  }}
-                >
-                  Uploaded
-                </TableHead>
-                <TableHead className="w-28 hidden sm:table-cell">Permission</TableHead>
-                <TableHead className="w-20 sm:w-28 text-right shrink-0">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-[#181818] border border-slate-200/60 dark:border-[#242424] flex items-center justify-center shrink-0">
+                    <FileIcon fileName={file.originalName} mimeType={file.mimeType} className="w-5 h-5 mx-auto" />
+                  </div>
 
-            <TableBody>
-              {displayedFiles.map((file) => {
-                const isSelected = selectedFile?.fileId === file.fileId;
-                return (
-                  <TableRow
-                    key={file.fileId}
-                    onClick={() => setSelectedFile(file)}
-                    onDoubleClick={() => setPreviewFile(file)}
-                    className={`cursor-pointer ${isSelected ? 'bg-brand-50/60 dark:bg-[#1DB954]/10' : undefined}`}
-                  >
-                    <TableCell className="text-center">
-                      <FileIcon fileName={file.originalName} mimeType={file.mimeType} className="w-4 h-4 mx-auto" />
-                    </TableCell>
-
-                    <TableCell className="font-medium text-slate-900 dark:text-[#E6E6E6] text-xs min-w-0">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="truncate max-w-[140px] sm:max-w-xs">{file.originalName}</span>
-                          {file.version > 0 && (
-                            <Badge variant="brand" size="sm" className="text-[10px] px-1 py-0 shrink-0">
-                              v{file.version}
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-[#8A8A8A] font-mono mt-0.5">
-                          <Folder className="w-3 h-3 text-slate-400 dark:text-[#8A8A8A] shrink-0" />
-                          <span className="truncate max-w-[140px] sm:max-w-sm">
-                            {file.relativePath ? `${file.relativePath}` : '/'}
-                          </span>
-                        </div>
-                        {/* Mobile subtext */}
-                        <div className="text-[11px] text-slate-500 dark:text-[#8A8A8A] flex items-center gap-1.5 mt-0.5 md:hidden font-normal">
-                          <span>{formatBytes(file.size)}</span>
-                          <span>•</span>
-                          <span>{formatDate(file.uploadedAt)}</span>
-                        </div>
-                      </div>
-                    </TableCell>
-
-                    <TableCell className="font-mono text-xs text-slate-600 dark:text-[#8A8A8A] text-right hidden md:table-cell">
-                      {formatBytes(file.size)}
-                    </TableCell>
-
-                    <TableCell className="text-xs text-slate-500 dark:text-[#8A8A8A] hidden md:table-cell">
-                      {formatDate(file.uploadedAt)}
-                    </TableCell>
-
-                    <TableCell className="hidden sm:table-cell">
-                      {file.isPublicToFriends ? (
-                        <Badge variant="success" size="sm">
-                          Public
-                        </Badge>
-                      ) : (
-                        <Badge variant="brand" size="sm">
-                          Direct Share
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-medium text-slate-900 dark:text-[#E6E6E6] truncate">
+                        {file.originalName}
+                      </span>
+                      {file.version > 0 && (
+                        <Badge variant="brand" size="sm" className="text-[10px] px-1 py-0 shrink-0">
+                          v{file.version}
                         </Badge>
                       )}
-                    </TableCell>
+                    </div>
 
-                    <TableCell className="text-right shrink-0">
-                      <div
-                        className="flex items-center justify-end gap-1"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="p-1 text-slate-400 hover:text-brand-600 dark:text-[#8A8A8A] dark:hover:text-[#1DB954]"
-                          title="Preview in browser"
-                          onClick={() => setPreviewFile(file)}
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </Button>
+                    <div className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-[#8A8A8A] font-mono mt-0.5 truncate">
+                      <Folder className="w-3 h-3 text-slate-400 dark:text-[#8A8A8A] shrink-0" />
+                      <span className="truncate">{file.relativePath ? `${file.relativePath}` : '/'}</span>
+                    </div>
 
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="p-1 text-slate-400 hover:text-brand-600 dark:text-[#8A8A8A] dark:hover:text-[#1DB954]"
-                          title="Download file"
-                          isLoading={isDownloading(file.fileId)}
-                          onClick={() => {
-                            if (vaultId) downloadFile(vaultId, file.fileId, file.storedName);
-                          }}
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
-                    </TableCell>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-[#8A8A8A] mt-0.5 truncate">
+                      <span>{formatBytes(file.size)}</span>
+                      <span>•</span>
+                      <span>{formatDate(file.uploadedAt)}</span>
+                      <span className="shrink-0">
+                        {file.isPublicToFriends ? (
+                          <span className="text-[10px] font-medium text-emerald-700 dark:text-[#1DB954] bg-emerald-50 dark:bg-[#1DB954]/10 border border-emerald-200 dark:border-[#1DB954]/30 px-1.5 py-0.2 rounded-full">
+                            Public
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-medium text-brand-700 dark:text-[#1DB954] bg-brand-50 dark:bg-[#1DB954]/10 border border-brand-200 dark:border-[#1DB954]/30 px-1.5 py-0.2 rounded-full">
+                            Shared
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-11 h-11 p-0 flex items-center justify-center text-slate-400 hover:text-brand-600 dark:text-[#8A8A8A] dark:hover:text-[#1DB954]"
+                      title="Preview in browser"
+                      onClick={() => setPreviewFile(file)}
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-11 h-11 p-0 flex items-center justify-center text-slate-400 hover:text-brand-600 dark:text-[#8A8A8A] dark:hover:text-[#1DB954]"
+                      title="Download file"
+                      isLoading={isDownloading(file.fileId)}
+                      onClick={() => {
+                        if (vaultId) downloadFile(vaultId, file.fileId, file.storedName);
+                      }}
+                    >
+                      <Download className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table (hidden md:block) */}
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-10 text-center">Type</TableHead>
+                    <TableHead
+                      className="cursor-pointer hover:text-slate-700 dark:hover:text-[#E6E6E6] min-w-0"
+                      onClick={() => {
+                        setSortField('name');
+                        setSortAsc(!sortAsc);
+                      }}
+                    >
+                      File Name & Path
+                    </TableHead>
+                    <TableHead
+                      className="w-24 text-right cursor-pointer hover:text-slate-700 dark:hover:text-[#E6E6E6] hidden md:table-cell"
+                      onClick={() => {
+                        setSortField('size');
+                        setSortAsc(!sortAsc);
+                      }}
+                    >
+                      Size
+                    </TableHead>
+                    <TableHead
+                      className="w-36 cursor-pointer hover:text-slate-700 dark:hover:text-[#E6E6E6] hidden md:table-cell"
+                      onClick={() => {
+                        setSortField('date');
+                        setSortAsc(!sortAsc);
+                      }}
+                    >
+                      Uploaded
+                    </TableHead>
+                    <TableHead className="w-28 hidden sm:table-cell">Permission</TableHead>
+                    <TableHead className="w-20 sm:w-28 text-right shrink-0">Actions</TableHead>
                   </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                </TableHeader>
+
+                <TableBody>
+                  {displayedFiles.map((file) => {
+                    const isSelected = selectedFile?.fileId === file.fileId;
+                    return (
+                      <TableRow
+                        key={file.fileId}
+                        onClick={() => setSelectedFile(file)}
+                        onDoubleClick={() => setPreviewFile(file)}
+                        className={`cursor-pointer ${isSelected ? 'bg-brand-50/60 dark:bg-[#1DB954]/10' : undefined}`}
+                      >
+                        <TableCell className="text-center">
+                          <FileIcon fileName={file.originalName} mimeType={file.mimeType} className="w-4 h-4 mx-auto" />
+                        </TableCell>
+
+                        <TableCell className="font-medium text-slate-900 dark:text-[#E6E6E6] text-xs min-w-0">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="truncate max-w-[140px] sm:max-w-xs">{file.originalName}</span>
+                              {file.version > 0 && (
+                                <Badge variant="brand" size="sm" className="text-[10px] px-1 py-0 shrink-0">
+                                  v{file.version}
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-[#8A8A8A] font-mono mt-0.5">
+                              <Folder className="w-3 h-3 text-slate-400 dark:text-[#8A8A8A] shrink-0" />
+                              <span className="truncate max-w-[140px] sm:max-w-sm">
+                                {file.relativePath ? `${file.relativePath}` : '/'}
+                              </span>
+                            </div>
+                            {/* Mobile subtext */}
+                            <div className="text-[11px] text-slate-500 dark:text-[#8A8A8A] flex items-center gap-1.5 mt-0.5 md:hidden font-normal">
+                              <span>{formatBytes(file.size)}</span>
+                              <span>•</span>
+                              <span>{formatDate(file.uploadedAt)}</span>
+                            </div>
+                          </div>
+                        </TableCell>
+
+                        <TableCell className="font-mono text-xs text-slate-600 dark:text-[#8A8A8A] text-right hidden md:table-cell">
+                          {formatBytes(file.size)}
+                        </TableCell>
+
+                        <TableCell className="text-xs text-slate-500 dark:text-[#8A8A8A] hidden md:table-cell">
+                          {formatDate(file.uploadedAt)}
+                        </TableCell>
+
+                        <TableCell className="hidden sm:table-cell">
+                          {file.isPublicToFriends ? (
+                            <Badge variant="success" size="sm">
+                              Public
+                            </Badge>
+                          ) : (
+                            <Badge variant="brand" size="sm">
+                              Direct Share
+                            </Badge>
+                          )}
+                        </TableCell>
+
+                        <TableCell className="text-right shrink-0">
+                          <div
+                            className="flex items-center justify-end gap-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="p-1 text-slate-400 hover:text-brand-600 dark:text-[#8A8A8A] dark:hover:text-[#1DB954]"
+                              title="Preview in browser"
+                              onClick={() => setPreviewFile(file)}
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </Button>
+
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="p-1 text-slate-400 hover:text-brand-600 dark:text-[#8A8A8A] dark:hover:text-[#1DB954]"
+                              title="Download file"
+                              isLoading={isDownloading(file.fileId)}
+                              onClick={() => {
+                                if (vaultId) downloadFile(vaultId, file.fileId, file.storedName);
+                              }}
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </div>
 

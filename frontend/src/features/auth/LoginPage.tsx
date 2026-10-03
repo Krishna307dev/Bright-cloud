@@ -35,7 +35,7 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-black font-sans antialiased text-slate-900 dark:text-[#E6E6E6] transition-colors duration-150">
+    <div className="min-h-screen supports-[height:100dvh]:min-h-dvh flex flex-col bg-slate-50 dark:bg-black font-sans antialiased text-slate-900 dark:text-[#E6E6E6] transition-colors duration-150">
       {/* Top Header with Brand and Theme Selector */}
       <div className="w-full px-4 sm:px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
@@ -93,7 +93,7 @@ export const LoginPage: React.FC = () => {
 
       {/* Main Content Area */}
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
-        <div className="w-full max-w-md bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200 dark:border-[#242424] shadow-modal p-8 space-y-6 animate-fadeIn">
+        <div className="w-full max-w-md bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200 dark:border-[#242424] shadow-modal p-5 sm:p-8 space-y-6 animate-fadeIn">
           {/* Authentic Floating Logo */}
           <div className="text-center space-y-2">
             <div className="mx-auto w-16 h-16 flex items-center justify-center mb-2">

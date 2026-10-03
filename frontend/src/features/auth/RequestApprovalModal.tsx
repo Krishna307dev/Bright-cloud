@@ -138,7 +138,7 @@ export const RequestApprovalModal: React.FC<RequestApprovalModalProps> = ({
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. John Doe"
             required
-            className="text-xs"
+            className="text-base sm:text-xs"
           />
         </div>
 
@@ -153,7 +153,7 @@ export const RequestApprovalModal: React.FC<RequestApprovalModalProps> = ({
             placeholder="Explain why you are requesting access to this vault..."
             required
             rows={3}
-            className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 dark:border-[#242424] bg-white dark:bg-[#111111] text-slate-900 dark:text-[#E6E6E6] focus:outline-hidden focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 dark:focus:border-[#1DB954] transition-all resize-none placeholder:text-slate-400 dark:placeholder:text-[#8A8A8A]"
+            className="w-full px-3 py-2 text-base sm:text-xs rounded-lg border border-slate-200 dark:border-[#242424] bg-white dark:bg-[#111111] text-slate-900 dark:text-[#E6E6E6] focus:outline-hidden focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 dark:focus:border-[#1DB954] transition-all resize-none placeholder:text-slate-400 dark:placeholder:text-[#8A8A8A]"
           />
         </div>
 
@@ -173,7 +173,7 @@ export const RequestApprovalModal: React.FC<RequestApprovalModalProps> = ({
             placeholder="e.g. Name of the person who told you about this website"
             maxLength={100}
             required
-            className="text-xs"
+            className="text-base sm:text-xs"
           />
         </div>
 

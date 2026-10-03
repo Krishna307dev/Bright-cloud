@@ -234,7 +234,7 @@ export const ManageUsersPage: React.FC = () => {
             size="sm"
             onClick={handleManualRefresh}
             disabled={isLoading}
-            className="text-slate-600 dark:text-[#8A8A8A] hover:text-slate-900 dark:hover:text-[#E6E6E6] gap-1.5 text-xs"
+            className="text-slate-600 dark:text-[#8A8A8A] hover:text-slate-900 dark:hover:text-[#E6E6E6] gap-1.5 text-xs min-h-[36px] sm:min-h-[32px] px-3 active:scale-95 transition-transform"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-brand-600 dark:text-[#1DB954]' : ''}`} />
             Refresh
@@ -313,12 +313,12 @@ export const ManageUsersPage: React.FC = () => {
       {/* Search Toolbar */}
       <div className="flex items-center justify-between gap-3 bg-white dark:bg-[#0A0A0A] p-3 rounded-xl border border-slate-200/90 dark:border-[#242424] shadow-xs">
         <div className="relative flex-1 max-w-sm">
-          <Search className="w-4 h-4 text-slate-400 dark:text-[#8A8A8A] absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-slate-400 dark:text-[#8A8A8A] absolute left-3 top-3 sm:top-2.5" />
           <Input
             placeholder="Search by email or name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9 text-xs"
+            className="pl-9 h-10 sm:h-9 text-base sm:text-xs"
           />
         </div>
         <div className="text-xs text-slate-500 dark:text-[#8A8A8A] font-medium">
@@ -410,10 +410,10 @@ export const ManageUsersPage: React.FC = () => {
                         variant="secondary"
                         size="sm"
                         onClick={() => setViewingRequest({ user: u, request: requestsMap.get(u.uid)! })}
-                        className="inline-flex items-center gap-1 text-xs text-brand-700 dark:text-[#1DB954] bg-brand-50 dark:bg-[#1DB954]/10 hover:bg-brand-100 dark:hover:bg-[#1DB954]/20 border-brand-200 dark:border-[#1DB954]/30 h-7 px-2.5 font-medium shrink-0"
+                        className="inline-flex items-center gap-1.5 text-xs text-brand-700 dark:text-[#1DB954] bg-brand-50 dark:bg-[#1DB954]/10 hover:bg-brand-100 dark:hover:bg-[#1DB954]/20 border-brand-200 dark:border-[#1DB954]/30 py-1.5 px-3 font-medium shrink-0 h-auto"
                         title="View submitted approval request"
                       >
-                        <FileText className="w-3 h-3 shrink-0" />
+                        <FileText className="w-3.5 h-3.5 shrink-0" />
                         <span>View Request</span>
                       </Button>
                     )}
@@ -427,7 +427,7 @@ export const ManageUsersPage: React.FC = () => {
                         size="sm"
                         disabled={isItemLoading}
                         onClick={() => handleRoleChange(u.uid, 'friend')}
-                        className="inline-flex items-center gap-1 text-xs text-emerald-700 dark:text-[#1DB954] bg-emerald-50 dark:bg-[#1DB954]/10 hover:bg-emerald-100 dark:hover:bg-[#1DB954]/20 border-emerald-200 dark:border-[#1DB954]/30 min-h-[30px] px-2.5 font-medium"
+                        className="inline-flex items-center gap-1.5 text-xs text-emerald-700 dark:text-[#1DB954] bg-emerald-50 dark:bg-[#1DB954]/10 hover:bg-emerald-100 dark:hover:bg-[#1DB954]/20 border-emerald-200 dark:border-[#1DB954]/30 py-1.5 px-3 font-medium h-auto whitespace-nowrap"
                       >
                         <UserCheck className="w-3.5 h-3.5 shrink-0" />
                         <span>Authorize</span>
@@ -490,13 +490,13 @@ export const ManageUsersPage: React.FC = () => {
           </div>
 
           {/* Desktop Table (hidden on mobile, visible on md+) */}
-          <div className="hidden md:block bg-white dark:bg-[#0A0A0A] rounded-xl border border-slate-200 dark:border-[#242424] shadow-xs">
+          <div className="hidden md:block">
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50/75 dark:bg-[#111111] border-b border-slate-200 dark:border-[#242424]">
                   <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 whitespace-nowrap">User</TableHead>
-                  <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 w-52 whitespace-nowrap">Role & Request</TableHead>
-                  <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 w-36 whitespace-nowrap">Last Login</TableHead>
+                  <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 w-44 lg:w-52 whitespace-nowrap">Role & Request</TableHead>
+                  <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 w-32 lg:w-36 whitespace-nowrap">Last Login</TableHead>
                   <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 text-right whitespace-nowrap">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -571,7 +571,7 @@ export const ManageUsersPage: React.FC = () => {
                               variant="secondary"
                               size="sm"
                               onClick={() => setViewingRequest({ user: u, request: requestsMap.get(u.uid)! })}
-                              className="inline-flex items-center gap-1 text-[11px] text-brand-700 dark:text-[#1DB954] bg-brand-50 dark:bg-[#1DB954]/10 hover:bg-brand-100 dark:hover:bg-[#1DB954]/20 border-brand-200 dark:border-[#1DB954]/30 h-6 px-2 whitespace-nowrap font-medium shrink-0"
+                              className="inline-flex items-center gap-1 text-[11px] text-brand-700 dark:text-[#1DB954] bg-brand-50 dark:bg-[#1DB954]/10 hover:bg-brand-100 dark:hover:bg-[#1DB954]/20 border-brand-200 dark:border-[#1DB954]/30 py-1 px-2.5 whitespace-nowrap font-medium shrink-0 h-auto"
                               title="View submitted approval request"
                             >
                               <FileText className="w-3 h-3 shrink-0" />
@@ -596,7 +596,7 @@ export const ManageUsersPage: React.FC = () => {
                               size="sm"
                               disabled={isItemLoading}
                               onClick={() => handleRoleChange(u.uid, 'friend')}
-                              className="inline-flex items-center gap-1 text-xs text-emerald-700 dark:text-[#1DB954] bg-emerald-50 dark:bg-[#1DB954]/10 hover:bg-emerald-100 dark:hover:bg-[#1DB954]/20 border-emerald-200 dark:border-[#1DB954]/30 min-h-[30px] px-2.5 whitespace-nowrap shrink-0 font-medium"
+                              className="inline-flex items-center gap-1.5 text-xs text-emerald-700 dark:text-[#1DB954] bg-emerald-50 dark:bg-[#1DB954]/10 hover:bg-emerald-100 dark:hover:bg-[#1DB954]/20 border-emerald-200 dark:border-[#1DB954]/30 py-1.5 px-3 whitespace-nowrap shrink-0 font-medium h-auto"
                               title="Authorize user to view and download files"
                             >
                               <UserCheck className="w-3.5 h-3.5 shrink-0" />

@@ -21,6 +21,9 @@ import {
   Archive,
   RotateCcw,
   X,
+  MoreVertical,
+  Lock,
+  CheckSquare,
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { SourceService } from '../../services/firestore/sourceService';
@@ -90,6 +93,7 @@ export const FileExplorerPage: React.FC = () => {
   const [isPageDragging, setIsPageDragging] = useState(false);
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
   const [managingFile, setManagingFile] = useState<FileRecord | null>(null);
+  const [mobileActionFile, setMobileActionFile] = useState<FileRecord | null>(null);
   const [isFolderPermOpen, setIsFolderPermOpen] = useState(false);
   const [zipProgress, setZipProgress] = useState<{ active: boolean; percent: number; status: string } | null>(null);
 
@@ -492,17 +496,17 @@ export const FileExplorerPage: React.FC = () => {
       )}
       <div className="flex-1 flex flex-col min-w-0 space-y-4">
         {/* Top Control Bar */}
-        <div className="bg-white dark:bg-[#0A0A0A] p-4 rounded-xl border border-slate-200/80 dark:border-[#242424] shadow-sm space-y-3">
+        <div className="bg-white dark:bg-[#0A0A0A] p-3 sm:p-4 rounded-xl border border-slate-200/80 dark:border-[#242424] shadow-sm space-y-3">
           {/* Row 1: Source Selector & Path Breadcrumbs */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-[#242424]">
-            <div className="flex flex-wrap items-center gap-2 min-w-0">
-              <div className="flex items-center gap-1.5 shrink-0 bg-slate-50 dark:bg-[#111111] border border-slate-200/90 dark:border-[#242424] rounded-lg px-2.5 py-1.5 shadow-2xs">
-                <HardDrive className="w-4 h-4 text-brand-500 dark:text-[#1DB954]" />
-                <span className="text-[11px] font-semibold text-slate-400 dark:text-[#8A8A8A] uppercase tracking-wider">Drive</span>
+          <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 pb-3 border-b border-slate-100 dark:border-[#242424]">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 shrink-0 bg-slate-50 dark:bg-[#111111] border border-slate-200/90 dark:border-[#242424] rounded-lg px-2 sm:px-2.5 py-1.5 shadow-2xs">
+                <HardDrive className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-500 dark:text-[#1DB954]" />
+                <span className="text-[10px] sm:text-[11px] font-semibold text-slate-400 dark:text-[#8A8A8A] uppercase tracking-wider">Drive</span>
                 <select
                   value={selectedSourceId}
                   onChange={(e) => handleSourceChange(e.target.value)}
-                  className="text-xs font-semibold text-slate-800 dark:text-[#E6E6E6] bg-transparent border-0 p-0 focus:outline-none focus:ring-0 cursor-pointer"
+                  className="text-xs font-semibold text-slate-800 dark:text-[#E6E6E6] bg-transparent border-0 p-0 focus:outline-none focus:ring-0 cursor-pointer max-w-[125px] sm:max-w-xs truncate"
                 >
                   {sources.map((s) => (
                     <option key={s.sourceId} value={s.sourceId} className="bg-white dark:bg-[#111111] text-slate-800 dark:text-[#E6E6E6]">
@@ -515,7 +519,7 @@ export const FileExplorerPage: React.FC = () => {
               <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-[#8A8A8A] shrink-0" />
 
               {/* Breadcrumb Trail */}
-              <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5 text-xs">
+              <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 sm:gap-1.5 text-xs min-w-0">
                 <Link
                   to={`/files/${selectedSourceId}`}
                   className="font-medium text-slate-600 dark:text-[#8A8A8A] hover:text-brand-600 dark:hover:text-[#1DB954] transition-colors px-1.5 py-0.5 rounded hover:bg-slate-100 dark:hover:bg-[#181818]"
@@ -675,56 +679,108 @@ export const FileExplorerPage: React.FC = () => {
         )}
 
         {/* Search, Folder Summary & Sort Toolbar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1 sm:w-64">
-              <Search className="w-4 h-4 text-slate-400 dark:text-[#8A8A8A] absolute left-3 top-2.5" />
+        <div className="space-y-2.5">
+          {/* Row 1: Search Input */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="relative w-full sm:w-72">
+              <Search className="w-4 h-4 text-slate-400 dark:text-[#8A8A8A] absolute left-3 top-3.5 sm:top-2.5 pointer-events-none" />
               <Input
                 placeholder="Search files in folder..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9 text-xs"
+                className="pl-9 h-11 sm:h-9 text-base sm:text-xs"
               />
             </div>
 
-            {/* Folder & Drive Statistics Badge */}
-            <div className="text-xs text-slate-500 dark:text-[#8A8A8A] hidden md:block">
-              <span className="font-semibold text-slate-700 dark:text-[#E6E6E6]">
-                {displayedFiles.length} file{displayedFiles.length === 1 ? '' : 's'}
-              </span>
-              {subfolders.length > 0 && (
-                <span>, <span className="font-semibold text-slate-700 dark:text-[#E6E6E6]">{subfolders.length} folder{subfolders.length === 1 ? '' : 's'}</span></span>
-              )}
-              <span className="text-slate-400 dark:text-[#8A8A8A]"> in this folder</span>{' '}
-              <span className="text-slate-400 dark:text-[#8A8A8A] font-medium">
-                ({totalDriveStats.count} total files in drive)
-              </span>
+            {/* Desktop Only Folder Summary & Sort Controls (>= sm) */}
+            <div className="hidden sm:flex items-center justify-between flex-1 gap-3 ml-3">
+              <div className="text-xs text-slate-500 dark:text-[#8A8A8A]">
+                <span className="font-semibold text-slate-700 dark:text-[#E6E6E6]">
+                  {displayedFiles.length} file{displayedFiles.length === 1 ? '' : 's'}
+                </span>
+                {subfolders.length > 0 && (
+                  <span>, <span className="font-semibold text-slate-700 dark:text-[#E6E6E6]">{subfolders.length} folder{subfolders.length === 1 ? '' : 's'}</span></span>
+                )}
+                <span className="text-slate-400 dark:text-[#8A8A8A]"> in this folder</span>{' '}
+                <span className="text-slate-400 dark:text-[#8A8A8A] font-medium">
+                  ({totalDriveStats.count} total files in drive)
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs ml-auto">
+                <Button
+                  variant={showHiddenFiles ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setShowHiddenFiles(!showHiddenFiles)}
+                  className={`gap-1.5 text-xs h-8 ${showHiddenFiles ? 'bg-slate-200 dark:bg-[#181818] text-slate-800 dark:text-[#E6E6E6] font-semibold border border-transparent dark:border-[#242424]' : 'text-slate-500 hover:text-slate-700 dark:text-[#8A8A8A] dark:hover:text-[#E6E6E6]'}`}
+                  title="Toggle display of Android system files (.database_uuid, .thumbnails, LOST.DIR)"
+                >
+                  {showHiddenFiles ? <Eye className="w-3.5 h-3.5 text-brand-600 dark:text-[#1DB954]" /> : <EyeOff className="w-3.5 h-3.5 text-slate-400 dark:text-[#8A8A8A]" />}
+                  <span>{showHiddenFiles ? 'Hide system files' : 'Show hidden files'}</span>
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSortAsc(!sortAsc);
+                  }}
+                  className="gap-1 text-slate-600 dark:text-[#E6E6E6] hover:text-slate-800 dark:hover:text-white h-8"
+                >
+                  <ArrowUpDown className="w-3.5 h-3.5" />
+                  <span>{sortAsc ? 'Ascending' : 'Descending'}</span>
+                </Button>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs">
-            <Button
-              variant={showHiddenFiles ? 'secondary' : 'ghost'}
-              size="sm"
+          {/* Mobile Scrollable Pill Row (< sm) */}
+          <div className="sm:hidden flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+            <span className="shrink-0 text-xs px-2.5 py-1.5 rounded-full bg-slate-100 dark:bg-[#181818] text-slate-600 dark:text-[#8A8A8A] font-medium border border-slate-200 dark:border-[#242424]">
+              {displayedFiles.length} file{displayedFiles.length === 1 ? '' : 's'}
+              {subfolders.length > 0 ? ` • ${subfolders.length} folder${subfolders.length === 1 ? '' : 's'}` : ''}
+            </span>
+
+            <button
+              type="button"
               onClick={() => setShowHiddenFiles(!showHiddenFiles)}
-              className={`gap-1.5 text-xs h-8 ${showHiddenFiles ? 'bg-slate-200 dark:bg-[#181818] text-slate-800 dark:text-[#E6E6E6] font-semibold border border-transparent dark:border-[#242424]' : 'text-slate-500 hover:text-slate-700 dark:text-[#8A8A8A] dark:hover:text-[#E6E6E6]'}`}
-              title="Toggle display of Android system files (.database_uuid, .thumbnails, LOST.DIR)"
+              className={`shrink-0 flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full border transition-colors ${
+                showHiddenFiles
+                  ? 'bg-brand-50 dark:bg-[#1DB954]/15 text-brand-700 dark:text-[#1DB954] border-brand-300 dark:border-[#1DB954]/30 font-medium'
+                  : 'bg-white dark:bg-[#0A0A0A] text-slate-600 dark:text-[#8A8A8A] border-slate-200 dark:border-[#242424]'
+              }`}
             >
               {showHiddenFiles ? <Eye className="w-3.5 h-3.5 text-brand-600 dark:text-[#1DB954]" /> : <EyeOff className="w-3.5 h-3.5 text-slate-400 dark:text-[#8A8A8A]" />}
-              <span>{showHiddenFiles ? 'Hide system files' : 'Show hidden files'}</span>
-            </Button>
+              <span>{showHiddenFiles ? 'System: On' : 'Hidden: Off'}</span>
+            </button>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setSortAsc(!sortAsc);
-              }}
-              className="gap-1 text-slate-600 dark:text-[#E6E6E6] hover:text-slate-800 dark:hover:text-white h-8"
+            <button
+              type="button"
+              onClick={() => setSortAsc(!sortAsc)}
+              className="shrink-0 flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full bg-white dark:bg-[#0A0A0A] text-slate-600 dark:text-[#8A8A8A] border border-slate-200 dark:border-[#242424]"
             >
               <ArrowUpDown className="w-3.5 h-3.5" />
-              <span>{sortAsc ? 'Ascending' : 'Descending'}</span>
-            </Button>
+              <span>{sortAsc ? 'A-Z' : 'Z-A'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (selectedFileIds.size > 0) {
+                  setSelectedFileIds(new Set());
+                } else {
+                  toggleSelectAll();
+                }
+              }}
+              className={`shrink-0 flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full border transition-colors ${
+                selectedFileIds.size > 0
+                  ? 'bg-brand-50 dark:bg-[#1DB954]/15 text-brand-700 dark:text-[#1DB954] border-brand-300 dark:border-[#1DB954]/30 font-medium'
+                  : 'bg-white dark:bg-[#0A0A0A] text-slate-600 dark:text-[#8A8A8A] border-slate-200 dark:border-[#242424]'
+              }`}
+            >
+              <CheckSquare className="w-3.5 h-3.5" />
+              <span>{selectedFileIds.size > 0 ? `${selectedFileIds.size} Selected` : 'Select'}</span>
+            </button>
           </div>
         </div>
 
@@ -770,302 +826,461 @@ export const FileExplorerPage: React.FC = () => {
           />
         ) : (
           <div className="flex-1 flex flex-col space-y-4">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-10 text-center">
-                    <input
-                      type="checkbox"
-                      checked={isAllSelected}
-                      onChange={toggleSelectAll}
-                      className="rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
-                      title="Select all files in folder"
-                    />
-                  </TableHead>
-                  <TableHead className="w-10 text-center">Type</TableHead>
-                  <TableHead
-                    className="cursor-pointer hover:text-slate-700 min-w-0"
+            {/* Mobile Explorer List (< md) */}
+            <div className="md:hidden space-y-2">
+              {/* Parent directory navigation row if not root */}
+              {currentPath && (
+                <div
+                  onClick={navigateUp}
+                  className="w-full min-h-[52px] py-2.5 px-3 rounded-xl border border-slate-200 dark:border-[#242424] bg-white dark:bg-[#0A0A0A] hover:bg-slate-50 dark:hover:bg-[#181818] active:bg-slate-100 flex items-center gap-3 transition-colors cursor-pointer"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-brand-50 dark:bg-[#111111] text-brand-600 dark:text-[#1DB954] border border-brand-100 dark:border-[#242424] flex items-center justify-center shrink-0">
+                    <Folder className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0 font-medium text-xs text-slate-700 dark:text-[#E6E6E6] truncate">
+                    .. (Up to parent folder)
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400 dark:text-[#8A8A8A] shrink-0" />
+                </div>
+              )}
+
+              {/* Subfolders on Mobile */}
+              {subfolders.map((folder) => (
+                <div
+                  key={folder.relativePath}
+                  onClick={() => navigate(`/files/${selectedSourceId}/${folder.relativePath}`)}
+                  className="w-full min-h-[64px] py-3 px-3 rounded-xl border border-slate-200 dark:border-[#242424] bg-white dark:bg-[#0A0A0A] hover:bg-slate-50 dark:hover:bg-[#111111] active:bg-slate-100 flex items-center gap-3 transition-colors cursor-pointer"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-[#242424] text-amber-500 dark:text-[#1DB954] flex items-center justify-center shrink-0">
+                    <Folder className="w-5 h-5" />
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold text-slate-900 dark:text-[#E6E6E6] truncate">
+                      {folder.name}
+                    </div>
+                    <div className="text-xs text-slate-500 dark:text-[#8A8A8A] truncate mt-0.5">
+                      {folder.fileCount} file{folder.fileCount === 1 ? '' : 's'} • {formatBytes(folder.totalBytes)}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1 shrink-0">
+                    {isAdmin && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeletingFolder(folder);
+                        }}
+                        className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 active:bg-rose-50 dark:active:bg-rose-950/40"
+                        title={`Delete folder /${folder.relativePath}`}
+                        aria-label={`Delete folder ${folder.name}`}
+                      >
+                        <Trash2 className="w-4 h-4 text-rose-500" />
+                      </button>
+                    )}
+                    <ChevronRight className="w-5 h-5 text-slate-400 dark:text-[#8A8A8A]" />
+                  </div>
+                </div>
+              ))}
+
+              {/* Files on Mobile */}
+              {displayedFiles.map((file) => {
+                const isSelected = selectedFile?.fileId === file.fileId;
+                const isChecked = selectedFileIds.has(file.fileId);
+                const isRestricted =
+                  !isAdmin && !file.isPublicToFriends && !file.allowedFriends?.includes(user?.uid || '');
+                const isSelectionMode = selectedFileIds.size > 0;
+
+                return (
+                  <div
+                    key={file.fileId}
                     onClick={() => {
-                      setSortField('name');
-                      setSortAsc(!sortAsc);
+                      if (isSelectionMode) {
+                        toggleSelectFile(file.fileId);
+                      } else if (!isRestricted) {
+                        setPreviewFile(file);
+                      } else {
+                        setSelectedFile(file);
+                      }
                     }}
+                    className={`w-full min-h-[64px] py-3 px-3 rounded-xl border transition-colors flex items-center gap-3 cursor-pointer ${
+                      isChecked
+                        ? 'bg-brand-50/80 dark:bg-[#1DB954]/15 border-brand-300 dark:border-[#1DB954]/40'
+                        : isSelected
+                        ? 'bg-slate-50 dark:bg-[#181818] border-slate-300 dark:border-[#333333]'
+                        : 'bg-white dark:bg-[#0A0A0A] border-slate-200 dark:border-[#242424] hover:bg-slate-50 dark:hover:bg-[#111111]'
+                    }`}
                   >
-                    Name
-                  </TableHead>
-                  <TableHead
-                    className="w-24 text-right cursor-pointer hover:text-slate-700 hidden md:table-cell"
-                    onClick={() => {
-                      setSortField('size');
-                      setSortAsc(!sortAsc);
-                    }}
-                  >
-                    Size
-                  </TableHead>
-                  <TableHead
-                    className="w-36 cursor-pointer hover:text-slate-700 hidden md:table-cell"
-                    onClick={() => {
-                      setSortField('date');
-                      setSortAsc(!sortAsc);
-                    }}
-                  >
-                    Uploaded / Items
-                  </TableHead>
-                  <TableHead className="w-24 hidden sm:table-cell">Access</TableHead>
-                  <TableHead className="w-24 sm:w-28 text-right shrink-0">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-
-              <TableBody>
-                {/* Parent directory navigation row if not root */}
-                {currentPath && (
-                  <TableRow
-                    onClick={navigateUp}
-                    className="bg-slate-50/50 dark:bg-[#111111]/70 hover:bg-slate-100/70 dark:hover:bg-[#181818] cursor-pointer"
-                  >
-                    <TableCell className="text-center"></TableCell>
-                    <TableCell className="text-center">
-                      <Folder className="w-4 h-4 text-brand-500 dark:text-[#1DB954] mx-auto" />
-                    </TableCell>
-                    <TableCell colSpan={5} className="font-semibold text-slate-700 dark:text-[#E6E6E6] text-xs">
-                      .. (Up to parent folder)
-                    </TableCell>
-                  </TableRow>
-                )}
-
-                {/* Subfolder rows */}
-                {subfolders.map((folder) => (
-                  <TableRow
-                    key={folder.relativePath}
-                    onClick={() => navigate(`/files/${selectedSourceId}/${folder.relativePath}`)}
-                    className="bg-amber-50/20 dark:bg-[#111111] hover:bg-amber-50/60 dark:hover:bg-[#181818] cursor-pointer transition-colors"
-                  >
-                    <TableCell className="text-center" onClick={(e) => e.stopPropagation()}></TableCell>
-                    <TableCell className="text-center">
-                      <Folder className="w-4 h-4 text-amber-500 dark:text-[#1DB954] mx-auto" />
-                    </TableCell>
-                    <TableCell className="font-semibold text-slate-800 dark:text-[#E6E6E6] text-xs hover:text-brand-600 dark:hover:text-[#1DB954] min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="truncate">{folder.name}</span>
-                        <Badge variant="neutral" size="sm" className="font-normal text-[10px] hidden sm:inline-flex">
-                          Folder
-                        </Badge>
-                      </div>
-                      <div className="text-[11px] text-slate-500 dark:text-[#8A8A8A] flex items-center gap-1.5 mt-0.5 md:hidden font-normal">
-                        <span>{folder.fileCount} file{folder.fileCount === 1 ? '' : 's'}</span>
-                        <span>•</span>
-                        <span>{formatBytes(folder.totalBytes)}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-slate-500 dark:text-[#8A8A8A] text-right hidden md:table-cell">
-                      {formatBytes(folder.totalBytes)}
-                    </TableCell>
-                    <TableCell className="text-xs text-slate-600 dark:text-[#8A8A8A] font-medium hidden md:table-cell">
-                      {folder.fileCount} file{folder.fileCount === 1 ? '' : 's'}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      <span className="text-xs text-slate-400 dark:text-[#8A8A8A]">Directory</span>
-                    </TableCell>
-                    <TableCell className="text-right shrink-0">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-xs text-slate-500 dark:text-[#8A8A8A] hover:text-brand-600 dark:hover:text-[#1DB954] px-2"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/files/${selectedSourceId}/${folder.relativePath}`);
-                          }}
-                        >
-                          Open &rarr;
-                        </Button>
-                        {isAdmin && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-xs text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1.5 h-8 w-8"
-                            title={`Delete folder /${folder.relativePath}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeletingFolder(folder);
-                            }}
-                          >
-                            <Trash2 className="w-3.5 h-3.5 text-rose-500" />
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-
-                {/* File rows */}
-                {displayedFiles.map((file) => {
-                  const isSelected = selectedFile?.fileId === file.fileId;
-                  const isChecked = selectedFileIds.has(file.fileId);
-                  const isRestricted =
-                    !isAdmin && !file.isPublicToFriends && !file.allowedFriends?.includes(user?.uid || '');
-
-                  return (
-                    <TableRow
-                      key={file.fileId}
-                      onClick={() => setSelectedFile(file)}
-                      onDoubleClick={() => {
-                        if (!isRestricted) setPreviewFile(file);
-                      }}
-                      className={`cursor-pointer ${
-                        isChecked ? 'bg-brand-50/70 dark:bg-[#1DB954]/15' : isSelected ? 'bg-slate-50 dark:bg-[#181818]' : undefined
-                      }`}
-                    >
-                      <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                    {/* Selection Checkbox (visible when selection mode active) */}
+                    {isSelectionMode && (
+                      <div
+                        className="w-8 h-8 flex items-center justify-center shrink-0 -ml-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleSelectFile(file.fileId);
+                        }}
+                      >
                         <input
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => toggleSelectFile(file.fileId)}
-                          className="rounded border-slate-300 dark:border-[#242424] text-brand-600 dark:text-[#1DB954] focus:ring-brand-500 dark:focus:ring-[#1DB954] cursor-pointer"
+                          className="w-5 h-5 rounded border-slate-300 dark:border-[#242424] text-brand-600 dark:text-[#1DB954] focus:ring-brand-500 cursor-pointer"
                         />
-                      </TableCell>
+                      </div>
+                    )}
 
-                      <TableCell className="text-center">
-                        <FileIcon fileName={file.originalName} mimeType={file.mimeType} className="w-4 h-4 mx-auto" />
-                      </TableCell>
+                    {/* File Type Icon Tile (40x40) */}
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-[#181818] border border-slate-200/60 dark:border-[#242424] flex items-center justify-center shrink-0">
+                      <FileIcon fileName={file.originalName} mimeType={file.mimeType} className="w-5 h-5 mx-auto" />
+                    </div>
 
-                      <TableCell className="font-medium text-slate-900 dark:text-[#E6E6E6] text-xs min-w-0">
-                        <div className="flex items-center gap-1.5 sm:gap-2">
-                          <span className="truncate max-w-[130px] sm:max-w-xs">{file.originalName}</span>
-                          {file.version > 0 && (
-                            <Badge variant="brand" size="sm" className="text-[10px] px-1 py-0 shrink-0">
-                              v{file.version}
-                            </Badge>
-                          )}
-                          {file.customPermissions && (
-                            <Badge variant="warning" size="sm" className="text-[10px] px-1 py-0 shrink-0">
-                              Override
-                            </Badge>
-                          )}
-                        </div>
-                        {/* Mobile subtext */}
-                        <div className="text-[11px] text-slate-500 dark:text-[#8A8A8A] flex items-center gap-1.5 mt-0.5 md:hidden font-normal">
-                          <span>{formatBytes(file.size)}</span>
-                          <span>•</span>
-                          <span>{formatDate(file.uploadedAt)}</span>
-                          {isRestricted && (
-                            <>
-                              <span>•</span>
-                              <span className="text-amber-600 dark:text-amber-400 font-medium">🔒 Restricted</span>
-                            </>
-                          )}
-                        </div>
-                      </TableCell>
-
-                      <TableCell className="font-mono text-xs text-slate-600 dark:text-[#8A8A8A] text-right hidden md:table-cell">
-                        {formatBytes(file.size)}
-                      </TableCell>
-
-                      <TableCell className="text-xs text-slate-500 dark:text-[#8A8A8A] hidden md:table-cell">
-                        {formatDate(file.uploadedAt)}
-                      </TableCell>
-
-                      <TableCell className="hidden sm:table-cell">
-                        {isRestricted ? (
-                          <Badge variant="warning" size="sm" className="bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800">
-                            🔒 Restricted
-                          </Badge>
-                        ) : file.isPublicToFriends ? (
-                          <Badge variant="success" size="sm">
-                            Public
-                          </Badge>
-                        ) : (file.allowedFriends?.length ?? 0) > 0 ? (
-                          <Badge variant="brand" size="sm">
-                            Shared ({file.allowedFriends?.length})
-                          </Badge>
-                        ) : (
-                          <Badge variant="neutral" size="sm">
-                            Private
+                    {/* Middle Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-medium text-slate-900 dark:text-[#E6E6E6] truncate">
+                          {file.originalName}
+                        </span>
+                        {file.version > 0 && (
+                          <Badge variant="brand" size="sm" className="text-[10px] px-1 py-0 shrink-0">
+                            v{file.version}
                           </Badge>
                         )}
+                        {file.customPermissions && (
+                          <Badge variant="warning" size="sm" className="text-[10px] px-1 py-0 shrink-0">
+                            Override
+                          </Badge>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-[#8A8A8A] mt-0.5 truncate">
+                        <span>{formatBytes(file.size)}</span>
+                        <span>•</span>
+                        <span>{formatDate(file.uploadedAt)}</span>
+                        {isRestricted && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.2 rounded shrink-0">
+                            <Lock className="w-2.5 h-2.5" />
+                            Restricted
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Access State Badge (right side, if not restricted) */}
+                    {!isRestricted && (
+                      <div className="hidden xs:block shrink-0">
+                        {file.isPublicToFriends ? (
+                          <span className="text-[10px] font-medium text-emerald-700 dark:text-[#1DB954] bg-emerald-50 dark:bg-[#1DB954]/10 border border-emerald-200 dark:border-[#1DB954]/30 px-1.5 py-0.5 rounded-full">
+                            Public
+                          </span>
+                        ) : (file.allowedFriends?.length ?? 0) > 0 ? (
+                          <span className="text-[10px] font-medium text-brand-700 dark:text-[#1DB954] bg-brand-50 dark:bg-[#1DB954]/10 border border-brand-200 dark:border-[#1DB954]/30 px-1.5 py-0.5 rounded-full">
+                            Shared
+                          </span>
+                        ) : null}
+                      </div>
+                    )}
+
+                    {/* Overflow More button (min 44x44 touch area) */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setMobileActionFile(file);
+                      }}
+                      className="w-11 h-11 flex items-center justify-center -mr-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:text-[#8A8A8A] dark:hover:text-[#E6E6E6] active:bg-slate-100 dark:active:bg-[#181818] shrink-0"
+                      title="File actions"
+                      aria-label={`Actions for ${file.originalName}`}
+                    >
+                      <MoreVertical className="w-5 h-5" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table (hidden on mobile, visible on md+) */}
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-10 text-center">
+                      <input
+                        type="checkbox"
+                        checked={isAllSelected}
+                        onChange={toggleSelectAll}
+                        className="rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+                        title="Select all files in folder"
+                      />
+                    </TableHead>
+                    <TableHead className="w-12 text-center">Type</TableHead>
+                    <TableHead
+                      className="cursor-pointer hover:text-slate-700"
+                      onClick={() => {
+                        setSortField('name');
+                        setSortAsc(!sortAsc);
+                      }}
+                    >
+                      Name
+                    </TableHead>
+                    <TableHead
+                      className="w-28 cursor-pointer hover:text-slate-700 text-right"
+                      onClick={() => {
+                        setSortField('size');
+                        setSortAsc(!sortAsc);
+                      }}
+                    >
+                      Size
+                    </TableHead>
+                    <TableHead
+                      className="w-44 cursor-pointer hover:text-slate-700"
+                      onClick={() => {
+                        setSortField('date');
+                        setSortAsc(!sortAsc);
+                      }}
+                    >
+                      Uploaded / Items
+                    </TableHead>
+                    <TableHead className="w-32">Access</TableHead>
+                    <TableHead className="w-32 text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+
+                <TableBody>
+                  {/* Parent directory navigation row if not root */}
+                  {currentPath && (
+                    <TableRow
+                      onClick={navigateUp}
+                      className="bg-slate-50/50 dark:bg-[#111111]/70 hover:bg-slate-100/70 dark:hover:bg-[#181818] cursor-pointer"
+                    >
+                      <TableCell className="text-center"></TableCell>
+                      <TableCell className="text-center">
+                        <Folder className="w-4 h-4 text-brand-500 dark:text-[#1DB954] mx-auto" />
                       </TableCell>
+                      <TableCell colSpan={5} className="font-semibold text-slate-700 dark:text-[#E6E6E6] text-xs">
+                        .. (Up to parent folder)
+                      </TableCell>
+                    </TableRow>
+                  )}
 
-                      <TableCell className="text-right shrink-0">
-                        <div
-                          className="flex items-center justify-end gap-1"
-                          onClick={(e) => e.stopPropagation()}
-                        >
+                  {/* Subfolder rows */}
+                  {subfolders.map((folder) => (
+                    <TableRow
+                      key={folder.relativePath}
+                      onClick={() => navigate(`/files/${selectedSourceId}/${folder.relativePath}`)}
+                      className="bg-amber-50/20 dark:bg-[#111111] hover:bg-amber-50/60 dark:hover:bg-[#181818] cursor-pointer transition-colors"
+                    >
+                      <TableCell className="text-center" onClick={(e) => e.stopPropagation()}></TableCell>
+                      <TableCell className="text-center">
+                        <Folder className="w-4 h-4 text-amber-500 dark:text-[#1DB954] mx-auto" />
+                      </TableCell>
+                      <TableCell className="font-semibold text-slate-800 dark:text-[#E6E6E6] text-xs hover:text-brand-600 dark:hover:text-[#1DB954]">
+                        <div className="flex items-center gap-2">
+                          <span>{folder.name}</span>
+                          <Badge variant="neutral" size="sm" className="font-normal text-[10px]">
+                            Folder
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs text-slate-500 dark:text-[#8A8A8A] text-right">
+                        {formatBytes(folder.totalBytes)}
+                      </TableCell>
+                      <TableCell className="text-xs text-slate-600 dark:text-[#8A8A8A] font-medium">
+                        {folder.fileCount} file{folder.fileCount === 1 ? '' : 's'}
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-xs text-slate-400 dark:text-[#8A8A8A]">Directory</span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
                           <Button
                             variant="ghost"
                             size="sm"
-                            className={`p-1 ${
-                              isRestricted
-                                ? 'text-slate-300 dark:text-[#8A8A8A]/40 cursor-not-allowed'
-                                : 'text-slate-400 hover:text-brand-600 dark:text-[#8A8A8A] dark:hover:text-[#1DB954]'
-                            }`}
-                            title={isRestricted ? 'Restricted by Vault Owner' : 'Preview in browser'}
-                            disabled={isRestricted}
-                            onClick={() => !isRestricted && setPreviewFile(file)}
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                          </Button>
-
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className={`p-1 ${
-                              isRestricted
-                                ? 'text-slate-300 dark:text-[#8A8A8A]/40 cursor-not-allowed'
-                                : 'text-slate-400 hover:text-brand-600 dark:text-[#8A8A8A] dark:hover:text-[#1DB954]'
-                            }`}
-                            title={isRestricted ? 'Restricted by Vault Owner' : 'Download file'}
-                            disabled={isRestricted}
-                            isLoading={isDownloading(file.fileId)}
-                            onClick={() => {
-                              if (vaultId && !isRestricted) {
-                                downloadFile(vaultId, file.fileId, file.storedName);
-                              }
+                            className="text-xs text-slate-500 dark:text-[#8A8A8A] hover:text-brand-600 dark:hover:text-[#1DB954]"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/files/${selectedSourceId}/${folder.relativePath}`);
                             }}
                           >
-                            <Download className="w-3.5 h-3.5" />
+                            Open &rarr;
                           </Button>
-
                           {isAdmin && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="p-1 text-slate-400 hover:text-slate-700 dark:text-[#8A8A8A] dark:hover:text-[#E6E6E6]"
-                                title="Modify file sharing"
-                                onClick={() => setManagingFile(file)}
-                              >
-                                <Shield className="w-3.5 h-3.5" />
-                              </Button>
-
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
-                                title="Remove file from vault"
-                                onClick={() => setDeletingFile(file)}
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </Button>
-                            </>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-xs text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1.5 h-8 w-8"
+                              title={`Delete folder /${folder.relativePath}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeletingFolder(folder);
+                              }}
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                            </Button>
                           )}
                         </div>
                       </TableCell>
                     </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                  ))}
+
+                  {/* File rows */}
+                  {displayedFiles.map((file) => {
+                    const isSelected = selectedFile?.fileId === file.fileId;
+                    const isChecked = selectedFileIds.has(file.fileId);
+                    const isRestricted =
+                      !isAdmin && !file.isPublicToFriends && !file.allowedFriends?.includes(user?.uid || '');
+
+                    return (
+                      <TableRow
+                        key={file.fileId}
+                        onClick={() => setSelectedFile(file)}
+                        onDoubleClick={() => {
+                          if (!isRestricted) setPreviewFile(file);
+                        }}
+                        className={`cursor-pointer ${
+                          isChecked ? 'bg-brand-50/70 dark:bg-[#1DB954]/15' : isSelected ? 'bg-slate-50 dark:bg-[#181818]' : undefined
+                        }`}
+                      >
+                        <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => toggleSelectFile(file.fileId)}
+                            className="rounded border-slate-300 dark:border-[#242424] text-brand-600 dark:text-[#1DB954] focus:ring-brand-500 dark:focus:ring-[#1DB954] cursor-pointer"
+                          />
+                        </TableCell>
+
+                        <TableCell className="text-center">
+                          <FileIcon fileName={file.originalName} mimeType={file.mimeType} className="w-4 h-4 mx-auto" />
+                        </TableCell>
+
+                        <TableCell className="font-medium text-slate-900 dark:text-[#E6E6E6] text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="truncate max-w-xs">{file.originalName}</span>
+                            {file.version > 0 && (
+                              <Badge variant="brand" size="sm">
+                                v{file.version}
+                              </Badge>
+                            )}
+                            {file.customPermissions && (
+                              <Badge variant="warning" size="sm">
+                                Override
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+
+                        <TableCell className="font-mono text-xs text-slate-600 dark:text-[#8A8A8A] text-right">
+                          {formatBytes(file.size)}
+                        </TableCell>
+
+                        <TableCell className="text-xs text-slate-500 dark:text-[#8A8A8A]">
+                          {formatDate(file.uploadedAt)}
+                        </TableCell>
+
+                        <TableCell>
+                          {isRestricted ? (
+                            <Badge variant="warning" size="sm" className="bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800">
+                              🔒 Restricted
+                            </Badge>
+                          ) : file.isPublicToFriends ? (
+                            <Badge variant="success" size="sm">
+                              Public
+                            </Badge>
+                          ) : (file.allowedFriends?.length ?? 0) > 0 ? (
+                            <Badge variant="brand" size="sm">
+                              Shared ({file.allowedFriends?.length})
+                            </Badge>
+                          ) : (
+                            <Badge variant="neutral" size="sm">
+                              Private
+                            </Badge>
+                          )}
+                        </TableCell>
+
+                        <TableCell className="text-right">
+                          <div
+                            className="flex items-center justify-end gap-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className={`p-1 ${
+                                isRestricted
+                                  ? 'text-slate-300 dark:text-[#8A8A8A]/40 cursor-not-allowed'
+                                  : 'text-slate-400 hover:text-brand-600 dark:text-[#8A8A8A] dark:hover:text-[#1DB954]'
+                              }`}
+                              title={isRestricted ? 'Restricted by Vault Owner' : 'Preview in browser'}
+                              disabled={isRestricted}
+                              onClick={() => !isRestricted && setPreviewFile(file)}
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </Button>
+
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className={`p-1 ${
+                                isRestricted
+                                  ? 'text-slate-300 dark:text-[#8A8A8A]/40 cursor-not-allowed'
+                                  : 'text-slate-400 hover:text-brand-600 dark:text-[#8A8A8A] dark:hover:text-[#1DB954]'
+                              }`}
+                              title={isRestricted ? 'Restricted by Vault Owner' : 'Download file'}
+                              disabled={isRestricted}
+                              isLoading={isDownloading(file.fileId)}
+                              onClick={() => {
+                                if (vaultId && !isRestricted) {
+                                  downloadFile(vaultId, file.fileId, file.storedName);
+                                }
+                              }}
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                            </Button>
+
+                            {isAdmin && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="p-1 text-slate-400 hover:text-slate-700 dark:text-[#8A8A8A] dark:hover:text-[#E6E6E6]"
+                                  title="Modify file sharing"
+                                  onClick={() => setManagingFile(file)}
+                                >
+                                  <Shield className="w-3.5 h-3.5" />
+                                </Button>
+
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                                  title="Remove file from vault"
+                                  onClick={() => setDeletingFile(file)}
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         )}
       </div>
 
       {/* Floating Action Bar for Selected Files */}
       {selectedFileIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white dark:bg-[#111111] text-slate-900 dark:text-[#E6E6E6] px-5 py-3 rounded-2xl shadow-2xl border border-slate-200 dark:border-[#242424] flex items-center gap-3 z-40 animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="fixed bottom-20 sm:bottom-6 left-1/2 -translate-x-1/2 bg-white dark:bg-[#111111] text-slate-900 dark:text-[#E6E6E6] px-3 sm:px-5 py-2.5 sm:py-3 rounded-2xl shadow-2xl border border-slate-200 dark:border-[#242424] flex items-center flex-wrap sm:flex-nowrap justify-center gap-2 sm:gap-3 z-40 animate-in fade-in slide-in-from-bottom-4 duration-200 max-w-[95vw]">
           <span className="text-xs font-semibold text-slate-700 dark:text-[#E6E6E6]">
             {selectedFileIds.size} file{selectedFileIds.size === 1 ? '' : 's'} selected
           </span>
 
-          <div className="h-4 w-px bg-slate-200 dark:bg-[#242424]" />
+          <div className="hidden sm:block h-4 w-px bg-slate-200 dark:bg-[#242424]" />
 
           <Button
             variant="primary"
@@ -1132,6 +1347,178 @@ export const FileExplorerPage: React.FC = () => {
           >
             <X className="w-4 h-4" />
           </Button>
+        </div>
+      )}
+
+      {/* Mobile File Actions Bottom Sheet */}
+      {mobileActionFile && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200"
+          onClick={() => setMobileActionFile(null)}
+        >
+          <div
+            className="w-full sm:max-w-md bg-white dark:bg-[#0A0A0A] rounded-t-2xl sm:rounded-2xl border-t sm:border border-slate-200 dark:border-[#242424] shadow-2xl p-4 sm:p-6 space-y-4 max-h-[85dvh] overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Sheet Header */}
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 dark:border-[#1F1F1F] pb-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-[#181818] border border-slate-200 dark:border-[#242424] flex items-center justify-center shrink-0">
+                  <FileIcon fileName={mobileActionFile.originalName} mimeType={mobileActionFile.mimeType} className="w-5 h-5 mx-auto" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-[#E6E6E6] truncate">
+                    {mobileActionFile.originalName}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-[#8A8A8A]">
+                    {formatBytes(mobileActionFile.size)} • {formatDate(mobileActionFile.uploadedAt)}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileActionFile(null)}
+                className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-[#E6E6E6] hover:bg-slate-100 dark:hover:bg-[#181818]"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Restricted warning if applicable */}
+            {(!isAdmin && !mobileActionFile.isPublicToFriends && !mobileActionFile.allowedFriends?.includes(user?.uid || '')) && (
+              <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 flex items-center gap-2.5 text-xs text-amber-800 dark:text-amber-300">
+                <Lock className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                <span>Restricted by Vault Owner. Preview and download are disabled.</span>
+              </div>
+            )}
+
+            {/* Actions List */}
+            <div className="space-y-1">
+              {/* Preview Button */}
+              {(() => {
+                const isRestricted = !isAdmin && !mobileActionFile.isPublicToFriends && !mobileActionFile.allowedFriends?.includes(user?.uid || '');
+                return (
+                  <button
+                    type="button"
+                    disabled={isRestricted}
+                    onClick={() => {
+                      const f = mobileActionFile;
+                      setMobileActionFile(null);
+                      setPreviewFile(f);
+                    }}
+                    className={`w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium transition-colors ${
+                      isRestricted
+                        ? 'opacity-40 cursor-not-allowed text-slate-400 dark:text-[#8A8A8A]'
+                        : 'text-slate-700 dark:text-[#E6E6E6] hover:bg-slate-100 dark:hover:bg-[#181818]'
+                    }`}
+                  >
+                    <Eye className="w-5 h-5 text-slate-500 dark:text-[#8A8A8A]" />
+                    <span>Preview File</span>
+                  </button>
+                );
+              })()}
+
+              {/* Download Button */}
+              {(() => {
+                const isRestricted = !isAdmin && !mobileActionFile.isPublicToFriends && !mobileActionFile.allowedFriends?.includes(user?.uid || '');
+                return (
+                  <button
+                    type="button"
+                    disabled={isRestricted}
+                    onClick={() => {
+                      const f = mobileActionFile;
+                      setMobileActionFile(null);
+                      if (vaultId) {
+                        downloadFile(vaultId, f.fileId, f.storedName);
+                      }
+                    }}
+                    className={`w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium transition-colors ${
+                      isRestricted
+                        ? 'opacity-40 cursor-not-allowed text-slate-400 dark:text-[#8A8A8A]'
+                        : 'text-slate-700 dark:text-[#E6E6E6] hover:bg-slate-100 dark:hover:bg-[#181818]'
+                    }`}
+                  >
+                    <Download className="w-5 h-5 text-slate-500 dark:text-[#8A8A8A]" />
+                    <span>Download</span>
+                  </button>
+                );
+              })()}
+
+              {/* Toggle Selection */}
+              <button
+                type="button"
+                onClick={() => {
+                  const id = mobileActionFile.fileId;
+                  toggleSelectFile(id);
+                  setMobileActionFile(null);
+                }}
+                className="w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-[#E6E6E6] hover:bg-slate-100 dark:hover:bg-[#181818] transition-colors"
+              >
+                <CheckSquare className="w-5 h-5 text-slate-500 dark:text-[#8A8A8A]" />
+                <span>{selectedFileIds.has(mobileActionFile.fileId) ? 'Deselect File' : 'Select File'}</span>
+              </button>
+
+              {/* Admin Actions */}
+              {isAdmin && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const f = mobileActionFile;
+                      setMobileActionFile(null);
+                      setManagingFile(f);
+                    }}
+                    className="w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-[#E6E6E6] hover:bg-slate-100 dark:hover:bg-[#181818] transition-colors"
+                  >
+                    <Shield className="w-5 h-5 text-slate-500 dark:text-[#8A8A8A]" />
+                    <span>Permissions / Share</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const f = mobileActionFile;
+                      setMobileActionFile(null);
+                      setSelectedFileIds(new Set([f.fileId]));
+                      handleCut();
+                    }}
+                    className="w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-[#E6E6E6] hover:bg-slate-100 dark:hover:bg-[#181818] transition-colors"
+                  >
+                    <Scissors className="w-5 h-5 text-slate-500 dark:text-[#8A8A8A]" />
+                    <span>Cut File</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const f = mobileActionFile;
+                      setMobileActionFile(null);
+                      setSelectedFileIds(new Set([f.fileId]));
+                      handleCopy();
+                    }}
+                    className="w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-[#E6E6E6] hover:bg-slate-100 dark:hover:bg-[#181818] transition-colors"
+                  >
+                    <Copy className="w-5 h-5 text-slate-500 dark:text-[#8A8A8A]" />
+                    <span>Copy File</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const f = mobileActionFile;
+                      setMobileActionFile(null);
+                      setDeletingFile(f);
+                    }}
+                    className="w-full min-h-[44px] px-3 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                  >
+                    <Trash2 className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+                    <span>Delete File</span>
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       )}
 

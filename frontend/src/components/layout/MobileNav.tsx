@@ -145,7 +145,7 @@ export const MobileNav: React.FC = () => {
       )}
 
       {/* Main Bottom Nav Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white dark:bg-[#0A0A0A] border-t border-slate-200 dark:border-[#242424] z-40 flex items-center justify-around px-2 pb-safe shadow-lg select-none">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 min-h-[56px] pb-[env(safe-area-inset-bottom)] bg-white/95 dark:bg-[#0A0A0A]/95 backdrop-blur-md border-t border-slate-200 dark:border-[#242424] z-40 flex items-center justify-around px-1 shadow-lg select-none">
         {mainItems.map((item) => (
           <NavLink
             key={item.path}
@@ -153,7 +153,7 @@ export const MobileNav: React.FC = () => {
             end={item.path === '/'}
             className={({ isActive }) =>
               clsx(
-                'flex flex-col items-center justify-center w-full h-full gap-1 text-[10px] font-medium transition-colors',
+                'flex flex-col items-center justify-center w-full min-h-[56px] py-1 gap-1 text-[11px] font-medium transition-colors',
                 isActive
                   ? 'text-brand-600 dark:text-[#1DB954] font-semibold'
                   : 'text-slate-400 dark:text-[#8A8A8A] hover:text-slate-700 dark:hover:text-[#E6E6E6]'
@@ -164,8 +164,8 @@ export const MobileNav: React.FC = () => {
               <>
                 <item.icon
                   className={clsx(
-                    'w-5 h-5 transition-transform',
-                    isActive && 'scale-110 text-brand-500 dark:text-[#1DB954]'
+                    'w-[22px] h-[22px] transition-transform',
+                    isActive && 'scale-105 text-brand-500 dark:text-[#1DB954]'
                   )}
                 />
                 <span>{item.label}</span>
@@ -179,7 +179,7 @@ export const MobileNav: React.FC = () => {
           type="button"
           onClick={() => setShowMore((prev) => !prev)}
           className={clsx(
-            'flex flex-col items-center justify-center w-full h-full gap-1 text-[10px] font-medium transition-colors',
+            'flex flex-col items-center justify-center w-full min-h-[56px] py-1 gap-1 text-[11px] font-medium transition-colors',
             isMoreActive || showMore
               ? 'text-brand-600 dark:text-[#1DB954] font-semibold'
               : 'text-slate-400 dark:text-[#8A8A8A] hover:text-slate-700 dark:hover:text-[#E6E6E6]'
@@ -187,8 +187,8 @@ export const MobileNav: React.FC = () => {
         >
           <MoreHorizontal
             className={clsx(
-              'w-5 h-5 transition-transform',
-              (isMoreActive || showMore) && 'scale-110 text-brand-500 dark:text-[#1DB954]'
+              'w-[22px] h-[22px] transition-transform',
+              (isMoreActive || showMore) && 'scale-105 text-brand-500 dark:text-[#1DB954]'
             )}
           />
           <span>More</span>

@@ -63,7 +63,7 @@ export const UserSettingsPage: React.FC = () => {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Top Header */}
-      <div className="bg-white dark:bg-[#0A0A0A] p-6 rounded-xl border border-slate-200/80 dark:border-[#242424] shadow-sm flex items-center justify-between">
+      <div className="bg-white dark:bg-[#0A0A0A] p-4 sm:p-6 rounded-xl border border-slate-200/80 dark:border-[#242424] shadow-sm flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-brand-50 dark:bg-[#111111] border border-brand-200/60 dark:border-[#242424] flex items-center justify-center text-brand-600 dark:text-[#1DB954]">
             <Settings className="w-6 h-6" />
@@ -84,7 +84,7 @@ export const UserSettingsPage: React.FC = () => {
       </div>
 
       {/* Theme & Appearance Card */}
-      <div className="bg-white dark:bg-[#0A0A0A] rounded-xl border border-slate-200/80 dark:border-[#242424] p-6 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-[#0A0A0A] rounded-xl border border-slate-200/80 dark:border-[#242424] p-4 sm:p-6 shadow-sm space-y-4">
         <div>
           <h2 className="text-sm font-semibold text-slate-900 dark:text-[#E6E6E6] uppercase tracking-wider text-[11px]">
             Theme & Appearance
@@ -159,7 +159,7 @@ export const UserSettingsPage: React.FC = () => {
       </div>
 
       {/* Profile & Avatar Customization Card */}
-      <div className="bg-white dark:bg-[#0A0A0A] rounded-xl border border-slate-200/80 dark:border-[#242424] p-6 shadow-sm space-y-6">
+      <div className="bg-white dark:bg-[#0A0A0A] rounded-xl border border-slate-200/80 dark:border-[#242424] p-4 sm:p-6 shadow-sm space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-slate-900 dark:text-[#E6E6E6] uppercase tracking-wider text-[11px]">
             Profile & Avatar Customization

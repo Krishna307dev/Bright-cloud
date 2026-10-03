@@ -363,7 +363,7 @@ export const WebUploadDialog: React.FC<WebUploadDialogProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 animate-fadeIn">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/80 backdrop-blur-xs transition-opacity"
@@ -376,10 +376,10 @@ export const WebUploadDialog: React.FC<WebUploadDialogProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="upload-dialog-title"
-        className="relative w-full max-w-xl bg-white dark:bg-[#0A0A0A] rounded-xl border border-slate-200 dark:border-[#242424] shadow-modal z-10 overflow-hidden flex flex-col max-h-[90vh]"
+        className="relative w-full max-w-xl bg-white dark:bg-[#0A0A0A] rounded-t-2xl sm:rounded-xl border border-slate-200 dark:border-[#242424] shadow-modal z-10 overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[90vh]"
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-100 dark:border-[#242424] flex items-center justify-between bg-slate-50/70 dark:bg-[#111111]">
+        <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 dark:border-[#242424] flex items-center justify-between bg-slate-50/70 dark:bg-[#111111] shrink-0">
           <div>
             <h3 id="upload-dialog-title" className="text-base font-semibold text-slate-900 dark:text-[#E6E6E6]">
               Upload Files to Vault
@@ -400,7 +400,7 @@ export const WebUploadDialog: React.FC<WebUploadDialogProps> = ({
         </div>
 
         {/* Content Body */}
-        <div className="p-6 space-y-4 overflow-y-auto flex-1">
+        <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
           {/* Phase 1: Pre-Upload File Selection */}
           {!isUploading && !isFinished && (
             <>
@@ -629,7 +629,7 @@ export const WebUploadDialog: React.FC<WebUploadDialogProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3.5 border-t border-slate-100 dark:border-[#242424] bg-slate-50/70 dark:bg-[#111111] flex items-center justify-between gap-3">
+        <div className="px-4 sm:px-6 py-3.5 border-t border-slate-100 dark:border-[#242424] bg-slate-50/70 dark:bg-[#111111] flex items-center justify-between gap-3">
           <div className="text-xs text-slate-500 dark:text-[#8A8A8A]">
             {!isUploading && !isFinished && items.length > 0 && (
               <span>{items.length} file{items.length === 1 ? '' : 's'} ready to upload</span>

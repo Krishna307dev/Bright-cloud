@@ -56,7 +56,7 @@ export const AccessDeniedPage: React.FC = () => {
   const isRejected = userProfileRole === 'ignored' || existingRequest?.status === 'rejected';
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-black font-sans antialiased text-slate-900 dark:text-[#E6E6E6] transition-colors duration-150">
+    <div className="min-h-screen supports-[height:100dvh]:min-h-dvh flex flex-col bg-slate-50 dark:bg-black font-sans antialiased text-slate-900 dark:text-[#E6E6E6] transition-colors duration-150">
       {/* Top Header / Actions Bar */}
       <div className="w-full px-4 sm:px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
@@ -114,7 +114,7 @@ export const AccessDeniedPage: React.FC = () => {
 
       {/* Main Content: flex-1 ensures layout pushes footer to bottom without fixed/sticky */}
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
-        <div className="w-full max-w-md bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200 dark:border-[#242424] shadow-modal p-6 sm:p-8 space-y-6 text-center animate-fadeIn">
+        <div className="w-full max-w-md bg-white dark:bg-[#0A0A0A] rounded-2xl border border-slate-200 dark:border-[#242424] shadow-modal p-5 sm:p-8 space-y-6 text-center animate-fadeIn">
           <div className="mx-auto w-14 h-14 rounded-2xl bg-amber-50 dark:bg-[#111111] border border-amber-200/80 dark:border-[#242424] flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-xs">
             <ShieldAlert className="w-7 h-7" />
           </div>

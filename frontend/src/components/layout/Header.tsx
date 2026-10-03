@@ -26,31 +26,31 @@ export const Header: React.FC<HeaderProps> = ({ breadcrumbs, actions }) => {
   }, []);
 
   return (
-    <header className="h-16 bg-white dark:bg-[#0A0A0A] border-b border-slate-200 dark:border-[#242424] px-4 sm:px-6 flex items-center justify-between z-20 shrink-0">
+    <header className="h-14 sm:h-16 bg-white dark:bg-[#0A0A0A] border-b border-slate-200 dark:border-[#242424] px-3 sm:px-6 flex items-center justify-between z-20 shrink-0">
       {/* Left: Breadcrumbs / Title */}
-      <div className="flex items-center gap-3 min-w-0">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <Link to="/" className="md:hidden shrink-0 hover:opacity-90 transition-opacity">
-          <img src="/app-logo.png" alt="Bright Cloud" className="w-7 h-7 object-contain" />
+          <img src="/app-logo.png" alt="Bright Cloud" className="w-8 h-8 object-contain" />
         </Link>
         {breadcrumbs ? (
           <div className="min-w-0">{breadcrumbs}</div>
         ) : (
-          <h1 className="text-base font-semibold text-slate-800 dark:text-[#E6E6E6] tracking-tight truncate flex items-center gap-2">
-            Bright Cloud Web Viewer
+          <h1 className="text-sm sm:text-base font-semibold text-slate-800 dark:text-[#E6E6E6] tracking-tight truncate flex items-center gap-2">
+            Bright Cloud
           </h1>
         )}
       </div>
 
       {/* Right: Actions & User Info */}
-      <div className="flex items-center gap-3 shrink-0">
-        {actions && <div className="flex items-center gap-2">{actions}</div>}
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        {actions && <div className="flex items-center gap-1.5 sm:gap-2">{actions}</div>}
 
         {/* Modrinth-style 3-way Theme Selector (Light, Dark, System) */}
         <div className="flex items-center bg-slate-100 dark:bg-[#111111] p-0.5 rounded-lg border border-slate-200/80 dark:border-[#242424]">
           <button
             type="button"
             onClick={() => setMode('light')}
-            className={`p-1.5 rounded-md transition-all ${
+            className={`p-1 sm:p-1.5 rounded-md transition-all ${
               mode === 'light'
                 ? 'bg-white text-brand-600 shadow-xs'
                 : 'text-slate-400 hover:text-slate-700 dark:hover:text-[#E6E6E6]'
@@ -63,7 +63,7 @@ export const Header: React.FC<HeaderProps> = ({ breadcrumbs, actions }) => {
           <button
             type="button"
             onClick={() => setMode('dark')}
-            className={`p-1.5 rounded-md transition-all ${
+            className={`p-1 sm:p-1.5 rounded-md transition-all ${
               mode === 'dark'
                 ? 'bg-[#181818] text-[#1DB954] shadow-xs'
                 : 'text-slate-400 hover:text-slate-700 dark:hover:text-[#E6E6E6]'
@@ -76,7 +76,7 @@ export const Header: React.FC<HeaderProps> = ({ breadcrumbs, actions }) => {
           <button
             type="button"
             onClick={() => setMode('system')}
-            className={`p-1.5 rounded-md transition-all ${
+            className={`p-1 sm:p-1.5 rounded-md transition-all ${
               mode === 'system'
                 ? isDark
                   ? 'bg-[#181818] text-[#1DB954] shadow-xs'
@@ -93,21 +93,21 @@ export const Header: React.FC<HeaderProps> = ({ breadcrumbs, actions }) => {
         <div className="h-5 w-px bg-slate-200 dark:bg-[#242424] hidden sm:block" />
 
         {/* User Info & Avatar */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
           {avatarUrl ? (
             <img
               src={avatarUrl}
               alt={user?.displayName || 'User'}
-              className="w-8 h-8 rounded-full border border-brand-300 dark:border-[#242424] object-cover shadow-xs"
+              className="w-9 h-9 sm:w-8 sm:h-8 rounded-full border border-brand-300 dark:border-[#242424] object-cover shadow-xs shrink-0"
             />
           ) : user?.photoURL ? (
             <img
               src={user.photoURL}
               alt={user.displayName || 'User'}
-              className="w-8 h-8 rounded-full border border-slate-200 dark:border-[#242424] object-cover"
+              className="w-9 h-9 sm:w-8 sm:h-8 rounded-full border border-slate-200 dark:border-[#242424] object-cover shrink-0"
             />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-brand-50 dark:bg-[#181818] border border-brand-200 dark:border-[#242424] text-brand-600 dark:text-[#E6E6E6] flex items-center justify-center font-semibold text-xs">
+            <div className="w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-brand-50 dark:bg-[#181818] border border-brand-200 dark:border-[#242424] text-brand-600 dark:text-[#E6E6E6] flex items-center justify-center font-semibold text-xs shrink-0">
               {user?.displayName ? (
                 user.displayName.charAt(0).toUpperCase()
               ) : (
@@ -130,7 +130,7 @@ export const Header: React.FC<HeaderProps> = ({ breadcrumbs, actions }) => {
             size="sm"
             onClick={logout}
             title="Sign out of Bright Cloud"
-            className="p-1.5 text-slate-400 dark:text-[#8A8A8A] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+            className="w-9 h-9 sm:w-8 sm:h-8 p-0 flex items-center justify-center text-slate-400 dark:text-[#8A8A8A] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 shrink-0"
           >
             <LogOut className="w-4 h-4" />
           </Button>
