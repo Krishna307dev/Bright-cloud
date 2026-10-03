@@ -334,58 +334,48 @@ export const ManageUsersPage: React.FC = () => {
           description="Try adjusting your search criteria or invite a new collaborator."
         />
       ) : (
-        <div className="bg-white dark:bg-[#0A0A0A] rounded-xl border border-slate-200 dark:border-[#242424] shadow-xs overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-slate-50/75 dark:bg-[#111111] border-b border-slate-200 dark:border-[#242424]">
-                <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 whitespace-nowrap">User</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 whitespace-nowrap">Role</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 hidden md:table-cell whitespace-nowrap">Last Login</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 hidden lg:table-cell whitespace-nowrap">Account UID</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 whitespace-nowrap">Approval Request</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 text-right whitespace-nowrap">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredUsers.map((u) => {
-                const isCurrentUser = u.uid === user?.uid;
-                const isItemLoading = actionUid === u.uid;
+        <div className="space-y-4">
+          {/* Mobile Card List (< md) */}
+          <div className="md:hidden space-y-3">
+            {filteredUsers.map((u) => {
+              const isCurrentUser = u.uid === user?.uid;
+              const isItemLoading = actionUid === u.uid;
 
-                return (
-                  <TableRow key={u.uid} className="hover:bg-slate-50/60 dark:hover:bg-[#181818] transition-colors">
-                    {/* User Profile */}
-                    <TableCell className="py-3">
-                      <div className="flex items-center gap-3 min-w-0">
-                        {u.photoURL ? (
-                          <img
-                            src={u.photoURL}
-                            alt={u.displayName}
-                            className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-[#242424] shrink-0"
-                          />
-                        ) : (
-                          <div className="w-9 h-9 rounded-full bg-brand-50 dark:bg-[#111111] border border-brand-200 dark:border-[#242424] text-brand-600 dark:text-[#1DB954] flex items-center justify-center font-bold text-xs shrink-0">
-                            {u.displayName.charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <div className="text-sm font-semibold text-slate-900 dark:text-[#E6E6E6] flex items-center gap-2 truncate">
-                            <span className="truncate">{u.displayName}</span>
-                            {isCurrentUser && (
-                              <span className="text-[10px] bg-slate-100 dark:bg-[#181818] text-slate-600 dark:text-[#E6E6E6] font-semibold px-1.5 py-0.5 rounded-full shrink-0 border border-transparent dark:border-[#242424]">
-                                You
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-xs text-slate-500 dark:text-[#8A8A8A] flex items-center gap-1 mt-0.5 truncate">
-                            <Mail className="w-3 h-3 shrink-0 text-slate-400 dark:text-[#8A8A8A]" />
-                            <span className="truncate">{u.email || 'No email provided'}</span>
-                          </div>
+              return (
+                <div
+                  key={u.uid}
+                  className="bg-white dark:bg-[#0A0A0A] rounded-xl border border-slate-200 dark:border-[#242424] p-4 shadow-xs space-y-3"
+                >
+                  {/* User Profile & Role */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {u.photoURL ? (
+                        <img
+                          src={u.photoURL}
+                          alt={u.displayName}
+                          className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-[#242424] shrink-0"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-brand-50 dark:bg-[#111111] border border-brand-200 dark:border-[#242424] text-brand-600 dark:text-[#1DB954] flex items-center justify-center font-bold text-xs shrink-0">
+                          {u.displayName.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-slate-900 dark:text-[#E6E6E6] flex items-center gap-1.5 truncate">
+                          <span className="truncate">{u.displayName}</span>
+                          {isCurrentUser && (
+                            <span className="text-[10px] bg-slate-100 dark:bg-[#181818] text-slate-600 dark:text-[#E6E6E6] font-semibold px-1.5 py-0.5 rounded-full shrink-0">
+                              You
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-slate-500 dark:text-[#8A8A8A] flex items-center gap-1 mt-0.5 truncate">
+                          <Mail className="w-3 h-3 shrink-0 text-slate-400 dark:text-[#8A8A8A]" />
+                          <span className="truncate">{u.email || 'No email provided'}</span>
                         </div>
                       </div>
-                    </TableCell>
-
-                    {/* Role Status Pill */}
-                    <TableCell className="py-3 whitespace-nowrap">
+                    </div>
+                    <div className="shrink-0">
                       {u.role === 'admin' ? (
                         <Badge variant="brand" size="sm" className="gap-1 font-semibold">
                           <ShieldCheck className="w-3 h-3" />
@@ -407,118 +397,276 @@ export const ManageUsersPage: React.FC = () => {
                           Pending Approval
                         </Badge>
                       )}
-                    </TableCell>
+                    </div>
+                  </div>
 
-                    {/* Last Login */}
-                    <TableCell className="py-3 hidden md:table-cell text-xs text-slate-500 dark:text-[#8A8A8A] font-mono whitespace-nowrap">
-                      {formatDate(u.lastLogin)}
-                    </TableCell>
+                  {/* Subtitle: Last Login & Request Button */}
+                  <div className="flex items-center justify-between gap-2 text-xs text-slate-500 dark:text-[#8A8A8A] pt-1">
+                    <span className="font-mono text-[11px]">
+                      {u.lastLogin ? `Active: ${formatDate(u.lastLogin)}` : 'Never logged in'}
+                    </span>
+                    {requestsMap.has(u.uid) && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setViewingRequest({ user: u, request: requestsMap.get(u.uid)! })}
+                        className="inline-flex items-center gap-1 text-xs text-brand-700 dark:text-[#1DB954] bg-brand-50 dark:bg-[#1DB954]/10 hover:bg-brand-100 dark:hover:bg-[#1DB954]/20 border-brand-200 dark:border-[#1DB954]/30 h-7 px-2.5 font-medium shrink-0"
+                        title="View submitted approval request"
+                      >
+                        <FileText className="w-3 h-3 shrink-0" />
+                        <span>View Request</span>
+                      </Button>
+                    )}
+                  </div>
 
-                    {/* Account UID */}
-                    <TableCell className="py-3 hidden lg:table-cell text-xs text-slate-400 dark:text-[#8A8A8A] font-mono truncate max-w-[140px]" title={u.uid}>
-                      {u.uid}
-                    </TableCell>
+                  {/* Action buttons (Touch-friendly flex wrap) */}
+                  <div className="pt-2 border-t border-slate-100 dark:border-[#242424] flex items-center flex-wrap gap-2">
+                    {u.role !== 'friend' && u.role !== 'admin' && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        disabled={isItemLoading}
+                        onClick={() => handleRoleChange(u.uid, 'friend')}
+                        className="inline-flex items-center gap-1 text-xs text-emerald-700 dark:text-[#1DB954] bg-emerald-50 dark:bg-[#1DB954]/10 hover:bg-emerald-100 dark:hover:bg-[#1DB954]/20 border-emerald-200 dark:border-[#1DB954]/30 min-h-[30px] px-2.5 font-medium"
+                      >
+                        <UserCheck className="w-3.5 h-3.5 shrink-0" />
+                        <span>Authorize</span>
+                      </Button>
+                    )}
 
-                    {/* Approval Request */}
-                    <TableCell className="py-3 whitespace-nowrap">
-                      {requestsMap.has(u.uid) ? (
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => setViewingRequest({ user: u, request: requestsMap.get(u.uid)! })}
-                          className="inline-flex items-center gap-1.5 text-xs text-brand-700 dark:text-[#1DB954] bg-brand-50 dark:bg-[#1DB954]/10 hover:bg-brand-100 dark:hover:bg-[#1DB954]/20 border-brand-200 dark:border-[#1DB954]/30 min-h-[30px] px-3 whitespace-nowrap font-medium shrink-0"
-                          title="View submitted approval request"
-                        >
-                          <FileText className="w-3.5 h-3.5 shrink-0" />
-                          <span className="whitespace-nowrap">View Request</span>
-                        </Button>
-                      ) : (
-                        <span className="text-xs text-slate-400 dark:text-[#8A8A8A] italic whitespace-nowrap">
-                          No request submitted
-                        </span>
-                      )}
-                    </TableCell>
+                    {u.role !== 'admin' ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={isItemLoading}
+                        onClick={() => handleRoleChange(u.uid, 'admin')}
+                        className="inline-flex items-center gap-1 text-xs text-brand-700 dark:text-[#1DB954] hover:bg-brand-50 dark:hover:bg-[#181818] min-h-[30px] px-2.5"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                        <span>Make Admin</span>
+                      </Button>
+                    ) : !isCurrentUser ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={isItemLoading}
+                        onClick={() => handleRoleChange(u.uid, 'friend')}
+                        className="inline-flex items-center gap-1 text-xs text-slate-600 dark:text-[#E6E6E6] hover:bg-slate-100 dark:hover:bg-[#181818] min-h-[30px] px-2.5"
+                      >
+                        <Shield className="w-3.5 h-3.5 shrink-0" />
+                        <span>Demote</span>
+                      </Button>
+                    ) : null}
 
-                    {/* One-Click Action Buttons */}
-                    <TableCell className="py-3 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1.5 flex-nowrap">
-                        {/* 1. Authorize as Friend */}
-                        {u.role !== 'friend' && u.role !== 'admin' && (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            disabled={isItemLoading}
-                            onClick={() => handleRoleChange(u.uid, 'friend')}
-                            className="inline-flex items-center gap-1 text-xs text-emerald-700 dark:text-[#1DB954] bg-emerald-50 dark:bg-[#1DB954]/10 hover:bg-emerald-100 dark:hover:bg-[#1DB954]/20 border-emerald-200 dark:border-[#1DB954]/30 min-h-[30px] px-2.5 whitespace-nowrap shrink-0 font-medium"
-                            title="Authorize user to view and download files"
-                          >
-                            <UserCheck className="w-3.5 h-3.5 shrink-0" />
-                            <span className="whitespace-nowrap">Authorize</span>
-                          </Button>
-                        )}
+                    {(u.role === 'friend' || (u.role === 'admin' && !isCurrentUser)) && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={isItemLoading}
+                        onClick={() => handleRoleChange(u.uid, 'ignored')}
+                        className="inline-flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-[#181818] min-h-[30px] px-2.5"
+                      >
+                        <Ban className="w-3.5 h-3.5 shrink-0" />
+                        <span>Revoke</span>
+                      </Button>
+                    )}
 
-                        {/* 2. Make Admin / Demote Admin */}
-                        {u.role !== 'admin' ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={isItemLoading}
-                            onClick={() => handleRoleChange(u.uid, 'admin')}
-                            className="inline-flex items-center gap-1 text-xs text-brand-700 dark:text-[#1DB954] hover:bg-brand-50 dark:hover:bg-[#181818] min-h-[30px] px-2.5 whitespace-nowrap shrink-0"
-                            title="Promote user to full Administrator"
-                          >
-                            <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-                            <span className="whitespace-nowrap">Make Admin</span>
-                          </Button>
-                        ) : !isCurrentUser ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={isItemLoading}
-                            onClick={() => handleRoleChange(u.uid, 'friend')}
-                            className="inline-flex items-center gap-1 text-xs text-slate-600 dark:text-[#E6E6E6] hover:bg-slate-100 dark:hover:bg-[#181818] min-h-[30px] px-2.5 whitespace-nowrap shrink-0"
-                            title="Demote administrator to Friend"
-                          >
-                            <Shield className="w-3.5 h-3.5 shrink-0" />
-                            <span className="whitespace-nowrap">Demote</span>
-                          </Button>
-                        ) : null}
+                    {!isCurrentUser && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={isItemLoading}
+                        onClick={() => setUserToDelete(u)}
+                        className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-[#181818] min-h-[30px] h-8 w-8 p-0 ml-auto"
+                        title="Delete user record"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
-                        {/* 3. Revoke Access */}
-                        {(u.role === 'friend' || (u.role === 'admin' && !isCurrentUser)) && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={isItemLoading}
-                            onClick={() => handleRoleChange(u.uid, 'ignored')}
-                            className="inline-flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-[#181818] min-h-[30px] px-2.5 whitespace-nowrap shrink-0"
-                            title="Revoke vault access"
-                          >
-                            <Ban className="w-3.5 h-3.5 shrink-0" />
-                            <span className="whitespace-nowrap">Revoke</span>
-                          </Button>
-                        )}
+          {/* Desktop Table (hidden on mobile, visible on md+) */}
+          <div className="hidden md:block bg-white dark:bg-[#0A0A0A] rounded-xl border border-slate-200 dark:border-[#242424] shadow-xs">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-slate-50/75 dark:bg-[#111111] border-b border-slate-200 dark:border-[#242424]">
+                  <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 whitespace-nowrap">User</TableHead>
+                  <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 w-52 whitespace-nowrap">Role & Request</TableHead>
+                  <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 w-36 whitespace-nowrap">Last Login</TableHead>
+                  <TableHead className="text-xs font-semibold text-slate-700 dark:text-[#8A8A8A] py-3 text-right whitespace-nowrap">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredUsers.map((u) => {
+                  const isCurrentUser = u.uid === user?.uid;
+                  const isItemLoading = actionUid === u.uid;
 
-                        {/* 4. Delete Record */}
-                        {!isCurrentUser && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={isItemLoading}
-                            onClick={() => setUserToDelete(u)}
-                            className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-[#181818] min-h-[30px] h-8 w-8 p-0 shrink-0"
-                            title="Delete user record"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                  return (
+                    <TableRow key={u.uid} className="hover:bg-slate-50/60 dark:hover:bg-[#181818] transition-colors">
+                      {/* User Profile */}
+                      <TableCell className="py-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          {u.photoURL ? (
+                            <img
+                              src={u.photoURL}
+                              alt={u.displayName}
+                              className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-[#242424] shrink-0"
+                            />
+                          ) : (
+                            <div className="w-9 h-9 rounded-full bg-brand-50 dark:bg-[#111111] border border-brand-200 dark:border-[#242424] text-brand-600 dark:text-[#1DB954] flex items-center justify-center font-bold text-xs shrink-0">
+                              {u.displayName.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm font-semibold text-slate-900 dark:text-[#E6E6E6] flex items-center gap-2 truncate">
+                              <span className="truncate">{u.displayName}</span>
+                              {isCurrentUser && (
+                                <span className="text-[10px] bg-slate-100 dark:bg-[#181818] text-slate-600 dark:text-[#E6E6E6] font-semibold px-1.5 py-0.5 rounded-full shrink-0 border border-transparent dark:border-[#242424]">
+                                  You
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs text-slate-500 dark:text-[#8A8A8A] flex items-center gap-1 mt-0.5 truncate">
+                              <Mail className="w-3 h-3 shrink-0 text-slate-400 dark:text-[#8A8A8A]" />
+                              <span className="truncate">{u.email || 'No email provided'}</span>
+                            </div>
+                            <div className="text-[11px] text-slate-400 dark:text-[#8A8A8A] font-mono mt-0.5 truncate max-w-[220px]" title={u.uid}>
+                              UID: {u.uid.slice(0, 10)}...
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      {/* Role & Request Status */}
+                      <TableCell className="py-3">
+                        <div className="flex flex-col items-start gap-1.5">
+                          {u.role === 'admin' ? (
+                            <Badge variant="brand" size="sm" className="gap-1 font-semibold">
+                              <ShieldCheck className="w-3 h-3" />
+                              Admin
+                            </Badge>
+                          ) : u.role === 'friend' ? (
+                            <Badge variant="success" size="sm" className="gap-1 font-semibold">
+                              <CheckCircle2 className="w-3 h-3" />
+                              Authorized Friend
+                            </Badge>
+                          ) : u.role === 'ignored' ? (
+                            <Badge variant="neutral" size="sm" className="gap-1 font-medium text-slate-600 dark:text-[#8A8A8A]">
+                              <Ban className="w-3 h-3 text-slate-400 dark:text-[#8A8A8A]" />
+                              Revoked
+                            </Badge>
+                          ) : (
+                            <Badge variant="warning" size="sm" className="gap-1 font-medium">
+                              <Clock className="w-3 h-3" />
+                              Pending Approval
+                            </Badge>
+                          )}
+
+                          {requestsMap.has(u.uid) && (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => setViewingRequest({ user: u, request: requestsMap.get(u.uid)! })}
+                              className="inline-flex items-center gap-1 text-[11px] text-brand-700 dark:text-[#1DB954] bg-brand-50 dark:bg-[#1DB954]/10 hover:bg-brand-100 dark:hover:bg-[#1DB954]/20 border-brand-200 dark:border-[#1DB954]/30 h-6 px-2 whitespace-nowrap font-medium shrink-0"
+                              title="View submitted approval request"
+                            >
+                              <FileText className="w-3 h-3 shrink-0" />
+                              <span>View Request</span>
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+
+                      {/* Last Login */}
+                      <TableCell className="py-3 text-xs text-slate-500 dark:text-[#8A8A8A] font-mono whitespace-nowrap">
+                        {formatDate(u.lastLogin)}
+                      </TableCell>
+
+                      {/* One-Click Action Buttons */}
+                      <TableCell className="py-3 text-right">
+                        <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                          {/* 1. Authorize as Friend */}
+                          {u.role !== 'friend' && u.role !== 'admin' && (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              disabled={isItemLoading}
+                              onClick={() => handleRoleChange(u.uid, 'friend')}
+                              className="inline-flex items-center gap-1 text-xs text-emerald-700 dark:text-[#1DB954] bg-emerald-50 dark:bg-[#1DB954]/10 hover:bg-emerald-100 dark:hover:bg-[#1DB954]/20 border-emerald-200 dark:border-[#1DB954]/30 min-h-[30px] px-2.5 whitespace-nowrap shrink-0 font-medium"
+                              title="Authorize user to view and download files"
+                            >
+                              <UserCheck className="w-3.5 h-3.5 shrink-0" />
+                              <span className="whitespace-nowrap">Authorize</span>
+                            </Button>
+                          )}
+
+                          {/* 2. Make Admin / Demote Admin */}
+                          {u.role !== 'admin' ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={isItemLoading}
+                              onClick={() => handleRoleChange(u.uid, 'admin')}
+                              className="inline-flex items-center gap-1 text-xs text-brand-700 dark:text-[#1DB954] hover:bg-brand-50 dark:hover:bg-[#181818] min-h-[30px] px-2.5 whitespace-nowrap shrink-0"
+                              title="Promote user to full Administrator"
+                            >
+                              <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                              <span className="whitespace-nowrap">Make Admin</span>
+                            </Button>
+                          ) : !isCurrentUser ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={isItemLoading}
+                              onClick={() => handleRoleChange(u.uid, 'friend')}
+                              className="inline-flex items-center gap-1 text-xs text-slate-600 dark:text-[#E6E6E6] hover:bg-slate-100 dark:hover:bg-[#181818] min-h-[30px] px-2.5 whitespace-nowrap shrink-0"
+                              title="Demote administrator to Friend"
+                            >
+                              <Shield className="w-3.5 h-3.5 shrink-0" />
+                              <span className="whitespace-nowrap">Demote</span>
+                            </Button>
+                          ) : null}
+
+                          {/* 3. Revoke Access */}
+                          {(u.role === 'friend' || (u.role === 'admin' && !isCurrentUser)) && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={isItemLoading}
+                              onClick={() => handleRoleChange(u.uid, 'ignored')}
+                              className="inline-flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-[#181818] min-h-[30px] px-2.5 whitespace-nowrap shrink-0"
+                              title="Revoke vault access"
+                            >
+                              <Ban className="w-3.5 h-3.5 shrink-0" />
+                              <span className="whitespace-nowrap">Revoke</span>
+                            </Button>
+                          )}
+
+                          {/* 4. Delete Record */}
+                          {!isCurrentUser && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={isItemLoading}
+                              onClick={() => setUserToDelete(u)}
+                              className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-[#181818] min-h-[30px] h-8 w-8 p-0 shrink-0"
+                              title="Delete user record"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       )}
 

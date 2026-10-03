@@ -782,9 +782,9 @@ export const FileExplorerPage: React.FC = () => {
                       title="Select all files in folder"
                     />
                   </TableHead>
-                  <TableHead className="w-12 text-center">Type</TableHead>
+                  <TableHead className="w-10 text-center">Type</TableHead>
                   <TableHead
-                    className="cursor-pointer hover:text-slate-700"
+                    className="cursor-pointer hover:text-slate-700 min-w-0"
                     onClick={() => {
                       setSortField('name');
                       setSortAsc(!sortAsc);
@@ -793,7 +793,7 @@ export const FileExplorerPage: React.FC = () => {
                     Name
                   </TableHead>
                   <TableHead
-                    className="w-28 cursor-pointer hover:text-slate-700"
+                    className="w-24 text-right cursor-pointer hover:text-slate-700 hidden md:table-cell"
                     onClick={() => {
                       setSortField('size');
                       setSortAsc(!sortAsc);
@@ -802,7 +802,7 @@ export const FileExplorerPage: React.FC = () => {
                     Size
                   </TableHead>
                   <TableHead
-                    className="w-44 cursor-pointer hover:text-slate-700"
+                    className="w-36 cursor-pointer hover:text-slate-700 hidden md:table-cell"
                     onClick={() => {
                       setSortField('date');
                       setSortAsc(!sortAsc);
@@ -810,8 +810,8 @@ export const FileExplorerPage: React.FC = () => {
                   >
                     Uploaded / Items
                   </TableHead>
-                  <TableHead className="w-32">Access</TableHead>
-                  <TableHead className="w-32 text-right">Actions</TableHead>
+                  <TableHead className="w-24 hidden sm:table-cell">Access</TableHead>
+                  <TableHead className="w-24 sm:w-28 text-right shrink-0">Actions</TableHead>
                 </TableRow>
               </TableHeader>
 
@@ -843,29 +843,34 @@ export const FileExplorerPage: React.FC = () => {
                     <TableCell className="text-center">
                       <Folder className="w-4 h-4 text-amber-500 dark:text-[#1DB954] mx-auto" />
                     </TableCell>
-                    <TableCell className="font-semibold text-slate-800 dark:text-[#E6E6E6] text-xs hover:text-brand-600 dark:hover:text-[#1DB954]">
+                    <TableCell className="font-semibold text-slate-800 dark:text-[#E6E6E6] text-xs hover:text-brand-600 dark:hover:text-[#1DB954] min-w-0">
                       <div className="flex items-center gap-2">
-                        <span>{folder.name}</span>
-                        <Badge variant="neutral" size="sm" className="font-normal text-[10px]">
+                        <span className="truncate">{folder.name}</span>
+                        <Badge variant="neutral" size="sm" className="font-normal text-[10px] hidden sm:inline-flex">
                           Folder
                         </Badge>
                       </div>
+                      <div className="text-[11px] text-slate-500 dark:text-[#8A8A8A] flex items-center gap-1.5 mt-0.5 md:hidden font-normal">
+                        <span>{folder.fileCount} file{folder.fileCount === 1 ? '' : 's'}</span>
+                        <span>•</span>
+                        <span>{formatBytes(folder.totalBytes)}</span>
+                      </div>
                     </TableCell>
-                    <TableCell className="font-mono text-xs text-slate-500 dark:text-[#8A8A8A]">
+                    <TableCell className="font-mono text-xs text-slate-500 dark:text-[#8A8A8A] text-right hidden md:table-cell">
                       {formatBytes(folder.totalBytes)}
                     </TableCell>
-                    <TableCell className="text-xs text-slate-600 dark:text-[#8A8A8A] font-medium">
+                    <TableCell className="text-xs text-slate-600 dark:text-[#8A8A8A] font-medium hidden md:table-cell">
                       {folder.fileCount} file{folder.fileCount === 1 ? '' : 's'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <span className="text-xs text-slate-400 dark:text-[#8A8A8A]">Directory</span>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right shrink-0">
                       <div className="flex items-center justify-end gap-1">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-xs text-slate-500 dark:text-[#8A8A8A] hover:text-brand-600 dark:hover:text-[#1DB954]"
+                          className="text-xs text-slate-500 dark:text-[#8A8A8A] hover:text-brand-600 dark:hover:text-[#1DB954] px-2"
                           onClick={(e) => {
                             e.stopPropagation();
                             navigate(`/files/${selectedSourceId}/${folder.relativePath}`);
@@ -923,31 +928,43 @@ export const FileExplorerPage: React.FC = () => {
                         <FileIcon fileName={file.originalName} mimeType={file.mimeType} className="w-4 h-4 mx-auto" />
                       </TableCell>
 
-                      <TableCell className="font-medium text-slate-900 dark:text-[#E6E6E6] text-xs">
-                        <div className="flex items-center gap-2">
-                          <span className="truncate max-w-xs">{file.originalName}</span>
+                      <TableCell className="font-medium text-slate-900 dark:text-[#E6E6E6] text-xs min-w-0">
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <span className="truncate max-w-[130px] sm:max-w-xs">{file.originalName}</span>
                           {file.version > 0 && (
-                            <Badge variant="brand" size="sm">
+                            <Badge variant="brand" size="sm" className="text-[10px] px-1 py-0 shrink-0">
                               v{file.version}
                             </Badge>
                           )}
                           {file.customPermissions && (
-                            <Badge variant="warning" size="sm">
+                            <Badge variant="warning" size="sm" className="text-[10px] px-1 py-0 shrink-0">
                               Override
                             </Badge>
                           )}
                         </div>
+                        {/* Mobile subtext */}
+                        <div className="text-[11px] text-slate-500 dark:text-[#8A8A8A] flex items-center gap-1.5 mt-0.5 md:hidden font-normal">
+                          <span>{formatBytes(file.size)}</span>
+                          <span>•</span>
+                          <span>{formatDate(file.uploadedAt)}</span>
+                          {isRestricted && (
+                            <>
+                              <span>•</span>
+                              <span className="text-amber-600 dark:text-amber-400 font-medium">🔒 Restricted</span>
+                            </>
+                          )}
+                        </div>
                       </TableCell>
 
-                      <TableCell className="font-mono text-xs text-slate-600 dark:text-[#8A8A8A]">
+                      <TableCell className="font-mono text-xs text-slate-600 dark:text-[#8A8A8A] text-right hidden md:table-cell">
                         {formatBytes(file.size)}
                       </TableCell>
 
-                      <TableCell className="text-xs text-slate-500 dark:text-[#8A8A8A]">
+                      <TableCell className="text-xs text-slate-500 dark:text-[#8A8A8A] hidden md:table-cell">
                         {formatDate(file.uploadedAt)}
                       </TableCell>
 
-                      <TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         {isRestricted ? (
                           <Badge variant="warning" size="sm" className="bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800">
                             🔒 Restricted
@@ -967,7 +984,7 @@ export const FileExplorerPage: React.FC = () => {
                         )}
                       </TableCell>
 
-                      <TableCell className="text-right">
+                      <TableCell className="text-right shrink-0">
                         <div
                           className="flex items-center justify-end gap-1"
                           onClick={(e) => e.stopPropagation()}

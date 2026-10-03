@@ -64,7 +64,7 @@ export const TableHead: React.FC<React.ThHTMLAttributes<HTMLTableCellElement>> =
 }) => (
   <th
     className={twMerge(
-      clsx('px-4 py-3 select-none text-slate-500 dark:text-[#8A8A8A] font-semibold text-xs', className)
+      clsx('px-3 sm:px-4 py-2.5 sm:py-3 select-none text-slate-500 dark:text-[#8A8A8A] font-semibold text-xs', className)
     )}
     {...props}
   >
@@ -77,7 +77,7 @@ export const TableCell: React.FC<React.TdHTMLAttributes<HTMLTableCellElement>> =
   children,
   ...props
 }) => (
-  <td className={twMerge(clsx('px-4 py-3 align-middle text-sm dark:text-[#E6E6E6]', className))} {...props}>
+  <td className={twMerge(clsx('px-3 sm:px-4 py-2.5 sm:py-3 align-middle text-sm dark:text-[#E6E6E6]', className))} {...props}>
     {children}
   </td>
 );

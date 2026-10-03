@@ -243,28 +243,33 @@ export const ActivityPage: React.FC = () => {
             {contentHashes.length === 0 ? (
               <p className="text-xs text-slate-400 dark:text-[#8A8A8A] italic">No content hashes recorded in vault yet.</p>
             ) : (
-              <div className="max-h-60 overflow-y-auto rounded-lg border border-slate-200 dark:border-[#242424] bg-white dark:bg-[#0A0A0A]">
+              <div className="max-h-60 overflow-y-auto overflow-x-auto rounded-lg border border-slate-200 dark:border-[#242424] bg-white dark:bg-[#0A0A0A]">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 dark:bg-[#111111] border-b border-slate-200 dark:border-[#242424] text-slate-500 dark:text-[#8A8A8A] text-[11px] uppercase tracking-wider sticky top-0">
                     <tr>
-                      <th className="py-2 px-3 font-semibold">Canonical Stored Object</th>
-                      <th className="py-2 px-3 font-semibold">Size</th>
+                      <th className="py-2 px-3 font-semibold min-w-0">Canonical Stored Object</th>
+                      <th className="py-2 px-3 font-semibold hidden sm:table-cell">Size</th>
                       <th className="py-2 px-3 font-semibold">SHA-256 Hash</th>
-                      <th className="py-2 px-3 font-semibold text-right">Indexed</th>
+                      <th className="py-2 px-3 font-semibold text-right hidden sm:table-cell">Indexed</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-[#242424] font-mono text-[11px]">
                     {contentHashes.map((hash) => (
                       <tr key={hash.sha256} className="hover:bg-slate-50/60 dark:hover:bg-[#181818]">
-                        <td className="py-2 px-3 font-sans font-medium text-slate-800 dark:text-[#E6E6E6] truncate max-w-[200px]" title={hash.storedName}>
-                          {hash.storedName}
+                        <td className="py-2 px-3 font-sans font-medium text-slate-800 dark:text-[#E6E6E6] min-w-0">
+                          <div className="truncate max-w-[140px] sm:max-w-[200px]" title={hash.storedName}>
+                            {hash.storedName}
+                          </div>
+                          <div className="text-[10px] text-slate-400 dark:text-[#8A8A8A] font-normal sm:hidden mt-0.5">
+                            {formatBytes(hash.size)} • {formatDate(hash.uploadedAt)}
+                          </div>
                         </td>
-                        <td className="py-2 px-3 text-slate-600 dark:text-[#8A8A8A] font-mono">
+                        <td className="py-2 px-3 text-slate-600 dark:text-[#8A8A8A] font-mono hidden sm:table-cell">
                           {formatBytes(hash.size)}
                         </td>
                         <td className="py-2 px-3 text-slate-500 dark:text-[#8A8A8A] font-mono">
                           <div className="flex items-center gap-1.5">
-                            <span title={hash.sha256}>{hash.sha256.substring(0, 16)}...</span>
+                            <span title={hash.sha256}>{hash.sha256.substring(0, 12)}...</span>
                             <button
                               onClick={() => {
                                 navigator.clipboard.writeText(hash.sha256);
@@ -282,7 +287,7 @@ export const ActivityPage: React.FC = () => {
                             </button>
                           </div>
                         </td>
-                        <td className="py-2 px-3 text-right font-sans text-slate-400 text-[11px]">
+                        <td className="py-2 px-3 text-right font-sans text-slate-400 text-[11px] hidden sm:table-cell">
                           {formatDate(hash.uploadedAt)}
                         </td>
                       </tr>

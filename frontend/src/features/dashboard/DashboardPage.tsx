@@ -267,12 +267,12 @@ export const DashboardPage: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-12 text-center">Type</TableHead>
-                <TableHead>Name & Folder</TableHead>
-                <TableHead className="w-28">Size</TableHead>
-                <TableHead className="w-40">Uploaded</TableHead>
-                <TableHead className="w-28">Access</TableHead>
-                <TableHead className="w-24 text-right">Actions</TableHead>
+                <TableHead className="w-10 text-center">Type</TableHead>
+                <TableHead className="min-w-0">Name & Folder</TableHead>
+                <TableHead className="w-24 text-right hidden md:table-cell">Size</TableHead>
+                <TableHead className="w-36 hidden md:table-cell">Uploaded</TableHead>
+                <TableHead className="w-24 hidden sm:table-cell">Access</TableHead>
+                <TableHead className="w-20 sm:w-24 text-right shrink-0">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -287,22 +287,28 @@ export const DashboardPage: React.FC = () => {
                     <FileIcon fileName={file.originalName} mimeType={file.mimeType} className="w-4 h-4 mx-auto" />
                   </TableCell>
 
-                  <TableCell className="font-medium text-slate-900 dark:text-[#E6E6E6] text-xs">
-                    <div className="truncate max-w-sm">{file.originalName}</div>
-                    <div className="text-[11px] text-slate-400 dark:text-[#8A8A8A] font-mono truncate">
+                  <TableCell className="font-medium text-slate-900 dark:text-[#E6E6E6] text-xs min-w-0">
+                    <div className="truncate max-w-[140px] sm:max-w-sm">{file.originalName}</div>
+                    <div className="text-[11px] text-slate-400 dark:text-[#8A8A8A] font-mono truncate max-w-[140px] sm:max-w-sm">
                       {file.relativePath || '/'}
+                    </div>
+                    {/* Mobile subtext */}
+                    <div className="text-[11px] text-slate-500 dark:text-[#8A8A8A] flex items-center gap-1.5 mt-0.5 md:hidden font-normal">
+                      <span>{formatBytes(file.size)}</span>
+                      <span>•</span>
+                      <span>{formatDate(file.uploadedAt)}</span>
                     </div>
                   </TableCell>
 
-                  <TableCell className="font-mono text-xs text-slate-600 dark:text-[#8A8A8A]">
+                  <TableCell className="font-mono text-xs text-slate-600 dark:text-[#8A8A8A] text-right hidden md:table-cell">
                     {formatBytes(file.size)}
                   </TableCell>
 
-                  <TableCell className="text-xs text-slate-500 dark:text-[#8A8A8A]">
+                  <TableCell className="text-xs text-slate-500 dark:text-[#8A8A8A] hidden md:table-cell">
                     {formatDate(file.uploadedAt)}
                   </TableCell>
 
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     {file.isPublicToFriends ? (
                       <Badge variant="success" size="sm">
                         Public
@@ -318,7 +324,7 @@ export const DashboardPage: React.FC = () => {
                     )}
                   </TableCell>
 
-                  <TableCell className="text-right">
+                  <TableCell className="text-right shrink-0">
                     <div
                       className="flex items-center justify-end gap-1"
                       onClick={(e) => e.stopPropagation()}

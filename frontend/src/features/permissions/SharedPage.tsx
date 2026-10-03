@@ -182,9 +182,9 @@ export const SharedPage: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-12 text-center">Type</TableHead>
+                <TableHead className="w-10 text-center">Type</TableHead>
                 <TableHead
-                  className="cursor-pointer hover:text-slate-700 dark:hover:text-[#E6E6E6]"
+                  className="cursor-pointer hover:text-slate-700 dark:hover:text-[#E6E6E6] min-w-0"
                   onClick={() => {
                     setSortField('name');
                     setSortAsc(!sortAsc);
@@ -193,7 +193,7 @@ export const SharedPage: React.FC = () => {
                   File Name & Path
                 </TableHead>
                 <TableHead
-                  className="w-28 cursor-pointer hover:text-slate-700 dark:hover:text-[#E6E6E6]"
+                  className="w-24 text-right cursor-pointer hover:text-slate-700 dark:hover:text-[#E6E6E6] hidden md:table-cell"
                   onClick={() => {
                     setSortField('size');
                     setSortAsc(!sortAsc);
@@ -202,7 +202,7 @@ export const SharedPage: React.FC = () => {
                   Size
                 </TableHead>
                 <TableHead
-                  className="w-40 cursor-pointer hover:text-slate-700 dark:hover:text-[#E6E6E6]"
+                  className="w-36 cursor-pointer hover:text-slate-700 dark:hover:text-[#E6E6E6] hidden md:table-cell"
                   onClick={() => {
                     setSortField('date');
                     setSortAsc(!sortAsc);
@@ -210,8 +210,8 @@ export const SharedPage: React.FC = () => {
                 >
                   Uploaded
                 </TableHead>
-                <TableHead className="w-32">Permission</TableHead>
-                <TableHead className="w-28 text-right">Actions</TableHead>
+                <TableHead className="w-28 hidden sm:table-cell">Permission</TableHead>
+                <TableHead className="w-20 sm:w-28 text-right shrink-0">Actions</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -229,34 +229,40 @@ export const SharedPage: React.FC = () => {
                       <FileIcon fileName={file.originalName} mimeType={file.mimeType} className="w-4 h-4 mx-auto" />
                     </TableCell>
 
-                    <TableCell className="font-medium text-slate-900 dark:text-[#E6E6E6] text-xs">
+                    <TableCell className="font-medium text-slate-900 dark:text-[#E6E6E6] text-xs min-w-0">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="truncate max-w-xs">{file.originalName}</span>
+                          <span className="truncate max-w-[140px] sm:max-w-xs">{file.originalName}</span>
                           {file.version > 0 && (
-                            <Badge variant="brand" size="sm">
+                            <Badge variant="brand" size="sm" className="text-[10px] px-1 py-0 shrink-0">
                               v{file.version}
                             </Badge>
                           )}
                         </div>
                         <div className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-[#8A8A8A] font-mono mt-0.5">
-                          <Folder className="w-3 h-3 text-slate-400 dark:text-[#8A8A8A]" />
-                          <span className="truncate max-w-sm">
+                          <Folder className="w-3 h-3 text-slate-400 dark:text-[#8A8A8A] shrink-0" />
+                          <span className="truncate max-w-[140px] sm:max-w-sm">
                             {file.relativePath ? `${file.relativePath}` : '/'}
                           </span>
+                        </div>
+                        {/* Mobile subtext */}
+                        <div className="text-[11px] text-slate-500 dark:text-[#8A8A8A] flex items-center gap-1.5 mt-0.5 md:hidden font-normal">
+                          <span>{formatBytes(file.size)}</span>
+                          <span>•</span>
+                          <span>{formatDate(file.uploadedAt)}</span>
                         </div>
                       </div>
                     </TableCell>
 
-                    <TableCell className="font-mono text-xs text-slate-600 dark:text-[#8A8A8A]">
+                    <TableCell className="font-mono text-xs text-slate-600 dark:text-[#8A8A8A] text-right hidden md:table-cell">
                       {formatBytes(file.size)}
                     </TableCell>
 
-                    <TableCell className="text-xs text-slate-500 dark:text-[#8A8A8A]">
+                    <TableCell className="text-xs text-slate-500 dark:text-[#8A8A8A] hidden md:table-cell">
                       {formatDate(file.uploadedAt)}
                     </TableCell>
 
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       {file.isPublicToFriends ? (
                         <Badge variant="success" size="sm">
                           Public
@@ -268,7 +274,7 @@ export const SharedPage: React.FC = () => {
                       )}
                     </TableCell>
 
-                    <TableCell className="text-right">
+                    <TableCell className="text-right shrink-0">
                       <div
                         className="flex items-center justify-end gap-1"
                         onClick={(e) => e.stopPropagation()}
