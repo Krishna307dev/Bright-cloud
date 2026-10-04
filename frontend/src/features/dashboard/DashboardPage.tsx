@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { SourceService } from '../../services/firestore/sourceService';
-import { FileService } from '../../services/firestore/fileService';
+import { FileService, isSystemFileOrFolder } from '../../services/firestore/fileService';
 import { ReconciliationService } from '../../services/reconciliationService';
 import type { SourceEntity, FileRecord } from '../../models';
 import { formatBytes, formatDate } from '../../utils/format';
@@ -75,8 +75,16 @@ export const DashboardPage: React.FC = () => {
           : Promise.resolve([]),
       ]);
 
+      const filteredRecent = fileList.filter(
+        (f) =>
+          f.originalName !== '.keep' &&
+          f.storedName !== '.keep' &&
+          !isSystemFileOrFolder(f.originalName) &&
+          !isSystemFileOrFolder(f.storedName)
+      );
+
       setSources(srcList);
-      setRecentFiles(fileList);
+      setRecentFiles(filteredRecent);
 
       // Trigger session-driven Admin reconciliation in background
       if (isAdmin) {
@@ -97,7 +105,13 @@ export const DashboardPage: React.FC = () => {
 
   // Aggregate metrics
   const totalFilesCount = sources.reduce((acc, s) => acc + (s.totalFilesBackedUp || 0), 0);
-  const totalStorageBytes = recentFiles.reduce((acc, f) => acc + f.size, 0);
+  const totalStorageBytes = recentFiles.reduce(
+    (acc, f) =>
+      f.originalName === '.keep' || f.storedName === '.keep' || isSystemFileOrFolder(f.originalName)
+        ? acc
+        : acc + f.size,
+    0
+  );
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">

@@ -9,7 +9,7 @@ import {
   ArrowUpDown,
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
-import { FileService } from '../../services/firestore/fileService';
+import { FileService, isSystemFileOrFolder } from '../../services/firestore/fileService';
 import type { FileRecord } from '../../models';
 import { formatBytes, formatDate } from '../../utils/format';
 import { Button } from '../../components/ui/Button';
@@ -69,7 +69,15 @@ export const SharedPage: React.FC = () => {
         fetched = await FileService.fetchFriendRecentFiles(vaultId, user.uid, 100);
       }
 
-      setFiles(fetched);
+      setFiles(
+        fetched.filter(
+          (f) =>
+            f.originalName !== '.keep' &&
+            f.storedName !== '.keep' &&
+            !isSystemFileOrFolder(f.originalName) &&
+            !isSystemFileOrFolder(f.storedName)
+        )
+      );
     } catch (err: any) {
       setError(`Failed to retrieve shared files: ${err.message}`);
     } finally {

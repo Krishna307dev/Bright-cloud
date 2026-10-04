@@ -30,9 +30,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
     { label: 'Explorer', path: '/files', icon: Folder },
     { label: 'Shared', path: '/shared', icon: Share2 },
     { label: 'USB Sources', path: '/sources', icon: HardDrive },
-    { label: 'Activity', path: '/activity', icon: Activity },
     ...(isAdmin
-      ? [{ label: 'Manage Users', path: '/users', icon: Users }]
+      ? [
+          { label: 'Activity', path: '/activity', icon: Activity },
+          { label: 'Manage Users', path: '/users', icon: Users },
+        ]
       : []),
     { label: 'Preferences', path: '/settings', icon: Settings },
     ...(isAdmin

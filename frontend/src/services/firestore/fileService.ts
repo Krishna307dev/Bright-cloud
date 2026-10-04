@@ -379,6 +379,7 @@ export class FileService {
 
   /**
    * Fetches unified stream of all files shared with or public to the user (used on /shared and Dashboard).
+   * Automatically filters out internal .keep placeholders and system/hidden files.
    */
   static async fetchSharedFiles(
     vaultId: string,
@@ -386,13 +387,14 @@ export class FileService {
     pageSize = 100
   ): Promise<FileRecord[]> {
     const fileMap = new Map<string, FileRecord>();
+    const fetchLimit = Math.max(pageSize * 2, 50);
 
     // Stream 1: Public files
     const qPublic = query(
       collection(db, 'vaults', vaultId, 'files'),
       where('isPublicToFriends', '==', true),
       orderBy('uploadedAt', 'desc'),
-      limit(pageSize)
+      limit(fetchLimit)
     );
 
     // Stream 2: Files specifically shared with this user
@@ -400,7 +402,7 @@ export class FileService {
       collection(db, 'vaults', vaultId, 'files'),
       where('allowedFriends', 'array-contains', userUid),
       orderBy('uploadedAt', 'desc'),
-      limit(pageSize)
+      limit(fetchLimit)
     );
 
     try {
@@ -426,7 +428,16 @@ export class FileService {
       }
     }
 
-    return Array.from(fileMap.values()).sort((a, b) => b.uploadedAt.getTime() - a.uploadedAt.getTime());
+    return Array.from(fileMap.values())
+      .filter(
+        (f) =>
+          f.originalName !== '.keep' &&
+          f.storedName !== '.keep' &&
+          !isSystemFileOrFolder(f.originalName) &&
+          !isSystemFileOrFolder(f.storedName)
+      )
+      .sort((a, b) => b.uploadedAt.getTime() - a.uploadedAt.getTime())
+      .slice(0, pageSize);
   }
 
   static async fetchFriendRecentFiles(
@@ -439,15 +450,26 @@ export class FileService {
 
   /**
    * Admin recent files: lists all recent files across the vault ordered by uploadedAt DESC.
+   * Automatically filters out internal .keep placeholders and system/hidden files.
    */
   static async listAdminRecentFiles(vaultId: string, limitCount = 50): Promise<FileRecord[]> {
+    const fetchLimit = Math.max(limitCount * 3, 50);
     const q = query(
       collection(db, 'vaults', vaultId, 'files'),
       orderBy('uploadedAt', 'desc'),
-      limit(limitCount)
+      limit(fetchLimit)
     );
     const snap = await getDocs(q);
-    return snap.docs.map(mapToFileRecord);
+    const files = snap.docs
+      .map(mapToFileRecord)
+      .filter(
+        (f) =>
+          f.originalName !== '.keep' &&
+          f.storedName !== '.keep' &&
+          !isSystemFileOrFolder(f.originalName) &&
+          !isSystemFileOrFolder(f.storedName)
+      );
+    return files.slice(0, limitCount);
   }
 
   /**

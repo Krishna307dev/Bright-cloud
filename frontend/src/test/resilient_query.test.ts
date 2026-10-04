@@ -148,4 +148,20 @@ describe('Resilient Query & Missing-Index Fallback Pagination', () => {
     );
     expect(hasRelativePathRange).toBe(false);
   });
+
+  it('listAdminRecentFiles filters out .keep and system files', async () => {
+    const mockFiles = [
+      { id: 'f1', data: () => ({ originalName: '.keep', storedName: '.keep', size: 0, relativePath: '', uploadedAt: { toMillis: () => 1000 } }) },
+      { id: 'f2', data: () => ({ originalName: 'real_doc.pdf', storedName: 'real_doc.pdf', size: 100, relativePath: '', uploadedAt: { toMillis: () => 2000 } }) },
+      { id: 'f3', data: () => ({ originalName: '.thumbnails', storedName: '.thumbnails', size: 50, relativePath: '', uploadedAt: { toMillis: () => 3000 } }) },
+      { id: 'f4', data: () => ({ originalName: 'LOST.DIR', storedName: 'LOST.DIR', size: 0, relativePath: '', uploadedAt: { toMillis: () => 4000 } }) },
+      { id: 'f5', data: () => ({ originalName: 'notes.txt', storedName: 'notes.txt', size: 200, relativePath: '', uploadedAt: { toMillis: () => 5000 } }) },
+    ];
+
+    vi.spyOn(firestoreModule, 'getDocs').mockResolvedValue({ docs: mockFiles } as any);
+
+    const result = await FileService.listAdminRecentFiles('vault-1', 10);
+    expect(result.length).toBe(2);
+    expect(result.map((f) => f.originalName)).toEqual(['real_doc.pdf', 'notes.txt']);
+  });
 });

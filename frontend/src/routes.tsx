@@ -73,10 +73,6 @@ export const router = createBrowserRouter([
             element: <SharedPage />,
           },
           {
-            path: '/activity',
-            element: <ActivityPage />,
-          },
-          {
             path: '/settings',
             element: <UserSettingsPage />,
           },
@@ -85,6 +81,10 @@ export const router = createBrowserRouter([
           {
             element: <AdminRoute />,
             children: [
+              {
+                path: '/activity',
+                element: <ActivityPage />,
+              },
               {
                 path: '/friends',
                 element: <Navigate to="/users" replace />,

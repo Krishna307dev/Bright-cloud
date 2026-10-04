@@ -29,11 +29,13 @@ export const MobileNav: React.FC = () => {
     { label: 'Dashboard', path: '/', icon: LayoutDashboard },
     { label: 'Explorer', path: '/files', icon: Folder },
     { label: 'Shared', path: '/shared', icon: Share2 },
-    { label: 'Activity', path: '/activity', icon: Activity },
+    ...(isAdmin
+      ? [{ label: 'Activity', path: '/activity', icon: Activity }]
+      : [{ label: 'USB Sources', path: '/sources', icon: HardDrive }]),
   ];
 
   const moreItems = [
-    { label: 'USB Sources', path: '/sources', icon: HardDrive },
+    ...(isAdmin ? [{ label: 'USB Sources', path: '/sources', icon: HardDrive }] : []),
     { label: 'Preferences', path: '/settings', icon: Settings },
     ...(isAdmin
       ? [
