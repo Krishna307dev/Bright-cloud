@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { ManagePermissionsDialog } from '../features/permissions/ManagePermissionsDialog';
 import { VaultService } from '../services/firestore/vaultService';
@@ -46,6 +45,7 @@ describe('ManagePermissionsDialog - Collaborator Names & Avatars', () => {
 
   it('renders actual user names, emails, and avatars instead of generic "Authorized Collaborator"', async () => {
     const mockVaultConfig: VaultConfig = {
+      vaultId: 'default',
       adminUids: ['admin-1'],
       authorizedFriends: ['user-friend-1', 'user-friend-2'],
       friendDirectory: {
