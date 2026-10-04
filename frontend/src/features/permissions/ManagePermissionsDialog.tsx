@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Shield, Users, RefreshCw, Trash2, Mail } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Shield, Users, RefreshCw, Trash2, Mail, Search, X, ShieldCheck } from 'lucide-react';
 import { Dialog } from '../../components/ui/Dialog';
 import { Button } from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
 import { useAuth } from '../auth/AuthContext';
-import type { FileRecord, FolderRule, VaultConfig, UserProfile, ApprovalRequest } from '../../models';
+import type { FileRecord, FolderRule, VaultConfig, UserProfile, ApprovalRequest, UserRole } from '../../models';
 import { VaultService } from '../../services/firestore/vaultService';
 import { ApprovalService } from '../../services/firestore/approvalService';
 import { FileService } from '../../services/firestore/fileService';
@@ -37,6 +37,7 @@ export const ManagePermissionsDialog: React.FC<ManagePermissionsDialogProps> = (
   const [existingRule, setExistingRule] = useState<FolderRule | null>(null);
   const [isPublicToFriends, setIsPublicToFriends] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [forceResetOverrides, setForceResetOverrides] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -52,6 +53,7 @@ export const ManagePermissionsDialog: React.FC<ManagePermissionsDialogProps> = (
 
     let isMounted = true;
     setIsLoading(true);
+    setSearchQuery('');
     setPropagationProgress(null);
 
     Promise.all([
@@ -91,7 +93,7 @@ export const ManagePermissionsDialog: React.FC<ManagePermissionsDialogProps> = (
     return () => {
       isMounted = false;
     };
-  }, [isOpen, vaultId, sourceId, relativePath, file, isFolder, toast]);
+  }, [isOpen, vaultId, sourceId, relativePath, file?.fileId, isFolder]);
 
   const toggleFriend = (uid: string) => {
     setSelectedFriends((prev) =>
@@ -175,24 +177,25 @@ export const ManagePermissionsDialog: React.FC<ManagePermissionsDialogProps> = (
   const friendDirectory = vaultConfig?.friendDirectory || {};
   const userDirectory = (vaultConfig as any)?.userDirectory || {};
 
-  // Gather all eligible collaborator UIDs:
-  // 1. UIDs in vaultConfig.authorizedFriends
-  // 2. Currently selected friends (if any)
-  // 3. Registered friends in friendDirectory / userDirectory
-  // 4. Registered users with role 'friend' in usersMap
-  const rawFriendUids = Array.from(
+  // Gather EVERY user known to the system without dropping anyone:
+  // 1. All users in usersMap (from vaults/{vaultId}/users)
+  // 2. All users in userDirectory (from settings/config)
+  // 3. All users in friendDirectory (from settings/config)
+  // 4. All users in authorizedFriends
+  // 5. All users in adminUids
+  // 6. All users in requestsMap (approvalRequests)
+  // 7. Any currently selected user IDs
+  const allUserUids = Array.from(
     new Set([
-      ...(vaultConfig?.authorizedFriends || []),
-      ...selectedFriends,
+      ...Array.from(usersMap.keys()),
+      ...Object.keys(userDirectory),
       ...Object.keys(friendDirectory),
-      ...Object.entries(userDirectory)
-        .filter(([, u]: any) => u.role === 'friend')
-        .map(([uUid]) => uUid),
-      ...Array.from(usersMap.values())
-        .filter((u) => u.role === 'friend')
-        .map((u) => u.uid),
+      ...(vaultConfig?.authorizedFriends || []),
+      ...(vaultConfig?.adminUids || []),
+      ...Array.from(requestsMap.keys()),
+      ...selectedFriends,
     ])
-  ).filter((uid) => !vaultConfig?.adminUids?.includes(uid) && uid !== user?.uid);
+  ).filter((uid) => Boolean(uid && uid.trim()));
 
   const getCollaboratorInfo = (uid: string) => {
     const uProfile = usersMap.get(uid);
@@ -228,18 +231,53 @@ export const ManagePermissionsDialog: React.FC<ManagePermissionsDialogProps> = (
       }
     }
 
+    const isAdminUser = vaultConfig?.adminUids?.includes(uid) || uProfile?.role === 'admin';
+    const isFriendUser = vaultConfig?.authorizedFriends?.includes(uid) || uProfile?.role === 'friend' || uDir?.role === 'friend';
+    const role: UserRole = isAdminUser ? 'admin' : (isFriendUser ? 'friend' : (uProfile?.role || 'pending'));
+
     return {
       uid,
       displayName,
       email: rawEmail,
       photoURL: uProfile?.photoURL || uDir?.photoURL,
-      role: uProfile?.role || uDir?.role,
+      role,
     };
   };
 
-  const collaborators = rawFriendUids
-    .map((uid) => getCollaboratorInfo(uid))
-    .sort((a, b) => a.displayName.localeCompare(b.displayName));
+  const collaborators = useMemo(() => {
+    return allUserUids
+      .map((uid) => getCollaboratorInfo(uid))
+      .sort((a, b) => {
+        if (a.uid === user?.uid) return -1;
+        if (b.uid === user?.uid) return 1;
+        return a.displayName.localeCompare(b.displayName);
+      });
+  }, [allUserUids, usersMap, requestsMap, friendDirectory, userDirectory, vaultConfig, user]);
+
+  const filteredCollaborators = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return collaborators;
+    return collaborators.filter(
+      (c) =>
+        c.displayName.toLowerCase().includes(q) ||
+        c.email.toLowerCase().includes(q) ||
+        c.uid.toLowerCase().includes(q)
+    );
+  }, [collaborators, searchQuery]);
+
+  const handleSelectAll = () => {
+    const uidsToSelect = filteredCollaborators.map((c) => c.uid);
+    setSelectedFriends((prev) => Array.from(new Set([...prev, ...uidsToSelect])));
+  };
+
+  const handleClearAll = () => {
+    if (searchQuery.trim()) {
+      const uidsToRemove = new Set(filteredCollaborators.map((c) => c.uid));
+      setSelectedFriends((prev) => prev.filter((id) => !uidsToRemove.has(id)));
+    } else {
+      setSelectedFriends([]);
+    }
+  };
 
   return (
     <Dialog
@@ -303,9 +341,9 @@ export const ManagePermissionsDialog: React.FC<ManagePermissionsDialogProps> = (
           {/* Public Access Toggle */}
           <div className="p-3.5 bg-slate-50 dark:bg-[#111111] border border-slate-200/80 dark:border-[#242424] rounded-lg flex items-center justify-between">
             <div className="space-y-0.5 max-w-[280px]">
-              <span className="font-semibold text-slate-800 dark:text-[#E6E6E6] text-xs block">
+              <label htmlFor="isPublicToFriends" className="font-semibold text-slate-800 dark:text-[#E6E6E6] text-xs block cursor-pointer">
                 Public to all Friends
-              </span>
+              </label>
               <p className="text-[11px] text-slate-500 dark:text-[#8A8A8A] leading-normal">
                 Any authorized friend in your vault will be granted read and download access.
               </p>
@@ -319,98 +357,162 @@ export const ManagePermissionsDialog: React.FC<ManagePermissionsDialogProps> = (
             />
           </div>
 
-          {/* Collaborator Whitelist Checkboxes */}
-          {!isPublicToFriends && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="font-semibold text-slate-800 dark:text-[#E6E6E6] flex items-center gap-1.5">
-                  <Users className="w-4 h-4 text-slate-400 dark:text-[#8A8A8A]" />
-                  Select Specific Collaborators
-                </label>
-                {collaborators.length > 0 && (
-                  <span className="text-[11px] text-slate-500 dark:text-[#8A8A8A]">
+          {/* Access Policy Explanatory Banner */}
+          {isPublicToFriends ? (
+            <div className="p-2.5 bg-brand-50/60 dark:bg-[#1DB954]/10 border border-brand-200/60 dark:border-[#1DB954]/30 rounded-lg text-[11px] text-brand-800 dark:text-[#1DB954] flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 shrink-0 text-brand-600 dark:text-[#1DB954]" />
+              <span>Public policy active: All authorized friends can access. You can also specify individual users below or turn off public access to restrict strictly to selected users.</span>
+            </div>
+          ) : (
+            <div className="p-2.5 bg-slate-50 dark:bg-[#111111] border border-slate-200/80 dark:border-[#242424] rounded-lg text-[11px] text-slate-600 dark:text-[#8A8A8A] flex items-center gap-2">
+              <Shield className="w-4 h-4 shrink-0 text-slate-400" />
+              <span>Restricted access: Only the specific users checked below will have read and download permissions.</span>
+            </div>
+          )}
+
+          {/* Collaborator Whitelist Section - Always Visible */}
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <label className="font-semibold text-slate-800 dark:text-[#E6E6E6] flex items-center gap-1.5">
+                <Users className="w-4 h-4 text-slate-400 dark:text-[#8A8A8A]" />
+                Select Specific Collaborators
+              </label>
+              {collaborators.length > 0 && (
+                <div className="flex items-center gap-2 text-[11px]">
+                  <span className="text-slate-500 dark:text-[#8A8A8A]">
                     {selectedFriends.length} of {collaborators.length} selected
                   </span>
-                )}
-              </div>
-
-              {collaborators.length === 0 ? (
-                <div className="p-4 bg-slate-50 dark:bg-[#111111] rounded-lg border border-dashed border-slate-200 dark:border-[#242424] text-center text-slate-400 dark:text-[#8A8A8A]">
-                  No friends added to this vault yet. Add users in the Manage Users section.
-                </div>
-              ) : (
-                <div className="max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-[#242424] border border-slate-200 dark:border-[#242424] rounded-lg bg-white dark:bg-[#0A0A0A]">
-                  {collaborators.map((c) => {
-                    const isSelected = selectedFriends.includes(c.uid);
-                    const isCurrentUser = user?.uid === c.uid;
-
-                    return (
-                      <label
-                        key={c.uid}
-                        className={`flex items-center justify-between px-3.5 py-2.5 transition-colors cursor-pointer select-none ${
-                          isSelected
-                            ? 'bg-brand-50/50 dark:bg-[#1DB954]/10'
-                            : 'hover:bg-slate-50 dark:hover:bg-[#181818]'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 min-w-0 pr-3">
-                          {c.photoURL ? (
-                            <img
-                              src={c.photoURL}
-                              alt={c.displayName}
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                              }}
-                              className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-[#242424] shrink-0"
-                            />
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-brand-50 dark:bg-[#181818] border border-brand-200/60 dark:border-[#242424] text-brand-600 dark:text-[#1DB954] flex items-center justify-center font-bold text-xs shrink-0">
-                              {c.displayName.charAt(0).toUpperCase()}
-                            </div>
-                          )}
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-1.5 truncate">
-                              <span className="font-medium text-slate-900 dark:text-[#E6E6E6] text-xs truncate">
-                                {c.displayName}
-                              </span>
-                              {isCurrentUser && (
-                                <span className="text-[10px] bg-slate-100 dark:bg-[#242424] text-slate-600 dark:text-[#E6E6E6] font-semibold px-1.5 py-0.5 rounded-full shrink-0">
-                                  You
-                                </span>
-                              )}
-                              {c.role === 'admin' && (
-                                <span className="text-[10px] text-brand-600 dark:text-[#1DB954] font-medium shrink-0">
-                                  • Admin
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-[11px] text-slate-500 dark:text-[#8A8A8A] flex items-center gap-1 mt-0.5 truncate">
-                              {c.email ? (
-                                <>
-                                  <Mail className="w-3 h-3 shrink-0 text-slate-400 dark:text-[#8A8A8A]" />
-                                  <span className="truncate">{c.email}</span>
-                                </>
-                              ) : (
-                                <span className="font-mono text-[10px] truncate text-slate-400 dark:text-[#8A8A8A]">
-                                  UID: {c.uid.slice(0, 12)}...
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => toggleFriend(c.uid)}
-                          className="w-4 h-4 text-brand-600 dark:accent-[#1DB954] rounded border-slate-300 dark:border-[#242424] dark:bg-[#181818] focus:ring-brand-500 cursor-pointer shrink-0"
-                        />
-                      </label>
-                    );
-                  })}
+                  <span className="text-slate-300 dark:text-[#333333]">|</span>
+                  <button
+                    type="button"
+                    onClick={handleSelectAll}
+                    className="text-brand-600 dark:text-[#1DB954] hover:underline font-medium cursor-pointer"
+                  >
+                    Select All
+                  </button>
+                  <span className="text-slate-300 dark:text-[#333333]">•</span>
+                  <button
+                    type="button"
+                    onClick={handleClearAll}
+                    className="text-slate-500 dark:text-[#8A8A8A] hover:underline cursor-pointer"
+                  >
+                    Clear
+                  </button>
                 </div>
               )}
             </div>
-          )}
+
+            {/* Real-time User Search Bar */}
+            <div className="relative">
+              <Search className="w-4 h-4 text-slate-400 dark:text-[#8A8A8A] absolute left-3 top-2.5" />
+              <input
+                type="text"
+                placeholder="Search users by name or email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 dark:bg-[#111111] border border-slate-200 dark:border-[#242424] rounded-lg text-slate-900 dark:text-[#E6E6E6] placeholder-slate-400 dark:placeholder-[#8A8A8A] focus:outline-none focus:ring-1 focus:ring-brand-500 dark:focus:ring-[#1DB954]"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-[#E6E6E6] cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {collaborators.length === 0 ? (
+              <div className="p-4 bg-slate-50 dark:bg-[#111111] rounded-lg border border-dashed border-slate-200 dark:border-[#242424] text-center text-slate-400 dark:text-[#8A8A8A]">
+                No users found in vault directory. Users who sign in will appear here automatically.
+              </div>
+            ) : filteredCollaborators.length === 0 ? (
+              <div className="p-4 bg-slate-50 dark:bg-[#111111] rounded-lg border border-dashed border-slate-200 dark:border-[#242424] text-center text-slate-400 dark:text-[#8A8A8A]">
+                No users match &ldquo;{searchQuery}&rdquo;.
+              </div>
+            ) : (
+              <div className="max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-[#242424] border border-slate-200 dark:border-[#242424] rounded-lg bg-white dark:bg-[#0A0A0A]">
+                {filteredCollaborators.map((c) => {
+                  const isSelected = selectedFriends.includes(c.uid);
+                  const isCurrentUser = user?.uid === c.uid;
+
+                  return (
+                    <label
+                      key={c.uid}
+                      className={`flex items-center justify-between px-3.5 py-2.5 transition-colors cursor-pointer select-none ${
+                        isSelected
+                          ? 'bg-brand-50/50 dark:bg-[#1DB954]/10'
+                          : 'hover:bg-slate-50 dark:hover:bg-[#181818]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0 pr-3">
+                        {c.photoURL ? (
+                          <img
+                            src={c.photoURL}
+                            alt={c.displayName}
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                            className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-[#242424] shrink-0"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-brand-50 dark:bg-[#181818] border border-brand-200/60 dark:border-[#242424] text-brand-600 dark:text-[#1DB954] flex items-center justify-center font-bold text-xs shrink-0">
+                            {c.displayName.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 truncate">
+                            <span className="font-medium text-slate-900 dark:text-[#E6E6E6] text-xs truncate">
+                              {c.displayName}
+                            </span>
+                            {isCurrentUser && (
+                              <span className="text-[10px] bg-slate-100 dark:bg-[#242424] text-slate-600 dark:text-[#E6E6E6] font-semibold px-1.5 py-0.5 rounded-full shrink-0">
+                                You
+                              </span>
+                            )}
+                            {c.role === 'admin' && (
+                              <span className="text-[10px] text-brand-600 dark:text-[#1DB954] font-medium shrink-0">
+                                • Admin
+                              </span>
+                            )}
+                            {c.role === 'friend' && (
+                              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium shrink-0">
+                                • Friend
+                              </span>
+                            )}
+                            {c.role === 'pending' && (
+                              <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium shrink-0">
+                                • Pending
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[11px] text-slate-500 dark:text-[#8A8A8A] flex items-center gap-1 mt-0.5 truncate">
+                            {c.email ? (
+                              <>
+                                <Mail className="w-3 h-3 shrink-0 text-slate-400 dark:text-[#8A8A8A]" />
+                                <span className="truncate">{c.email}</span>
+                              </>
+                            ) : (
+                              <span className="font-mono text-[10px] truncate text-slate-400 dark:text-[#8A8A8A]">
+                                UID: {c.uid.slice(0, 12)}...
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleFriend(c.uid)}
+                        className="w-4 h-4 text-brand-600 dark:accent-[#1DB954] rounded border-slate-300 dark:border-[#242424] dark:bg-[#181818] focus:ring-brand-500 cursor-pointer shrink-0"
+                      />
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           {/* Folder Propagation Options */}
           {isFolder && (
