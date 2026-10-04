@@ -65,18 +65,22 @@ export class VaultService {
    * Fetches vault settings (Admin only).
    */
   static async getVaultConfig(vaultId: string): Promise<VaultConfig | null> {
-    const configRef = doc(db, 'vaults', vaultId, 'settings', 'config');
-    const snap = await getDoc(configRef);
-    if (!snap.exists()) return null;
-    const data = snap.data();
-    return {
-      vaultId,
-      adminUids: data.adminUids || [],
-      authorizedFriends: data.authorizedFriends || [],
-      friendDirectory: data.friendDirectory || {},
-      userDirectory: data.userDirectory || {},
-      vaultName: data.vaultName || 'Bright Cloud Vault',
-    };
+    try {
+      const configRef = doc(db, 'vaults', vaultId, 'settings', 'config');
+      const snap = await getDoc(configRef);
+      if (!snap.exists()) return null;
+      const data = snap.data();
+      return {
+        vaultId,
+        adminUids: data.adminUids || [],
+        authorizedFriends: data.authorizedFriends || [],
+        friendDirectory: data.friendDirectory || {},
+        userDirectory: data.userDirectory || {},
+        vaultName: data.vaultName || 'Bright Cloud Vault',
+      };
+    } catch {
+      return null;
+    }
   }
 
   /**

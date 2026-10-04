@@ -178,16 +178,21 @@ export const ManagePermissionsDialog: React.FC<ManagePermissionsDialogProps> = (
   // Gather all eligible collaborator UIDs:
   // 1. UIDs in vaultConfig.authorizedFriends
   // 2. Currently selected friends (if any)
-  // 3. Registered users with role 'friend'
+  // 3. Registered friends in friendDirectory / userDirectory
+  // 4. Registered users with role 'friend' in usersMap
   const rawFriendUids = Array.from(
     new Set([
       ...(vaultConfig?.authorizedFriends || []),
       ...selectedFriends,
+      ...Object.keys(friendDirectory),
+      ...Object.entries(userDirectory)
+        .filter(([, u]: any) => u.role === 'friend')
+        .map(([uUid]) => uUid),
       ...Array.from(usersMap.values())
         .filter((u) => u.role === 'friend')
         .map((u) => u.uid),
     ])
-  );
+  ).filter((uid) => !vaultConfig?.adminUids?.includes(uid) && uid !== user?.uid);
 
   const getCollaboratorInfo = (uid: string) => {
     const uProfile = usersMap.get(uid);
@@ -195,24 +200,27 @@ export const ManagePermissionsDialog: React.FC<ManagePermissionsDialogProps> = (
     const dir = friendDirectory[uid];
     const uDir = userDirectory[uid];
 
+    const isPlaceholder = (n?: string | null) =>
+      !n || ['User', 'Authorized Friend', 'Authorized Collaborator', 'Google User'].includes(n.trim());
+
+    // Priority 1: Find a real non-placeholder name
     const rawName =
-      uProfile?.displayName ||
-      req?.name ||
-      uDir?.displayName ||
-      dir?.label ||
+      (!isPlaceholder(uProfile?.displayName) ? uProfile!.displayName : '') ||
+      (!isPlaceholder(req?.name) ? req!.name : '') ||
+      (!isPlaceholder(uDir?.displayName) ? uDir!.displayName : '') ||
+      (!isPlaceholder(dir?.label) ? dir!.label : '') ||
       '';
+
+    // Priority 2: Find a real non-placeholder email
     const rawEmail =
-      uProfile?.email ||
-      req?.email ||
-      uDir?.email ||
-      dir?.email ||
+      (uProfile?.email && !uProfile.email.endsWith('@vault.local') ? uProfile.email : '') ||
+      (req?.email && !req.email.endsWith('@vault.local') ? req.email : '') ||
+      (uDir?.email && !uDir.email.endsWith('@vault.local') ? uDir.email : '') ||
+      (dir?.email && !dir.email.endsWith('@vault.local') ? dir.email : '') ||
       '';
 
     let displayName = rawName;
-    if (
-      !displayName ||
-      ['User', 'Authorized Friend', 'Authorized Collaborator', 'Google User'].includes(displayName)
-    ) {
+    if (!displayName || isPlaceholder(displayName)) {
       if (rawEmail) {
         displayName = rawEmail.split('@')[0];
       } else {
@@ -350,6 +358,9 @@ export const ManagePermissionsDialog: React.FC<ManagePermissionsDialogProps> = (
                             <img
                               src={c.photoURL}
                               alt={c.displayName}
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
                               className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-[#242424] shrink-0"
                             />
                           ) : (

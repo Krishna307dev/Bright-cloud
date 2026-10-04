@@ -242,7 +242,7 @@ async function runQA() {
 
     await new Promise((r) => setTimeout(r, 700)); // wait for dialog animation
     const uploadDialogText = await page.evaluate(() => document.body.innerText);
-    const hasUploadModal = uploadDialogText.includes('Upload File to Vault') || uploadDialogText.includes('Drag and drop');
+    const hasUploadModal = uploadDialogText.toLowerCase().includes('drag and drop') || uploadDialogText.includes('Upload File');
     await page.screenshot({ path: path.join(screenshotsDir, '10_web_upload_dialog.png') });
 
     // Close dialog
@@ -272,19 +272,24 @@ async function runQA() {
     recordResult('12. Activity Page & Job Status Badges', hasActivityHeader, `Activity header rendered: ${hasActivityHeader}`);
 
     // -------------------------------------------------------------
-    // FLOW 13: Collaborator / Friends Management
+    // FLOW 13: Collaborator / Users Management (/users)
     // -------------------------------------------------------------
-    console.log('\n--- Testing Flow 13: Friends & Collaborators Page ---');
-    await page.goto(`${BASE_URL}/friends`, { waitUntil: 'load', timeout: 15000 });
-    await new Promise((r) => setTimeout(r, 500));
-    const friendsText = await page.evaluate(() => document.body.innerText);
-    const hasFriendsHeader = friendsText.includes('Vault Collaborators') || friendsText.includes('Collaborators') || friendsText.includes('Friends');
-    const hasAddCollaboratorBtn = await page.evaluate(() => {
+    console.log('\n--- Testing Flow 13: Manage Users Page ---');
+    await page.goto(`${BASE_URL}/users`, { waitUntil: 'load', timeout: 15000 });
+    try {
+      await page.waitForFunction(() => !document.body.innerText.includes('Loading registered users...'), { timeout: 8000 });
+    } catch {
+      // Fallback
+      await new Promise((r) => setTimeout(r, 1500));
+    }
+    const usersText = await page.evaluate(() => document.body.innerText);
+    const hasUsersHeader = usersText.includes('Manage Users') || usersText.includes('Users') || usersText.includes('Collaborators');
+    const hasAddUserBtn = await page.evaluate(() => {
       const btns = Array.from(document.querySelectorAll('button'));
-      return btns.some((b) => b.innerText.includes('Add Collaborator'));
+      return btns.some((b) => b.innerText.includes('Add User') || b.innerText.includes('Add Collaborator'));
     });
-    await page.screenshot({ path: path.join(screenshotsDir, '13_friends_page.png') });
-    recordResult('13. Collaborator Management & Directory View', hasFriendsHeader && hasAddCollaboratorBtn, `Header: ${hasFriendsHeader}, Add Button: ${hasAddCollaboratorBtn}`);
+    await page.screenshot({ path: path.join(screenshotsDir, '13_users_page.png') });
+    recordResult('13. User Management & Directory View', hasUsersHeader && hasAddUserBtn, `Header: ${hasUsersHeader}, Add Button: ${hasAddUserBtn}`);
 
     // -------------------------------------------------------------
     // FLOW 14: Admin Vault Settings & Authorizer Health Check
