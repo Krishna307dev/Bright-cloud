@@ -29,8 +29,17 @@ dist/
 
 # Logs & build artifacts
 *.log
+*.logs
 *.zip
 .kotlin/
 graphify-out/
 *.tsbuildinfo
 .freebuff/
+
+# Android platform-tools & adb
+platform-tools/
+adb.cmd
+adb.ps1
+capture-logs.bat
+capture-logs.ps1
+android-app.logs

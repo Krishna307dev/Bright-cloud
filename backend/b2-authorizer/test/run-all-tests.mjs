@@ -304,6 +304,44 @@ test("Backblaze B2 Authorizer Shared Vault Test Suite", async (t) => {
     assert.ok(auth.uploadUrl.startsWith("https://s3.eu-central-003.backblazeb2.com/BrightCloud/"));
     assert.ok(auth.uploadUrl.includes("X-Amz-Signature="));
     assert.equal(auth.headers["x-amz-meta-sha256"], validSha256);
+    // Verify Android daemon presigned PUT signs all x-amz-meta-* headers to satisfy Backblaze B2 SigV4
+    const urlObj = new URL(auth.uploadUrl);
+    const signedHeaders = urlObj.searchParams.get("X-Amz-SignedHeaders");
+    assert.ok(signedHeaders, "X-Amz-SignedHeaders must be present");
+    assert.ok(signedHeaders.includes("x-amz-meta-sha256"), "SignedHeaders must contain x-amz-meta-sha256");
+    assert.ok(signedHeaders.includes("x-amz-meta-source-id"), "SignedHeaders must contain x-amz-meta-source-id");
+    assert.ok(signedHeaders.includes("x-amz-meta-original-name"), "SignedHeaders must contain x-amz-meta-original-name");
+    assert.ok(signedHeaders.includes("x-amz-meta-file-id"), "SignedHeaders must contain x-amz-meta-file-id");
+  });
+
+  await t.test("SigV4 3: Web uploads keep X-Amz-SignedHeaders host-only to prevent browser CORS preflight failure", async () => {
+    const env = {
+      FIREBASE_PROJECT_ID: projectId,
+      VAULT_ID: defaultVaultId,
+      B2_ENDPOINT: "https://s3.eu-central-003.backblazeb2.com",
+      B2_BUCKET: "BrightCloud",
+      B2_REGION: "eu-central-003",
+      B2_KEY_ID: "b2_key_web",
+      B2_APPLICATION_KEY: "b2_app_secret_web"
+    };
+
+    const auth = await generateUploadAuthorization(
+      {
+        objectKey: "backups/default/WEB_UPLOADS/document.pdf",
+        sha256: validSha256,
+        sourceId: "WEB_UPLOADS",
+        originalName: "document.pdf",
+        fileId: "6001"
+      },
+      "verified_web_user",
+      env
+    );
+
+    assert.equal(auth.uploadMode, "DIRECT_PRESIGNED_PUT");
+    assert.ok(auth.uploadUrl.includes("X-Amz-Signature="));
+    const urlObj = new URL(auth.uploadUrl);
+    const signedHeaders = urlObj.searchParams.get("X-Amz-SignedHeaders");
+    assert.equal(signedHeaders, "host", "Web upload signed headers must only be host to preserve browser CORS");
   });
 
   // Section F: Direct HEAD Authorization Tests

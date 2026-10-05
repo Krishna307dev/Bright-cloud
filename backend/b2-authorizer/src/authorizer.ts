@@ -35,6 +35,12 @@ export async function generateUploadAuthorization(
   const keyId = env.B2_KEY_ID || "dev-b2-key-id";
   const applicationKey = env.B2_APPLICATION_KEY || "dev-b2-app-key-1234567890abcdef";
 
+  // For Android daemon uploads (sourceId !== 'WEB_UPLOADS'), Backblaze B2 strictly requires
+  // all x-amz-* metadata headers sent by HttpURLConnection to be signed into X-Amz-SignedHeaders.
+  // For Web browser uploads ('WEB_UPLOADS'), omit metadata headers from signing so browser direct PUT
+  // avoids CORS preflight failures and stays 100% compatible with both direct and proxy uploads.
+  const shouldSignHeaders = req.sourceId !== "WEB_UPLOADS";
+
   const uploadUrl = await createB2PresignedUrl(
     {
       endpoint,
@@ -46,6 +52,7 @@ export async function generateUploadAuthorization(
     {
       method: "PUT",
       objectKey: req.objectKey,
+      headers: shouldSignHeaders ? headers : undefined,
       expiresInSeconds: 3600
     }
   );

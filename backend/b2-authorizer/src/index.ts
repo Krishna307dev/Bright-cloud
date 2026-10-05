@@ -336,7 +336,7 @@ export default {
           throw new ValidationError(`Untrusted target upload host: '${targetUrlObj.hostname}'`);
         }
 
-        // Forward safe headers: content-type and content-length
+        // Forward safe headers: content-type, content-length, and any signed x-amz-* metadata headers
         const forwardHeaders: Record<string, string> = {};
         const contentType = request.headers.get("content-type");
         if (contentType) {
@@ -345,6 +345,11 @@ export default {
         const contentLength = request.headers.get("content-length");
         if (contentLength) {
           forwardHeaders["Content-Length"] = contentLength;
+        }
+        for (const [key, value] of request.headers.entries()) {
+          if (key.toLowerCase().startsWith("x-amz-")) {
+            forwardHeaders[key] = value;
+          }
         }
 
         const b2Response = await fetch(targetUploadUrl, {
