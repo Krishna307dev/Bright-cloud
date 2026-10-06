@@ -14,3 +14,15 @@ export interface BackupJob {
   errorFiles: number;
   error?: string;
 }
+
+export interface ContentHashRecord {
+  sha256: string;
+  storedName: string;
+  originalName: string;
+  sourceId: string;
+  relativePath: string;
+  size: number;
+  uploadedAt: Date;
+  fileId: string;
+  b2ObjectKey?: string;
+}

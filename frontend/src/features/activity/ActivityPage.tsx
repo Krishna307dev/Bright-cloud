@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Activity,
   CheckCircle2,
@@ -10,53 +11,125 @@ import {
   XCircle,
   Trash2,
   AlertTriangle,
-  Sparkles,
   ChevronDown,
   ChevronUp,
   Copy,
   Check,
+  Search,
+  ExternalLink,
+  Layers,
+  Database,
 } from 'lucide-react';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../../services/firebase';
 import { useAuth } from '../auth/AuthContext';
 import { JobService } from '../../services/firestore/jobService';
-import type { BackupJob } from '../../models';
+import { SourceService } from '../../services/firestore/sourceService';
+import type { BackupJob, ContentHashRecord, FileRecord, SourceEntity } from '../../models';
 import { formatDate, formatBytes } from '../../utils/format';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
+import { FileIcon } from '../../components/ui/FileIcon';
 import { LoadingState } from '../../components/feedback/LoadingState';
 import { ErrorState } from '../../components/feedback/ErrorState';
 import { EmptyState } from '../../components/feedback/EmptyState';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { useToast } from '../../components/ui/Toast';
 
-interface ContentHashRecord {
-  sha256: string;
-  storedName: string;
-  size: number;
-  uploadedAt: Date;
-  fileId: string;
+type FilterTab = 'all' | 'active' | 'completed' | 'issues';
+
+function formatDuration(start: Date, end?: Date): string {
+  if (!end) return 'In progress';
+  const diffSec = Math.max(0, Math.round((end.getTime() - start.getTime()) / 1000));
+  if (diffSec < 60) return `${diffSec}s`;
+  const min = Math.floor(diffSec / 60);
+  const sec = diffSec % 60;
+  return `${min}m ${sec}s`;
 }
 
 export const ActivityPage: React.FC = () => {
   usePageTitle('Activity');
   const { vaultId, isAdmin } = useAuth();
   const toast = useToast();
+
   const [jobs, setJobs] = useState<BackupJob[]>([]);
+  const [sources, setSources] = useState<Map<string, SourceEntity>>(new Map());
   const [contentHashes, setContentHashes] = useState<ContentHashRecord[]>([]);
-  const [isHashesExpanded, setIsHashesExpanded] = useState(false);
-  const [copiedHash, setCopiedHash] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dismissingId, setDismissingId] = useState<string | null>(null);
 
+  // Filters & Search
+  const [activeTab, setActiveTab] = useState<FilterTab>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Expandable state
+  const [expandedJobIds, setExpandedJobIds] = useState<Set<string>>(new Set());
+  const [jobFilesMap, setJobFilesMap] = useState<Map<string, FileRecord[]>>(new Map());
+  const [loadingJobFiles, setLoadingJobFiles] = useState<Set<string>>(new Set());
+
+  // Content hashes section
+  const [isHashesExpanded, setIsHashesExpanded] = useState(false);
+  const [hashSearchQuery, setHashSearchQuery] = useState('');
+  const [copiedHash, setCopiedHash] = useState<string | null>(null);
+
+  // Load sources metadata for friendly display names
+  const loadSources = useCallback(async () => {
+    if (!vaultId) return;
+    try {
+      const list = await SourceService.listSources(vaultId);
+      const map = new Map<string, SourceEntity>();
+      list.forEach((s) => map.set(s.sourceId, s));
+      setSources(map);
+    } catch {
+      // Non-fatal if source metadata fails to load
+    }
+  }, [vaultId]);
+
+  // Load content hashes
+  const loadContentHashes = useCallback(async () => {
+    if (!vaultId) return;
+    try {
+      const hashes = await JobService.getContentHashes(vaultId);
+      setContentHashes(hashes);
+    } catch {
+      // Non-fatal
+    }
+  }, [vaultId]);
+
+  // Real-time jobs subscription
+  useEffect(() => {
+    if (!vaultId) return;
+    setIsLoading(true);
+    setError(null);
+
+    loadSources();
+    loadContentHashes();
+
+    const unsubscribe = JobService.subscribeRecentJobs(
+      vaultId,
+      (updatedJobs) => {
+        setJobs(updatedJobs);
+        setIsLoading(false);
+      },
+      (err) => {
+        setError(`Failed to retrieve activity stream: ${err.message}`);
+        setIsLoading(false);
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [vaultId, loadSources, loadContentHashes]);
+
   const handleManualRefresh = async () => {
     if (!vaultId) return;
     try {
       setIsRefreshing(true);
-      await loadJobs();
-      toast.success('Activity timeline refreshed');
+      await Promise.all([loadSources(), loadContentHashes()]);
+      const list = await JobService.listRecentJobs(vaultId);
+      setJobs(list);
+      toast.success('Activity timeline updated');
     } catch (err: any) {
       toast.error(`Refresh failed: ${err.message}`);
     } finally {
@@ -64,46 +137,49 @@ export const ActivityPage: React.FC = () => {
     }
   };
 
-  const loadJobs = async () => {
+  const toggleJobExpansion = async (jobId: string) => {
+    setExpandedJobIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(jobId)) {
+        next.delete(jobId);
+      } else {
+        next.add(jobId);
+        // Load files for this job if not already cached
+        if (!jobFilesMap.has(jobId) && vaultId) {
+          fetchFilesForJob(jobId);
+        }
+      }
+      return next;
+    });
+  };
+
+  const fetchFilesForJob = async (jobId: string) => {
     if (!vaultId) return;
+    setLoadingJobFiles((prev) => new Set(prev).add(jobId));
     try {
-      setIsLoading(true);
-      setError(null);
-      const [list, hashesSnap] = await Promise.all([
-        JobService.listRecentJobs(vaultId),
-        getDocs(collection(db, 'vaults', vaultId, 'contentHashes')),
-      ]);
-      setJobs(list);
-      setContentHashes(
-        hashesSnap.docs.map((d) => {
-          const data = d.data();
-          return {
-            sha256: d.id,
-            storedName: data.storedName || 'Canonical Object',
-            size: data.size || 0,
-            uploadedAt: data.uploadedAt?.toDate ? data.uploadedAt.toDate() : new Date(),
-            fileId: data.fileId || '',
-          };
-        })
-      );
+      const files = await JobService.getJobFiles(vaultId, jobId);
+      setJobFilesMap((prev) => new Map(prev).set(jobId, files));
     } catch (err: any) {
-      setError(`Failed to retrieve activity log: ${err.message}`);
+      toast.error(`Failed to load files for job: ${err.message}`);
     } finally {
-      setIsLoading(false);
+      setLoadingJobFiles((prev) => {
+        const next = new Set(prev);
+        next.delete(jobId);
+        return next;
+      });
     }
   };
 
-  useEffect(() => {
-    loadJobs();
-  }, [vaultId]);
+  const handleCopyHash = (hash: string) => {
+    navigator.clipboard.writeText(hash);
+    setCopiedHash(hash);
+    setTimeout(() => setCopiedHash(null), 2000);
+    toast.success('Hash copied to clipboard');
+  };
 
   const handleDismissJob = async (jobId: string) => {
     if (!vaultId) return;
-    if (
-      !window.confirm(
-        'Are you sure you want to dismiss this historical job record? This removes the unfinalized log entry from your timeline.'
-      )
-    ) {
+    if (!window.confirm('Dismiss this historical job record from the timeline?')) {
       return;
     }
 
@@ -111,8 +187,9 @@ export const ActivityPage: React.FC = () => {
       setDismissingId(jobId);
       await JobService.dismissJob(vaultId, jobId);
       setJobs((prev) => prev.filter((j) => j.jobId !== jobId));
+      toast.success('Record dismissed');
     } catch (err: any) {
-      alert(`Failed to dismiss job: ${err?.message}`);
+      toast.error(`Failed to dismiss record: ${err?.message}`);
     } finally {
       setDismissingId(null);
     }
@@ -130,9 +207,9 @@ export const ActivityPage: React.FC = () => {
   const getStateBadge = (job: BackupJob) => {
     if (isJobStale(job)) {
       return (
-        <Badge variant="neutral" size="sm" className="gap-1 bg-amber-50 text-amber-800 border-amber-200">
-          <Clock className="w-3 h-3 text-amber-600" />
-          Stale / No Recent Activity
+        <Badge variant="neutral" size="sm" className="gap-1.5 border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30">
+          <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+          Stale session
         </Badge>
       );
     }
@@ -140,82 +217,233 @@ export const ActivityPage: React.FC = () => {
     switch (job.state) {
       case 'COMPLETED':
         return (
-          <Badge variant="success" size="sm" className="gap-1">
-            <CheckCircle2 className="w-3 h-3" />
+          <Badge variant="success" size="sm" className="gap-1.5 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30">
+            <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
             Completed
           </Badge>
         );
       case 'UPLOADING':
+        return (
+          <Badge variant="brand" size="sm" className="gap-1.5 border-sky-300 dark:border-sky-800 text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/30">
+            <Loader2 className="w-3 h-3 animate-spin text-sky-600 dark:text-sky-400" />
+            Uploading
+          </Badge>
+        );
       case 'HASHING':
+        return (
+          <Badge variant="neutral" size="sm" className="gap-1.5 border-indigo-300 dark:border-indigo-800 text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30">
+            <Loader2 className="w-3 h-3 animate-spin text-indigo-600 dark:text-indigo-400" />
+            Hashing
+          </Badge>
+        );
+      case 'DEDUPLICATING':
+        return (
+          <Badge variant="neutral" size="sm" className="gap-1.5 border-purple-300 dark:border-purple-800 text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/30">
+            <Loader2 className="w-3 h-3 animate-spin text-purple-600 dark:text-purple-400" />
+            Deduplicating
+          </Badge>
+        );
       case 'SCANNING':
         return (
-          <Badge variant="brand" size="sm" className="gap-1">
-            <Loader2 className="w-3 h-3 animate-spin" />
-            {job.state.toLowerCase()}
+          <Badge variant="neutral" size="sm" className="gap-1.5 border-blue-300 dark:border-blue-800 text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30">
+            <Loader2 className="w-3 h-3 animate-spin text-blue-600 dark:text-blue-400" />
+            Scanning
           </Badge>
         );
       case 'FAILED':
         return (
-          <Badge variant="danger" size="sm" className="gap-1">
-            <AlertCircle className="w-3 h-3" />
+          <Badge variant="danger" size="sm" className="gap-1.5 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30">
+            <AlertCircle className="w-3 h-3 text-rose-600 dark:text-rose-400" />
             Failed
           </Badge>
         );
       case 'CANCELLED':
         return (
-          <Badge variant="neutral" size="sm" className="gap-1">
-            <XCircle className="w-3 h-3" />
+          <Badge variant="neutral" size="sm" className="gap-1.5 border-slate-300 dark:border-[#333333] text-slate-700 dark:text-slate-400 bg-slate-50 dark:bg-[#181818]">
+            <XCircle className="w-3 h-3 text-slate-500" />
             Cancelled
           </Badge>
         );
       default:
-        return <Badge variant="neutral" size="sm">{job.state}</Badge>;
+        return (
+          <Badge variant="neutral" size="sm">
+            {job.state}
+          </Badge>
+        );
     }
   };
 
+  // Metrics calculations
+  const totalUploaded = useMemo(
+    () => jobs.reduce((sum, j) => sum + (j.uploadedFiles || 0), 0),
+    [jobs]
+  );
+  const totalSkipped = useMemo(
+    () => jobs.reduce((sum, j) => sum + (j.skippedFiles || 0), 0),
+    [jobs]
+  );
+  const activeJobs = useMemo(
+    () => jobs.filter((j) => ['SCANNING', 'HASHING', 'DEDUPLICATING', 'UPLOADING'].includes(j.state) && !isJobStale(j)),
+    [jobs]
+  );
+  const completedJobs = useMemo(
+    () => jobs.filter((j) => j.state === 'COMPLETED'),
+    [jobs]
+  );
+  const issueJobs = useMemo(
+    () => jobs.filter((j) => j.state === 'FAILED' || isJobStale(j) || (j.errorFiles || 0) > 0),
+    [jobs]
+  );
+
+  // Bandwidth saved estimate from content hashes
+  const estimatedBytesSaved = useMemo(() => {
+    if (contentHashes.length === 0 || totalSkipped === 0) return 0;
+    const avgSize = contentHashes.reduce((acc, h) => acc + h.size, 0) / contentHashes.length;
+    return Math.round(avgSize * totalSkipped);
+  }, [contentHashes, totalSkipped]);
+
+  // Filtered jobs list
+  const filteredJobs = useMemo(() => {
+    let list = jobs;
+    if (activeTab === 'active') {
+      list = activeJobs;
+    } else if (activeTab === 'completed') {
+      list = completedJobs;
+    } else if (activeTab === 'issues') {
+      list = issueJobs;
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter((j) => {
+        const sourceName = sources.get(j.sourceId)?.displayName?.toLowerCase() || '';
+        return (
+          j.jobId.toLowerCase().includes(q) ||
+          j.sourceId.toLowerCase().includes(q) ||
+          sourceName.includes(q)
+        );
+      });
+    }
+
+    return list;
+  }, [jobs, activeTab, activeJobs, completedJobs, issueJobs, searchQuery, sources]);
+
+  // Filtered content hashes for deduplication inspector
+  const filteredHashes = useMemo(() => {
+    if (!hashSearchQuery.trim()) return contentHashes;
+    const q = hashSearchQuery.toLowerCase().trim();
+    return contentHashes.filter(
+      (h) =>
+        h.originalName.toLowerCase().includes(q) ||
+        h.storedName.toLowerCase().includes(q) ||
+        h.sha256.toLowerCase().includes(q) ||
+        h.sourceId.toLowerCase().includes(q) ||
+        h.relativePath.toLowerCase().includes(q)
+    );
+  }, [contentHashes, hashSearchQuery]);
+
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#0A0A0A] p-4 sm:p-6 rounded-xl border border-slate-200/80 dark:border-[#242424] shadow-sm">
+    <div className="space-y-6 max-w-6xl mx-auto pb-12">
+      {/* Header bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#0A0A0A] p-4 sm:p-6 rounded-lg border border-slate-200 dark:border-[#242424]">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-brand-50 dark:bg-[#111111] border border-brand-200/60 dark:border-[#242424] flex items-center justify-center text-brand-600 dark:text-[#1DB954] shrink-0">
-            <Activity className="w-6 h-6" />
+          <div className="w-10 h-10 rounded-md bg-slate-100 dark:bg-[#181818] border border-slate-200 dark:border-[#242424] flex items-center justify-center text-slate-700 dark:text-[#E6E6E6] shrink-0">
+            <Activity className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-[#E6E6E6] tracking-tight">
-              Ingest & Backup Timeline
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-[#E6E6E6] tracking-tight">
+              Ingest and backup timeline
             </h1>
             <p className="text-xs text-slate-500 dark:text-[#8A8A8A]">
-              Chronological log of USB synchronization jobs executed by the Android backup daemon
+              Live telemetry and chronological history of backup jobs executed by daemon clients
             </p>
           </div>
         </div>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleManualRefresh}
-          disabled={isLoading || isRefreshing}
-          className="w-10 h-10 sm:w-9 sm:h-9 p-0 flex items-center justify-center self-end sm:self-auto text-slate-500 hover:text-slate-700 dark:text-[#8A8A8A] dark:hover:text-[#E6E6E6] active:scale-95 transition-transform"
-          title="Refresh activity"
-          aria-label="Refresh activity"
-        >
-          <RefreshCw className={`w-4 h-4 ${isRefreshing || isLoading ? 'animate-spin text-brand-600 dark:text-[#1DB954]' : ''}`} />
-        </Button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          {activeJobs.length > 0 && (
+            <Badge variant="brand" size="sm" className="gap-1.5 border-sky-300 dark:border-sky-800 text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/30">
+              <Loader2 className="w-3 h-3 animate-spin text-sky-600 dark:text-sky-400" />
+              {activeJobs.length} active session{activeJobs.length > 1 ? 's' : ''}
+            </Badge>
+          )}
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleManualRefresh}
+            disabled={isLoading || isRefreshing}
+            className="min-h-[44px] min-w-[44px] p-0 flex items-center justify-center text-slate-600 hover:text-slate-900 dark:text-[#8A8A8A] dark:hover:text-[#E6E6E6]"
+            title="Refresh activity"
+            aria-label="Refresh activity"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-emerald-600 dark:text-emerald-400' : ''}`} />
+          </Button>
+        </div>
       </div>
 
-      {/* Deduplication & Transparency Card */}
-      <div className="bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200/80 dark:border-[#242424] rounded-xl p-5 space-y-4">
+      {/* KPI Overview Metrics */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-[#0A0A0A] p-4 rounded-lg border border-slate-200 dark:border-[#242424]">
+          <span className="text-xs text-slate-500 dark:text-[#8A8A8A] block font-medium">
+            Total sessions
+          </span>
+          <span className="text-xl font-semibold text-slate-900 dark:text-[#E6E6E6] font-mono tabular-nums mt-1 block">
+            {jobs.length.toLocaleString()}
+          </span>
+          <span className="text-[11px] text-slate-400 dark:text-[#666666] mt-0.5 block font-mono">
+            {completedJobs.length} completed
+          </span>
+        </div>
+
+        <div className="bg-white dark:bg-[#0A0A0A] p-4 rounded-lg border border-slate-200 dark:border-[#242424]">
+          <span className="text-xs text-emerald-700 dark:text-emerald-400 block font-medium">
+            Files uploaded
+          </span>
+          <span className="text-xl font-semibold text-emerald-700 dark:text-emerald-400 font-mono tabular-nums mt-1 block">
+            {totalUploaded.toLocaleString()}
+          </span>
+          <span className="text-[11px] text-slate-400 dark:text-[#666666] mt-0.5 block font-mono">
+            Committed to cloud storage
+          </span>
+        </div>
+
+        <div className="bg-white dark:bg-[#0A0A0A] p-4 rounded-lg border border-slate-200 dark:border-[#242424]">
+          <span className="text-xs text-sky-700 dark:text-sky-400 block font-medium">
+            Deduplicated files
+          </span>
+          <span className="text-xl font-semibold text-sky-700 dark:text-sky-400 font-mono tabular-nums mt-1 block">
+            {totalSkipped.toLocaleString()}
+          </span>
+          <span className="text-[11px] text-slate-400 dark:text-[#666666] mt-0.5 block font-mono">
+            Identical content skipped
+          </span>
+        </div>
+
+        <div className="bg-white dark:bg-[#0A0A0A] p-4 rounded-lg border border-slate-200 dark:border-[#242424]">
+          <span className="text-xs text-slate-500 dark:text-[#8A8A8A] block font-medium">
+            Bandwidth saved
+          </span>
+          <span className="text-xl font-semibold text-slate-900 dark:text-[#E6E6E6] font-mono tabular-nums mt-1 block">
+            {formatBytes(estimatedBytesSaved)}
+          </span>
+          <span className="text-[11px] text-slate-400 dark:text-[#666666] mt-0.5 block font-mono">
+            {contentHashes.length} unique hashes in vault
+          </span>
+        </div>
+      </div>
+
+      {/* Content Deduplication Registry Card */}
+      <div className="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-[#242424] rounded-lg p-4 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3 text-xs text-slate-700 dark:text-[#8A8A8A]">
-            <Sparkles className="w-5 h-5 text-brand-500 dark:text-[#1DB954] shrink-0 mt-0.5" />
+            <Layers className="w-5 h-5 text-slate-600 dark:text-slate-400 shrink-0 mt-0.5" />
             <div>
               <div className="font-semibold text-slate-900 dark:text-[#E6E6E6] text-sm">
-                CAS Content Deduplication & Skipped Files Engine
+                Content addressable storage and deduplication index
               </div>
-              <p className="text-slate-500 dark:text-[#8A8A8A] text-xs mt-0.5 leading-relaxed">
-                Files with matching SHA-256 hashes are automatically skipped across backup passes and sources.
-                Zero redundant bytes are re-uploaded, saving cloud bandwidth.
+              <p className="text-slate-500 dark:text-[#8A8A8A] text-xs mt-0.5">
+                Files matching existing SHA-256 hashes are skipped across backup passes. Exact canonical copies are indexed below.
               </p>
             </div>
           </div>
@@ -224,75 +452,106 @@ export const ActivityPage: React.FC = () => {
             variant="secondary"
             size="sm"
             onClick={() => setIsHashesExpanded(!isHashesExpanded)}
-            className="gap-1.5 shrink-0 self-start sm:self-auto text-xs"
+            className="min-h-[44px] gap-1.5 shrink-0 self-start sm:self-auto text-xs"
           >
             {isHashesExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-            {isHashesExpanded ? 'Hide Index' : `View Unique Content Hashes (${contentHashes.length})`}
+            {isHashesExpanded ? 'Hide index' : `Inspect canonical hashes (${contentHashes.length})`}
           </Button>
         </div>
 
-        {/* Expandable Content Hashes Table */}
         {isHashesExpanded && (
-          <div className="pt-3 border-t border-slate-200/80 dark:border-[#242424] space-y-3">
-            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-[#8A8A8A]">
-              <span className="font-semibold text-slate-700 dark:text-[#E6E6E6]">
-                Canonical Content Hashes in Vault ({contentHashes.length})
+          <div className="pt-4 border-t border-slate-200 dark:border-[#242424] space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="text-xs font-medium text-slate-700 dark:text-[#E6E6E6]">
+                Vault canonical content hashes ({filteredHashes.length})
               </span>
-              <span>All deduplicated files reference these immutable records</span>
+              <div className="relative w-full sm:w-64">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Filter hashes or files..."
+                  value={hashSearchQuery}
+                  onChange={(e) => setHashSearchQuery(e.target.value)}
+                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-[#111111] border border-slate-200 dark:border-[#242424] rounded text-slate-800 dark:text-[#E6E6E6] focus:outline-none focus:border-slate-400"
+                />
+              </div>
             </div>
 
-            {contentHashes.length === 0 ? (
-              <p className="text-xs text-slate-400 dark:text-[#8A8A8A] italic">No content hashes recorded in vault yet.</p>
+            {filteredHashes.length === 0 ? (
+              <p className="text-xs text-slate-400 dark:text-[#666666] italic py-2">
+                No matching content hash records found.
+              </p>
             ) : (
-              <div className="max-h-60 overflow-y-auto overflow-x-auto rounded-lg border border-slate-200 dark:border-[#242424] bg-white dark:bg-[#0A0A0A]">
+              <div className="max-h-72 overflow-y-auto rounded border border-slate-200 dark:border-[#242424] bg-slate-50 dark:bg-[#111111]">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 dark:bg-[#111111] border-b border-slate-200 dark:border-[#242424] text-slate-500 dark:text-[#8A8A8A] text-[11px] uppercase tracking-wider sticky top-0">
+                  <thead className="bg-slate-100 dark:bg-[#181818] border-b border-slate-200 dark:border-[#242424] text-slate-600 dark:text-[#8A8A8A] text-[11px] uppercase tracking-wider sticky top-0 font-medium">
                     <tr>
-                      <th className="py-2 px-3 font-semibold min-w-0">Canonical Stored Object</th>
-                      <th className="py-2 px-3 font-semibold hidden sm:table-cell">Size</th>
-                      <th className="py-2 px-3 font-semibold">SHA-256 Hash</th>
-                      <th className="py-2 px-3 font-semibold text-right hidden sm:table-cell">Indexed</th>
+                      <th className="py-2.5 px-3">Canonical file name</th>
+                      <th className="py-2.5 px-3">Storage location</th>
+                      <th className="py-2.5 px-3">Size</th>
+                      <th className="py-2.5 px-3 font-mono">SHA-256 hash</th>
+                      <th className="py-2.5 px-3 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-[#242424] font-mono text-[11px]">
-                    {contentHashes.map((hash) => (
-                      <tr key={hash.sha256} className="hover:bg-slate-50/60 dark:hover:bg-[#181818]">
-                        <td className="py-2 px-3 font-sans font-medium text-slate-800 dark:text-[#E6E6E6] min-w-0">
-                          <div className="truncate max-w-[140px] sm:max-w-[200px]" title={hash.storedName}>
-                            {hash.storedName}
-                          </div>
-                          <div className="text-[10px] text-slate-400 dark:text-[#8A8A8A] font-normal sm:hidden mt-0.5">
-                            {formatBytes(hash.size)} • {formatDate(hash.uploadedAt)}
-                          </div>
-                        </td>
-                        <td className="py-2 px-3 text-slate-600 dark:text-[#8A8A8A] font-mono hidden sm:table-cell">
-                          {formatBytes(hash.size)}
-                        </td>
-                        <td className="py-2 px-3 text-slate-500 dark:text-[#8A8A8A] font-mono">
-                          <div className="flex items-center gap-1.5">
-                            <span title={hash.sha256}>{hash.sha256.substring(0, 12)}...</span>
-                            <button
-                              onClick={() => {
-                                navigator.clipboard.writeText(hash.sha256);
-                                setCopiedHash(hash.sha256);
-                                setTimeout(() => setCopiedHash(null), 2000);
-                              }}
-                              className="text-slate-400 hover:text-brand-600 dark:text-[#8A8A8A] dark:hover:text-[#1DB954]"
-                              title="Copy full SHA-256 hash"
+                  <tbody className="divide-y divide-slate-200 dark:divide-[#242424] text-[11px]">
+                    {filteredHashes.map((hash) => {
+                      const sourceName = sources.get(hash.sourceId)?.displayName || hash.sourceId || 'Default source';
+                      const folderPath = hash.relativePath ? `/${hash.relativePath}` : '/';
+                      const explorerUrl = `/files/${encodeURIComponent(hash.sourceId || 'default')}${hash.relativePath ? `/${encodeURIComponent(hash.relativePath.replace(/\/$/, ''))}` : ''}`;
+
+                      return (
+                        <tr key={hash.sha256} className="hover:bg-white dark:hover:bg-[#181818] transition-colors">
+                          <td className="py-2 px-3 font-medium text-slate-900 dark:text-[#E6E6E6] min-w-0">
+                            <div className="truncate max-w-[200px]" title={hash.originalName || hash.storedName}>
+                              {hash.originalName || hash.storedName}
+                            </div>
+                            <div className="text-[10px] text-slate-400 dark:text-[#666666] mt-0.5">
+                              Indexed: {formatDate(hash.uploadedAt)}
+                            </div>
+                          </td>
+
+                          <td className="py-2 px-3 text-slate-600 dark:text-[#8A8A8A]">
+                            <div className="truncate max-w-[180px]" title={`${sourceName} • ${folderPath}`}>
+                              <span className="font-medium text-slate-800 dark:text-[#CCCCCC]">{sourceName}</span>
+                              <span className="font-mono text-slate-400 dark:text-[#666666] block text-[10px] truncate">{folderPath}</span>
+                            </div>
+                          </td>
+
+                          <td className="py-2 px-3 text-slate-600 dark:text-[#8A8A8A] font-mono tabular-nums">
+                            {formatBytes(hash.size)}
+                          </td>
+
+                          <td className="py-2 px-3 text-slate-500 dark:text-[#8A8A8A] font-mono">
+                            <div className="flex items-center gap-1.5">
+                              <span title={hash.sha256}>{hash.sha256.substring(0, 12)}...</span>
+                              <button
+                                onClick={() => handleCopyHash(hash.sha256)}
+                                className="min-h-[32px] min-w-[32px] flex items-center justify-center text-slate-400 hover:text-slate-800 dark:hover:text-[#E6E6E6]"
+                                title="Copy full SHA-256 hash"
+                                aria-label="Copy full SHA-256 hash"
+                              >
+                                {copiedHash === hash.sha256 ? (
+                                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                ) : (
+                                  <Copy className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                            </div>
+                          </td>
+
+                          <td className="py-2 px-3 text-right">
+                            <Link
+                              to={explorerUrl}
+                              className="inline-flex items-center gap-1 text-slate-600 hover:text-slate-900 dark:text-[#8A8A8A] dark:hover:text-[#E6E6E6] text-xs font-medium"
+                              title="Locate file in explorer"
                             >
-                              {copiedHash === hash.sha256 ? (
-                                <Check className="w-3 h-3 text-emerald-600" />
-                              ) : (
-                                <Copy className="w-3 h-3" />
-                              )}
-                            </button>
-                          </div>
-                        </td>
-                        <td className="py-2 px-3 text-right font-sans text-slate-400 text-[11px] hidden sm:table-cell">
-                          {formatDate(hash.uploadedAt)}
-                        </td>
-                      </tr>
-                    ))}
+                              <span>Locate</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -301,46 +560,129 @@ export const ActivityPage: React.FC = () => {
         )}
       </div>
 
-      {/* Jobs Feed */}
+      {/* Filter Tabs and Search Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+        <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#111111] p-1 rounded-md border border-slate-200 dark:border-[#242424] self-start">
+          <button
+            onClick={() => setActiveTab('all')}
+            className={`min-h-[36px] px-3 py-1 text-xs rounded font-medium transition-colors ${
+              activeTab === 'all'
+                ? 'bg-white dark:bg-[#1F1F1F] text-slate-900 dark:text-[#E6E6E6] shadow-sm'
+                : 'text-slate-600 dark:text-[#8A8A8A] hover:text-slate-900 dark:hover:text-[#E6E6E6]'
+            }`}
+          >
+            All sessions ({jobs.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('active')}
+            className={`min-h-[36px] px-3 py-1 text-xs rounded font-medium transition-colors ${
+              activeTab === 'active'
+                ? 'bg-white dark:bg-[#1F1F1F] text-slate-900 dark:text-[#E6E6E6] shadow-sm'
+                : 'text-slate-600 dark:text-[#8A8A8A] hover:text-slate-900 dark:hover:text-[#E6E6E6]'
+            }`}
+          >
+            Active ({activeJobs.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('completed')}
+            className={`min-h-[36px] px-3 py-1 text-xs rounded font-medium transition-colors ${
+              activeTab === 'completed'
+                ? 'bg-white dark:bg-[#1F1F1F] text-slate-900 dark:text-[#E6E6E6] shadow-sm'
+                : 'text-slate-600 dark:text-[#8A8A8A] hover:text-slate-900 dark:hover:text-[#E6E6E6]'
+            }`}
+          >
+            Completed ({completedJobs.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('issues')}
+            className={`min-h-[36px] px-3 py-1 text-xs rounded font-medium transition-colors ${
+              activeTab === 'issues'
+                ? 'bg-white dark:bg-[#1F1F1F] text-slate-900 dark:text-[#E6E6E6] shadow-sm'
+                : 'text-slate-600 dark:text-[#8A8A8A] hover:text-slate-900 dark:hover:text-[#E6E6E6]'
+            }`}
+          >
+            Issues ({issueJobs.length})
+          </button>
+        </div>
+
+        <div className="relative w-full sm:w-72">
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Search by job ID or drive..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 text-xs bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-[#242424] rounded-md text-slate-800 dark:text-[#E6E6E6] focus:outline-none focus:border-slate-400"
+          />
+        </div>
+      </div>
+
+      {/* Jobs Feed List */}
       {isLoading ? (
         <LoadingState message="Loading backup activity stream..." />
       ) : error ? (
-        <ErrorState message={error} onRetry={loadJobs} />
-      ) : jobs.length === 0 ? (
+        <ErrorState message={error} onRetry={handleManualRefresh} />
+      ) : filteredJobs.length === 0 ? (
         <EmptyState
-          icon={<Activity className="w-6 h-6 text-brand-500 dark:text-[#1DB954]" />}
-          title="No activity recorded"
-          description="No backup sessions have been logged in this vault yet."
+          icon={<Activity className="w-6 h-6 text-slate-500" />}
+          title="No sessions found"
+          description={
+            searchQuery
+              ? `No backup sessions match the query '${searchQuery}'.`
+              : 'No activity recorded under the selected filter.'
+          }
         />
       ) : (
         <div className="space-y-4">
-          {jobs.map((job) => {
+          {filteredJobs.map((job) => {
             const stale = isJobStale(job);
             const isDismissing = dismissingId === job.jobId;
+            const isExpanded = expandedJobIds.has(job.jobId);
+            const sourceEntity = sources.get(job.sourceId);
+            const sourceDisplayName = sourceEntity?.displayName || `USB Drive ${job.sourceId}`;
+            const isJobActive = ['SCANNING', 'HASHING', 'DEDUPLICATING', 'UPLOADING'].includes(job.state) && !stale;
+
+            // Progress calculations
+            const total = job.totalFiles || 0;
+            const uploaded = job.uploadedFiles || 0;
+            const skipped = job.skippedFiles || 0;
+            const errors = job.errorFiles || 0;
+            const processed = uploaded + skipped + errors;
+            const inQueue = Math.max(0, total - processed);
+
+            const uploadPercent = total > 0 ? Math.min(100, Math.round((uploaded / total) * 100)) : 0;
+            const skippedPercent = total > 0 ? Math.min(100, Math.round((skipped / total) * 100)) : 0;
+            const overallPercent = total > 0 ? Math.min(100, Math.round((processed / total) * 100)) : 100;
+
+            const jobFiles = jobFilesMap.get(job.jobId) || [];
+            const isLoadingFiles = loadingJobFiles.has(job.jobId);
 
             return (
               <div
                 key={job.jobId}
-                className="bg-white dark:bg-[#0A0A0A] rounded-xl border border-slate-200/80 dark:border-[#242424] p-5 shadow-sm space-y-4"
+                className="bg-white dark:bg-[#0A0A0A] rounded-lg border border-slate-200 dark:border-[#242424] p-4 sm:p-5 space-y-4"
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-[#242424] pb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-semibold text-slate-800 dark:text-[#E6E6E6]">
-                      Job {job.jobId.substring(0, 16)}
+                {/* Header row */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-[#1E1E1E] pb-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-mono text-xs font-semibold text-slate-900 dark:text-[#E6E6E6]">
+                      Job {job.jobId.substring(0, 18)}
                     </span>
                     {getStateBadge(job)}
+
+                    <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-[#8A8A8A] bg-slate-50 dark:bg-[#141414] px-2 py-0.5 rounded border border-slate-200 dark:border-[#242424]">
+                      <HardDrive className="w-3 h-3 text-slate-500" />
+                      <span className="font-medium truncate max-w-[200px]" title={sourceDisplayName}>
+                        {sourceDisplayName}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs text-slate-400 dark:text-[#8A8A8A] font-mono">
-                    <span className="flex items-center gap-1 font-sans">
-                      <Clock className="w-3.5 h-3.5" />
-                      Started: {formatDate(job.startedAt)}
+                  <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-[#8A8A8A]">
+                    <span className="flex items-center gap-1 font-mono text-[11px]">
+                      <Clock className="w-3 h-3" />
+                      {formatDate(job.startedAt)} • {formatDuration(job.startedAt, job.completedAt)}
                     </span>
-                    {job.completedAt && (
-                      <span className="hidden sm:inline font-sans">
-                        Finished: {formatDate(job.completedAt)}
-                      </span>
-                    )}
 
                     {isAdmin && stale && (
                       <Button
@@ -348,74 +690,226 @@ export const ActivityPage: React.FC = () => {
                         size="sm"
                         onClick={() => handleDismissJob(job.jobId)}
                         isLoading={isDismissing}
-                        className="text-xs text-slate-400 hover:text-rose-600 dark:text-[#8A8A8A] dark:hover:text-rose-400 gap-1 p-1 h-auto"
-                        title="Dismiss unfinalized historical record"
+                        className="text-xs text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1 min-h-[36px]"
+                        title="Dismiss unfinalized record"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        Dismiss Record
+                        <Trash2 className="w-3.5 h-3.5 mr-1" />
+                        Dismiss
                       </Button>
                     )}
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleJobExpansion(job.jobId)}
+                      className="min-h-[44px] px-2 text-xs text-slate-600 hover:text-slate-900 dark:text-[#8A8A8A] dark:hover:text-[#E6E6E6] flex items-center gap-1"
+                      aria-expanded={isExpanded}
+                    >
+                      <span>{isExpanded ? 'Hide details' : 'View files'}</span>
+                      {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    </Button>
                   </div>
                 </div>
 
-                {/* Stale Warning Banner if non-terminal and > 24 hours */}
+                {/* Stale Warning Banner */}
                 {stale && (
-                  <div className="p-3 bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/80 rounded-lg text-xs text-amber-800 dark:text-amber-200 flex items-start gap-2.5 leading-relaxed">
+                  <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/60 rounded text-xs text-amber-800 dark:text-amber-200 flex items-start gap-2.5">
                     <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                     <div>
-                      This backup job was started on {formatDate(job.startedAt)} in state &apos;{job.state}&apos;, but has recorded no activity for over 24 hours. The underlying database record was not finalized.
+                      Session started on {formatDate(job.startedAt)} in state &apos;{job.state}&apos;, but recorded no activity for over 24 hours. The record was not finalized by the client daemon.
                     </div>
                   </div>
                 )}
 
-                {/* Job Metrics Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                  <div className="bg-slate-50 dark:bg-[#111111] p-3 rounded-lg border border-slate-100 dark:border-[#242424]">
-                    <span className="text-[11px] text-slate-400 dark:text-[#8A8A8A] block font-medium">Discovered</span>
-                    <span className="text-base font-bold text-slate-800 dark:text-[#E6E6E6]">
-                      {job.totalFiles.toLocaleString()} files
+                {/* Live Progress Bar (for all jobs) */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-medium text-slate-700 dark:text-[#E6E6E6] flex items-center gap-2">
+                      {isJobActive ? (
+                        <>
+                          <Loader2 className="w-3 h-3 animate-spin text-sky-600 dark:text-sky-400" />
+                          <span>Processing files ({job.state.toLowerCase()})...</span>
+                        </>
+                      ) : (
+                        <span>Session progress</span>
+                      )}
+                    </span>
+                    <span className="font-mono tabular-nums text-slate-500 dark:text-[#8A8A8A]">
+                      {total > 0 ? `${overallPercent}% (${processed} of ${total})` : '0 files discovered'}
                     </span>
                   </div>
 
-                  <div className="bg-emerald-50/60 dark:bg-[#1DB954]/10 p-3 rounded-lg border border-emerald-100 dark:border-[#1DB954]/25">
-                    <span className="text-[11px] text-emerald-700 dark:text-[#1DB954] block font-medium">Uploaded</span>
-                    <span className="text-base font-bold text-emerald-800 dark:text-[#E6E6E6]">
-                      {job.uploadedFiles.toLocaleString()} files
+                  {total > 0 && (
+                    <div className="w-full h-2 rounded bg-slate-100 dark:bg-[#1E1E1E] overflow-hidden flex">
+                      <div
+                        style={{ width: `${uploadPercent}%` }}
+                        className="bg-emerald-600 dark:bg-emerald-500 h-full transition-[width] duration-300 ease-out"
+                        title={`Uploaded: ${uploaded} files`}
+                      />
+                      <div
+                        style={{ width: `${skippedPercent}%` }}
+                        className="bg-sky-600 dark:bg-sky-500 h-full transition-[width] duration-300 ease-out"
+                        title={`Deduplicated: ${skipped} files`}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Metric Summary Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+                  <div className="bg-slate-50 dark:bg-[#111111] p-2.5 rounded border border-slate-100 dark:border-[#1E1E1E]">
+                    <span className="text-[11px] text-slate-400 dark:text-[#666666] block font-medium">Discovered</span>
+                    <span className="text-sm font-semibold text-slate-900 dark:text-[#E6E6E6] font-mono tabular-nums">
+                      {total.toLocaleString()}
                     </span>
                   </div>
 
-                  <div className="bg-slate-50 dark:bg-[#111111] p-3 rounded-lg border border-slate-100 dark:border-[#242424]">
-                    <span className="text-[11px] text-slate-400 dark:text-[#8A8A8A] block font-medium">Skipped (Dedup)</span>
-                    <span className="text-base font-bold text-slate-700 dark:text-[#E6E6E6]">
-                      {job.skippedFiles.toLocaleString()} files
+                  <div className="bg-slate-50 dark:bg-[#111111] p-2.5 rounded border border-slate-100 dark:border-[#1E1E1E]">
+                    <span className="text-[11px] text-emerald-700 dark:text-emerald-400 block font-medium">Uploaded</span>
+                    <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 font-mono tabular-nums">
+                      {uploaded.toLocaleString()}
                     </span>
                   </div>
 
-                  <div className="bg-slate-50 dark:bg-[#111111] p-3 rounded-lg border border-slate-100 dark:border-[#242424]">
-                    <span className="text-[11px] text-slate-400 dark:text-[#8A8A8A] block font-medium">Errors</span>
-                    <span className="text-base font-bold text-slate-700 dark:text-[#E6E6E6]">
-                      {job.errorFiles}
+                  <div className="bg-slate-50 dark:bg-[#111111] p-2.5 rounded border border-slate-100 dark:border-[#1E1E1E]">
+                    <span className="text-[11px] text-sky-700 dark:text-sky-400 block font-medium">Skipped (dedup)</span>
+                    <span className="text-sm font-semibold text-sky-700 dark:text-sky-400 font-mono tabular-nums">
+                      {skipped.toLocaleString()}
+                    </span>
+                  </div>
+
+                  <div className="bg-slate-50 dark:bg-[#111111] p-2.5 rounded border border-slate-100 dark:border-[#1E1E1E]">
+                    <span className="text-[11px] text-slate-400 dark:text-[#666666] block font-medium">In queue</span>
+                    <span className="text-sm font-semibold text-slate-700 dark:text-[#CCCCCC] font-mono tabular-nums">
+                      {inQueue.toLocaleString()}
+                    </span>
+                  </div>
+
+                  <div className="bg-slate-50 dark:bg-[#111111] p-2.5 rounded border border-slate-100 dark:border-[#1E1E1E]">
+                    <span className="text-[11px] text-slate-400 dark:text-[#666666] block font-medium">Errors</span>
+                    <span className={`text-sm font-semibold font-mono tabular-nums ${errors > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-700 dark:text-[#CCCCCC]'}`}>
+                      {errors}
                     </span>
                   </div>
                 </div>
 
-                {/* Deduplication Callout if files were skipped */}
-                {job.skippedFiles > 0 && (
-                  <div className="p-3 bg-emerald-50/70 dark:bg-[#1DB954]/10 border border-emerald-200/80 dark:border-[#1DB954]/25 rounded-lg text-xs text-emerald-900 dark:text-[#E6E6E6] flex items-start gap-2.5 leading-relaxed">
-                    <Sparkles className="w-4 h-4 text-emerald-600 dark:text-[#1DB954] shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-semibold block text-emerald-950 dark:text-[#1DB954]">
-                        Content Deduplication: {job.skippedFiles.toLocaleString()} duplicate files skipped
+                {/* Deduplication Callout if duplicates skipped */}
+                {skipped > 0 && (
+                  <div className="p-3 bg-sky-50 dark:bg-sky-950/20 border border-sky-200 dark:border-sky-900/60 rounded text-xs text-sky-900 dark:text-sky-300 flex items-start gap-2">
+                    <Database className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0 mt-0.5" />
+                    <div className="space-y-0.5">
+                      <span className="font-semibold block text-sky-950 dark:text-sky-200">
+                        Content deduplication: {skipped.toLocaleString()} duplicate files skipped
                       </span>
-                      Exact byte-level SHA-256 matches were found in this vault. Duplicate bytes were not re-uploaded to Backblaze B2, saving bandwidth and cloud storage.
+                      <p className="text-[11px] text-sky-800 dark:text-sky-300/80">
+                        Identical SHA-256 byte hashes already exist in this vault. Redundant files were not re-uploaded to Backblaze B2, saving bandwidth and cloud storage.
+                      </p>
                     </div>
                   </div>
                 )}
 
-                <div className="flex items-center gap-2 text-[11px] text-slate-400 dark:text-[#8A8A8A] font-mono">
-                  <HardDrive className="w-3.5 h-3.5 text-slate-400 dark:text-[#8A8A8A]" />
-                  <span>Source Device: {job.sourceId}</span>
-                </div>
+                {/* Expandable Session File List */}
+                {isExpanded && (
+                  <div className="pt-3 border-t border-slate-100 dark:border-[#1E1E1E] space-y-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-slate-800 dark:text-[#E6E6E6]">
+                        Files recorded in session ({jobFiles.length})
+                      </span>
+                      {isJobActive && inQueue > 0 && (
+                        <span className="text-slate-500 dark:text-[#8A8A8A] font-mono text-[11px]">
+                          {inQueue} remaining in processing queue
+                        </span>
+                      )}
+                    </div>
+
+                    {isLoadingFiles ? (
+                      <div className="py-6 flex items-center justify-center text-xs text-slate-500 dark:text-[#8A8A8A] gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                        <span>Querying files recorded for this job...</span>
+                      </div>
+                    ) : jobFiles.length === 0 ? (
+                      <div className="py-4 px-3 bg-slate-50 dark:bg-[#111111] rounded border border-slate-200 dark:border-[#242424] text-xs text-slate-500 dark:text-[#8A8A8A]">
+                        {total === 0
+                          ? 'Zero files discovered on source device during this session.'
+                          : 'No uploaded file records finalized yet. In-flight tasks may still be uploading or deduplicated.'}
+                      </div>
+                    ) : (
+                      <div className="max-h-64 overflow-y-auto rounded border border-slate-200 dark:border-[#242424] bg-slate-50 dark:bg-[#111111]">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-slate-100 dark:bg-[#181818] border-b border-slate-200 dark:border-[#242424] text-slate-600 dark:text-[#8A8A8A] text-[11px] uppercase tracking-wider sticky top-0 font-medium">
+                            <tr>
+                              <th className="py-2.5 px-3">File name</th>
+                              <th className="py-2.5 px-3">Relative path</th>
+                              <th className="py-2.5 px-3">Size</th>
+                              <th className="py-2.5 px-3 font-mono">SHA-256 hash</th>
+                              <th className="py-2.5 px-3 text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-200 dark:divide-[#242424] text-[11px]">
+                            {jobFiles.map((file) => {
+                              const folderPath = file.relativePath ? `/${file.relativePath}` : '/';
+                              const explorerUrl = `/files/${encodeURIComponent(file.sourceId || 'default')}${file.relativePath ? `/${encodeURIComponent(file.relativePath.replace(/\/$/, ''))}` : ''}`;
+
+                              return (
+                                <tr key={file.fileId} className="hover:bg-white dark:hover:bg-[#181818] transition-colors">
+                                  <td className="py-2 px-3 font-medium text-slate-900 dark:text-[#E6E6E6]">
+                                    <div className="flex items-center gap-2">
+                                      <FileIcon fileName={file.originalName} mimeType={file.mimeType} className="w-4 h-4 shrink-0" />
+                                      <span className="truncate max-w-[200px]" title={file.originalName}>
+                                        {file.originalName}
+                                      </span>
+                                    </div>
+                                  </td>
+
+                                  <td className="py-2 px-3 text-slate-500 dark:text-[#8A8A8A] font-mono">
+                                    <span className="truncate max-w-[150px] block" title={folderPath}>
+                                      {folderPath}
+                                    </span>
+                                  </td>
+
+                                  <td className="py-2 px-3 text-slate-600 dark:text-[#8A8A8A] font-mono tabular-nums">
+                                    {formatBytes(file.size)}
+                                  </td>
+
+                                  <td className="py-2 px-3 text-slate-500 dark:text-[#8A8A8A] font-mono">
+                                    <div className="flex items-center gap-1.5">
+                                      <span title={file.sha256}>{file.sha256 ? `${file.sha256.substring(0, 10)}...` : '—'}</span>
+                                      {file.sha256 && (
+                                        <button
+                                          onClick={() => handleCopyHash(file.sha256)}
+                                          className="min-h-[32px] min-w-[32px] flex items-center justify-center text-slate-400 hover:text-slate-800 dark:hover:text-[#E6E6E6]"
+                                          title="Copy SHA-256 hash"
+                                          aria-label="Copy SHA-256 hash"
+                                        >
+                                          {copiedHash === file.sha256 ? (
+                                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                          ) : (
+                                            <Copy className="w-3.5 h-3.5" />
+                                          )}
+                                        </button>
+                                      )}
+                                    </div>
+                                  </td>
+
+                                  <td className="py-2 px-3 text-right">
+                                    <Link
+                                      to={explorerUrl}
+                                      className="inline-flex items-center gap-1 text-slate-600 hover:text-slate-900 dark:text-[#8A8A8A] dark:hover:text-[#E6E6E6] text-xs font-medium"
+                                      title="Open in file explorer"
+                                    >
+                                      <span>Explorer</span>
+                                      <ExternalLink className="w-3 h-3" />
+                                    </Link>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
