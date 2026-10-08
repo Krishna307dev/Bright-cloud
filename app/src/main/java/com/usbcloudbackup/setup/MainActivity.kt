@@ -37,6 +37,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 
 class MainActivity : Activity() {
@@ -71,7 +72,7 @@ class MainActivity : Activity() {
 
         @get:VisibleForTesting
         @set:VisibleForTesting
-        var testHandoffTimeoutMs: Long = 2500L
+        var testHandoffTimeoutMs: Long = 15_000L
 
         @get:VisibleForTesting
         @set:VisibleForTesting
@@ -166,7 +167,7 @@ class MainActivity : Activity() {
         cancelPendingMountWait("Backup enqueued")
         Log.i(TAG, "Enqueueing backup for mounted canonical sourceId=$sourceId")
         val device = hintDevice ?: getUsbDeviceFromIntent(intent)
-        BackupWorkManager.enqueueBackup(this, sourceId, device, androidx.work.ExistingWorkPolicy.KEEP)
+        BackupWorkManager.enqueueBackup(this, sourceId, device, androidx.work.ExistingWorkPolicy.REPLACE)
         performForegroundHandoff(sourceId, device)
     }
 
@@ -260,13 +261,15 @@ class MainActivity : Activity() {
 
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         if (prefs.getBoolean(KEY_SETUP_COMPLETE, false)) {
-            if (isUsbAttach || isResume) {
-                if (sourceIdFromIntent != null) {
-                    Log.i(TAG, "USB attach or resume intent received after setup complete. Mounted sourceId resolved: $sourceIdFromIntent")
-                    enqueueBackupAndHandoff(sourceIdFromIntent, getUsbDeviceFromIntent(intent))
+            val attachedDevice = getUsbDeviceFromIntent(intent) ?: SourceIdResolver.findMassStorageDevice(this)
+            if (isUsbAttach || isResume || attachedDevice != null) {
+                val resolvedSourceId = sourceIdFromIntent ?: SourceIdResolver.resolveMountedCanonicalSourceId(this, attachedDevice)
+                if (resolvedSourceId != null) {
+                    Log.i(TAG, "USB attach, resume, or attached device detected after setup complete: $resolvedSourceId. Enqueueing backup and handoff.")
+                    enqueueBackupAndHandoff(resolvedSourceId, attachedDevice)
                     return
                 } else {
-                    Log.i(TAG, "USB attach or resume intent received after setup complete, but storage is not mounted yet. Starting delayed mount wait.")
+                    Log.i(TAG, "USB device attached after setup complete, but storage is not mounted yet. Starting delayed mount wait.")
                     startDelayedMountWait(intent)
                     return
                 }
@@ -319,16 +322,22 @@ class MainActivity : Activity() {
 
         activityScope.launch {
             val uniqueWorkName = BackupWorkManager.getUniqueWorkName(this@MainActivity, sourceId, hintDevice)
+            var reachedRunning = false
             withTimeoutOrNull(testHandoffTimeoutMs) {
                 try {
-                    WorkManager.getInstance(applicationContext)
+                    val matchingInfo = WorkManager.getInstance(applicationContext)
                         .getWorkInfosForUniqueWorkFlow(uniqueWorkName)
-                        .firstOrNull { list -> list.any { it.state == WorkInfo.State.RUNNING } }
-                } catch (_: Throwable) {
+                        .firstOrNull { list -> list.any { it.state == WorkInfo.State.RUNNING || it.state.isFinished } }
+                    if (matchingInfo != null) {
+                        reachedRunning = true
+                        Log.i(TAG, "Foreground handoff: BackupWorker reached RUNNING or finished state.")
+                    }
+                } catch (e: Throwable) {
+                    Log.w(TAG, "Foreground handoff flow exception: ${e.message}")
                     delay(500L)
                 }
             }
-            Log.i(TAG, "Foreground handoff completed. Finishing MainActivity.")
+            Log.i(TAG, "Foreground handoff completed (reachedRunning=$reachedRunning). Finishing MainActivity.")
             finish()
         }
     }

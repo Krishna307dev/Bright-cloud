@@ -80,7 +80,7 @@ class PhysicalSourceAndWorkKeyRegressionTest {
         MainActivity.testAuthRepositoryOverride = null
         MainActivity.testNotificationPermissionChecker = null
         MainActivity.testStoragePermissionChecker = null
-        MainActivity.testHandoffTimeoutMs = 2500L
+        MainActivity.testHandoffTimeoutMs = 15_000L
         MainActivity.testMountWaitTimeoutMs = 5000L
         MainActivity.testMountPollIntervalMs = 250L
     }

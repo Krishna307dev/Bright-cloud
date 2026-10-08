@@ -30,6 +30,8 @@ dist/
 # Logs & build artifacts
 *.log
 *.logs
+*_logs.txt
+test_logs.txt
 *.zip
 .kotlin/
 graphify-out/

@@ -52,6 +52,9 @@ import { CreateFolderModal } from '../../components/CreateFolderModal';
 import { useDownload } from '../../hooks/useDownload';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { useToast } from '../../components/ui/Toast';
+import { useFileDragDrop } from './useFileDragDrop';
+import { PrivateFilesView } from './PrivateFilesView';
+import { filterPrivateFiles, BRIGHTCLOUD_DRAG_MIME } from './fileOperations';
 
 export const FileExplorerPage: React.FC = () => {
   usePageTitle('Files');
@@ -71,6 +74,8 @@ export const FileExplorerPage: React.FC = () => {
   const [sortAsc, setSortAsc] = useState(true);
   const [showHiddenFiles, setShowHiddenFiles] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState<'files' | 'private'>('files');
+  const [highlightedFileId, setHighlightedFileId] = useState<string | null>(null);
 
   // Multi-select & Clipboard
   const [selectedFileIds, setSelectedFileIds] = useState<Set<string>>(new Set());
@@ -259,6 +264,11 @@ export const FileExplorerPage: React.FC = () => {
     return { count: nonKeep.length, bytes };
   }, [allSourceFiles]);
 
+  // Private files across the entire selected drive (excluding internal .keep placeholder)
+  const privateFiles = useMemo(() => {
+    return filterPrivateFiles(allSourceFiles);
+  }, [allSourceFiles]);
+
   // Filtered & Sorted Files in current folder
   const displayedFiles = useMemo(() => {
     let result = currentFolderFiles;
@@ -304,6 +314,62 @@ export const FileExplorerPage: React.FC = () => {
     });
   };
 
+  // Drag-and-drop file movement hook
+  const {
+    isDragging,
+    draggedFileIds,
+    getDraggableProps,
+    getDropTargetProps,
+    executeMove,
+  } = useFileDragDrop({
+    vaultId: vaultId || '',
+    sourceId: selectedSourceId,
+    currentPath,
+    allSourceFiles,
+    currentFolderFiles,
+    selectedFileIds,
+    isAdmin,
+    onMoveSuccess: async () => {
+      await loadFiles();
+      if (vaultId) {
+        await SourceService.listSourcesWithAuthoritativeCount(vaultId, isAdmin).then(setSources);
+      }
+    },
+  });
+
+  // Highlight scroll effect for 'Open in folder'
+  useEffect(() => {
+    if (!highlightedFileId) return;
+    const timer = setTimeout(() => {
+      const el = document.getElementById(`file-row-${highlightedFileId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 150);
+
+    const clearTimer = setTimeout(() => {
+      setHighlightedFileId(null);
+    }, 3500);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(clearTimer);
+    };
+  }, [highlightedFileId]);
+
+  const handleOpenInFolder = (file: FileRecord) => {
+    setActiveTab('files');
+    setHighlightedFileId(file.fileId);
+    const targetFolder = file.relativePath || '';
+    navigate(`/files/${file.sourceId}/${targetFolder}`);
+  };
+
+  const handleFileUpdated = (fileId: string, updates: Partial<FileRecord>) => {
+    setAllSourceFiles((prev) =>
+      prev.map((f) => (f.fileId === fileId ? { ...f, ...updates } : f))
+    );
+  };
+
   // Clipboard operations (Cut / Copy / Paste)
   const handleCut = () => {
     if (selectedFileIds.size === 0) return;
@@ -332,16 +398,16 @@ export const FileExplorerPage: React.FC = () => {
     try {
       setIsLoading(true);
       if (clipboard.action === 'cut') {
-        await FileService.moveFiles(vaultId, clipboard.fileIds, currentPath);
+        await executeMove(clipboard.fileIds, clipboard.sourceId, clipboard.sourcePath, currentPath);
       } else if (clipboard.action === 'copy') {
         const filesToCopy = allSourceFiles.filter((f) => clipboard.fileIds.includes(f.fileId));
         await FileService.copyFiles(vaultId, filesToCopy, currentPath, selectedSourceId);
+        await loadFiles();
+        await SourceService.listSourcesWithAuthoritativeCount(vaultId, isAdmin).then(setSources);
       }
       setClipboard(null);
-      await loadFiles();
-      await SourceService.listSourcesWithAuthoritativeCount(vaultId, isAdmin).then(setSources);
     } catch (err: any) {
-      alert(`Paste failed: ${err.message}`);
+      toast.error(`Paste failed: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -451,6 +517,9 @@ export const FileExplorerPage: React.FC = () => {
   // Drag and drop multiple files directly onto explorer page
   const handlePageDragOver = (e: React.DragEvent) => {
     if (!isAdmin) return;
+    if (e.dataTransfer.types.includes(BRIGHTCLOUD_DRAG_MIME) || isDragging) {
+      return;
+    }
     if (e.dataTransfer.types && Array.from(e.dataTransfer.types).includes('Files')) {
       e.preventDefault();
       setIsPageDragging(true);
@@ -465,6 +534,9 @@ export const FileExplorerPage: React.FC = () => {
 
   const handlePageDrop = (e: React.DragEvent) => {
     if (!isAdmin) return;
+    if (e.dataTransfer.types.includes(BRIGHTCLOUD_DRAG_MIME) || isDragging) {
+      return;
+    }
     e.preventDefault();
     setIsPageDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
@@ -516,19 +588,42 @@ export const FileExplorerPage: React.FC = () => {
                 </select>
               </div>
 
+              {isAdmin && privateFiles.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('private')}
+                  className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold border border-amber-200 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors cursor-pointer shrink-0"
+                  title="View private files in this drive"
+                >
+                  <Lock className="w-2.5 h-2.5" />
+                  <span>{privateFiles.length} private</span>
+                </button>
+              )}
+
               <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-[#8A8A8A] shrink-0" />
 
               {/* Breadcrumb Trail */}
               <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 sm:gap-1.5 text-xs min-w-0">
-                <Link
-                  to={`/files/${selectedSourceId}`}
-                  className="font-medium text-slate-600 dark:text-[#8A8A8A] hover:text-brand-600 dark:hover:text-[#1DB954] transition-colors px-1.5 py-0.5 rounded hover:bg-slate-100 dark:hover:bg-[#181818]"
-                >
-                  root
-                </Link>
+                {(() => {
+                  const rootDropProps = getDropTargetProps('');
+                  return (
+                    <Link
+                      to={`/files/${selectedSourceId}`}
+                      {...rootDropProps}
+                      className={`font-medium text-slate-600 dark:text-[#8A8A8A] hover:text-brand-600 dark:hover:text-[#1DB954] transition-colors px-1.5 py-0.5 rounded hover:bg-slate-100 dark:hover:bg-[#181818] ${
+                        rootDropProps.isOver
+                          ? 'ring-2 ring-brand-500 dark:ring-[#1DB954] bg-brand-50 dark:bg-[#1DB954]/20'
+                          : ''
+                      }`}
+                    >
+                      root
+                    </Link>
+                  );
+                })()}
                 {pathSegments.map((segment, idx) => {
                   const stepPath = pathSegments.slice(0, idx + 1).join('/') + '/';
                   const isLast = idx === pathSegments.length - 1;
+                  const segmentDropProps = getDropTargetProps(stepPath);
                   return (
                     <React.Fragment key={stepPath}>
                       <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-[#8A8A8A] shrink-0" />
@@ -539,7 +634,12 @@ export const FileExplorerPage: React.FC = () => {
                       ) : (
                         <Link
                           to={`/files/${selectedSourceId}/${stepPath}`}
-                          className="font-medium text-slate-600 dark:text-[#8A8A8A] hover:text-brand-600 dark:hover:text-[#1DB954] transition-colors px-1.5 py-0.5 rounded hover:bg-slate-100 dark:hover:bg-[#181818]"
+                          {...segmentDropProps}
+                          className={`font-medium text-slate-600 dark:text-[#8A8A8A] hover:text-brand-600 dark:hover:text-[#1DB954] transition-colors px-1.5 py-0.5 rounded hover:bg-slate-100 dark:hover:bg-[#181818] ${
+                            segmentDropProps.isOver
+                              ? 'ring-2 ring-brand-500 dark:ring-[#1DB954] bg-brand-50 dark:bg-[#1DB954]/20'
+                              : ''
+                          }`}
                         >
                           {segment}
                         </Link>
@@ -678,8 +778,48 @@ export const FileExplorerPage: React.FC = () => {
           </div>
         )}
 
-        {/* Search, Folder Summary & Sort Toolbar */}
-        <div className="space-y-2.5">
+        {/* Admin View Mode Toggle: Files vs Private Files */}
+        {isAdmin && (
+          <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-[#111111] rounded-lg border border-slate-200/80 dark:border-[#242424] self-start shrink-0">
+            <button
+              type="button"
+              onClick={() => setActiveTab('files')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+                activeTab === 'files'
+                  ? 'bg-white dark:bg-[#1E1E1E] text-slate-900 dark:text-[#E6E6E6] shadow-2xs'
+                  : 'text-slate-500 dark:text-[#8A8A8A] hover:text-slate-900 dark:hover:text-[#E6E6E6]'
+              }`}
+            >
+              Files
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('private')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'private'
+                  ? 'bg-white dark:bg-[#1E1E1E] text-slate-900 dark:text-[#E6E6E6] shadow-2xs'
+                  : 'text-slate-500 dark:text-[#8A8A8A] hover:text-slate-900 dark:hover:text-[#E6E6E6]'
+              }`}
+            >
+              <Lock className="w-3 h-3 text-amber-500" />
+              <span>Private files ({privateFiles.length})</span>
+            </button>
+          </div>
+        )}
+
+        {activeTab === 'private' ? (
+          <PrivateFilesView
+            files={privateFiles}
+            vaultId={vaultId || ''}
+            sourceId={selectedSourceId}
+            onOpenInFolder={handleOpenInFolder}
+            onFileUpdated={handleFileUpdated}
+            onOpenPermissionsDialog={(file) => setManagingFile(file)}
+          />
+        ) : (
+          <>
+            {/* Search, Folder Summary & Sort Toolbar */}
+            <div className="space-y-2.5">
           {/* Row 1: Search Input */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="relative w-full sm:w-72">
@@ -1048,80 +1188,97 @@ export const FileExplorerPage: React.FC = () => {
 
                 <TableBody>
                   {/* Parent directory navigation row if not root */}
-                  {currentPath && (
-                    <TableRow
-                      onClick={navigateUp}
-                      className="bg-slate-50/50 dark:bg-[#111111]/70 hover:bg-slate-100/70 dark:hover:bg-[#181818] cursor-pointer"
-                    >
-                      <TableCell className="text-center"></TableCell>
-                      <TableCell className="text-center">
-                        <Folder className="w-4 h-4 text-brand-500 dark:text-[#1DB954] mx-auto" />
-                      </TableCell>
-                      <TableCell colSpan={5} className="font-semibold text-slate-700 dark:text-[#E6E6E6] text-xs">
-                        .. (Up to parent folder)
-                      </TableCell>
-                    </TableRow>
-                  )}
+                  {currentPath && (() => {
+                    const parentTarget = getParentPath(currentPath) || '';
+                    const parentDropProps = getDropTargetProps(parentTarget);
+                    return (
+                      <TableRow
+                        onClick={navigateUp}
+                        {...parentDropProps}
+                        className={`bg-slate-50/50 dark:bg-[#111111]/70 hover:bg-slate-100/70 dark:hover:bg-[#181818] cursor-pointer ${
+                          parentDropProps.isOver
+                            ? 'ring-2 ring-brand-500 dark:ring-[#1DB954] bg-brand-50/80 dark:bg-[#1DB954]/20'
+                            : ''
+                        }`}
+                      >
+                        <TableCell className="text-center"></TableCell>
+                        <TableCell className="text-center">
+                          <Folder className="w-4 h-4 text-brand-500 dark:text-[#1DB954] mx-auto" />
+                        </TableCell>
+                        <TableCell colSpan={5} className="font-semibold text-slate-700 dark:text-[#E6E6E6] text-xs">
+                          .. (Up to parent folder)
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })()}
 
                   {/* Subfolder rows */}
-                  {subfolders.map((folder) => (
-                    <TableRow
-                      key={folder.relativePath}
-                      onClick={() => navigate(`/files/${selectedSourceId}/${folder.relativePath}`)}
-                      className="bg-amber-50/20 dark:bg-[#111111] hover:bg-amber-50/60 dark:hover:bg-[#181818] cursor-pointer transition-colors"
-                    >
-                      <TableCell className="text-center" onClick={(e) => e.stopPropagation()}></TableCell>
-                      <TableCell className="text-center">
-                        <Folder className="w-4 h-4 text-amber-500 dark:text-[#1DB954] mx-auto" />
-                      </TableCell>
-                      <TableCell className="font-semibold text-slate-800 dark:text-[#E6E6E6] text-xs hover:text-brand-600 dark:hover:text-[#1DB954]">
-                        <div className="flex items-center gap-2">
-                          <span>{folder.name}</span>
-                          <Badge variant="neutral" size="sm" className="font-normal text-[10px]">
-                            Folder
-                          </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-mono text-xs text-slate-500 dark:text-[#8A8A8A] text-right">
-                        {formatBytes(folder.totalBytes)}
-                      </TableCell>
-                      <TableCell className="text-xs text-slate-600 dark:text-[#8A8A8A] font-medium">
-                        {folder.fileCount} file{folder.fileCount === 1 ? '' : 's'}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-xs text-slate-400 dark:text-[#8A8A8A]">Directory</span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-xs text-slate-500 dark:text-[#8A8A8A] hover:text-brand-600 dark:hover:text-[#1DB954]"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/files/${selectedSourceId}/${folder.relativePath}`);
-                            }}
-                          >
-                            Open &rarr;
-                          </Button>
-                          {isAdmin && (
+                  {subfolders.map((folder) => {
+                    const folderDropProps = getDropTargetProps(folder.relativePath);
+                    return (
+                      <TableRow
+                        key={folder.relativePath}
+                        onClick={() => navigate(`/files/${selectedSourceId}/${folder.relativePath}`)}
+                        {...folderDropProps}
+                        className={`bg-amber-50/20 dark:bg-[#111111] hover:bg-amber-50/60 dark:hover:bg-[#181818] cursor-pointer transition-colors ${
+                          folderDropProps.isOver
+                            ? 'ring-2 ring-brand-500 dark:ring-[#1DB954] bg-brand-50/80 dark:bg-[#1DB954]/20'
+                            : ''
+                        }`}
+                      >
+                        <TableCell className="text-center" onClick={(e) => e.stopPropagation()}></TableCell>
+                        <TableCell className="text-center">
+                          <Folder className="w-4 h-4 text-amber-500 dark:text-[#1DB954] mx-auto" />
+                        </TableCell>
+                        <TableCell className="font-semibold text-slate-800 dark:text-[#E6E6E6] text-xs hover:text-brand-600 dark:hover:text-[#1DB954]">
+                          <div className="flex items-center gap-2">
+                            <span>{folder.name}</span>
+                            <Badge variant="neutral" size="sm" className="font-normal text-[10px]">
+                              Folder
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-mono text-xs text-slate-500 dark:text-[#8A8A8A] text-right">
+                          {formatBytes(folder.totalBytes)}
+                        </TableCell>
+                        <TableCell className="text-xs text-slate-600 dark:text-[#8A8A8A] font-medium">
+                          {folder.fileCount} file{folder.fileCount === 1 ? '' : 's'}
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-xs text-slate-400 dark:text-[#8A8A8A]">Directory</span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-xs text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1.5 h-8 w-8"
-                              title={`Delete folder /${folder.relativePath}`}
+                              className="text-xs text-slate-500 dark:text-[#8A8A8A] hover:text-brand-600 dark:hover:text-[#1DB954]"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setDeletingFolder(folder);
+                                navigate(`/files/${selectedSourceId}/${folder.relativePath}`);
                               }}
                             >
-                              <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                              Open &rarr;
                             </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                            {isAdmin && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-xs text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-1.5 h-8 w-8"
+                                title={`Delete folder /${folder.relativePath}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeletingFolder(folder);
+                                }}
+                              >
+                                <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
 
                   {/* File rows */}
                   {displayedFiles.map((file) => {
@@ -1129,16 +1286,29 @@ export const FileExplorerPage: React.FC = () => {
                     const isChecked = selectedFileIds.has(file.fileId);
                     const isRestricted =
                       !isAdmin && !file.isPublicToFriends && !file.allowedFriends?.includes(user?.uid || '');
+                    const isFileDragging = isDragging && draggedFileIds.includes(file.fileId);
+                    const isHighlighted = highlightedFileId === file.fileId;
+                    const dragProps = getDraggableProps(file);
 
                     return (
                       <TableRow
                         key={file.fileId}
+                        id={`file-row-${file.fileId}`}
+                        {...dragProps}
                         onClick={() => setSelectedFile(file)}
                         onDoubleClick={() => {
                           if (!isRestricted) setPreviewFile(file);
                         }}
-                        className={`cursor-pointer ${
-                          isChecked ? 'bg-brand-50/70 dark:bg-[#1DB954]/15' : isSelected ? 'bg-slate-50 dark:bg-[#181818]' : undefined
+                        className={`cursor-pointer transition-opacity ${
+                          isFileDragging ? 'opacity-40' : ''
+                        } ${
+                          isHighlighted
+                            ? 'ring-2 ring-brand-500 dark:ring-[#1DB954] bg-brand-50/80 dark:bg-[#1DB954]/20'
+                            : isChecked
+                            ? 'bg-brand-50/70 dark:bg-[#1DB954]/15'
+                            : isSelected
+                            ? 'bg-slate-50 dark:bg-[#181818]'
+                            : ''
                         }`}
                       >
                         <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
@@ -1271,10 +1441,12 @@ export const FileExplorerPage: React.FC = () => {
             </div>
           </div>
         )}
+          </>
+        )}
       </div>
 
       {/* Floating Action Bar for Selected Files */}
-      {selectedFileIds.size > 0 && (
+      {selectedFileIds.size > 0 && activeTab === 'files' && (
         <div className="fixed bottom-20 sm:bottom-6 left-1/2 -translate-x-1/2 bg-white dark:bg-[#111111] text-slate-900 dark:text-[#E6E6E6] px-3 sm:px-5 py-2.5 sm:py-3 rounded-2xl shadow-2xl border border-slate-200 dark:border-[#242424] flex items-center flex-wrap sm:flex-nowrap justify-center gap-2 sm:gap-3 z-40 animate-in fade-in slide-in-from-bottom-4 duration-200 max-w-[95vw]">
           <span className="text-xs font-semibold text-slate-700 dark:text-[#E6E6E6]">
             {selectedFileIds.size} file{selectedFileIds.size === 1 ? '' : 's'} selected

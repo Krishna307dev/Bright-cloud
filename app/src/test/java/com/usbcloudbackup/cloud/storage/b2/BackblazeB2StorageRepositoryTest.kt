@@ -260,6 +260,53 @@ class BackblazeB2StorageRepositoryTest {
     }
 
     @Test
+    fun testZeroByteFileUploadSetsContentLengthZero() = runBlocking {
+        val directB2Url = "http://127.0.0.1:$serverPort/BrightCloud/backups/user_b2/usb-sandisk-001/empty.txt?X-Amz-Signature=mock_sig"
+
+        val fakeAuthProvider = object : B2AuthorizationProvider {
+            override suspend fun getUploadAuthorization(
+                uid: String,
+                objectKey: String,
+                sha256: String,
+                sourceId: String,
+                originalName: String,
+                fileId: String
+            ): B2UploadAuthorization {
+                return B2UploadAuthorization(
+                    uploadUrl = directB2Url,
+                    headers = mapOf(
+                        "x-amz-meta-sha256" to sha256,
+                        "x-amz-meta-source-id" to sourceId,
+                        "x-amz-meta-original-name" to originalName,
+                        "x-amz-meta-file-id" to fileId
+                    )
+                )
+            }
+
+            override suspend fun getHeadAuthorization(uid: String, objectKey: String): B2HeadAuthorization = B2HeadAuthorization(headUrl = directB2Url)
+            override suspend fun getDeleteAuthorization(uid: String, objectKey: String): B2DeleteAuthorization = B2DeleteAuthorization(deleteUrl = directB2Url)
+        }
+
+        val repository = BackblazeB2StorageRepository(fakeAuthProvider)
+
+        val result = repository.uploadFileStream(
+            cloudObjectPath = "backups/user_b2/usb-sandisk-001/empty.txt",
+            inputStream = ByteArrayInputStream(ByteArray(0)),
+            metadata = mapOf(
+                "Content-Length" to "0",
+                "x-amz-meta-sha256" to "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "x-amz-meta-source-id" to "usb-sandisk-001",
+                "x-amz-meta-original-name" to "empty.txt",
+                "x-amz-meta-file-id" to "556"
+            )
+        )
+
+        assertEquals("backups/user_b2/usb-sandisk-001/empty.txt", result.cloudObjectPath)
+        assertEquals(0L, result.bytesUploaded)
+        assertEquals("0", receivedHeaders["content-length"])
+    }
+
+    @Test
     fun testHeadObjectExistsReturnsMetadataFromB2() = runBlocking {
         val directB2Url = "http://127.0.0.1:$serverPort/BrightCloud/backups/user_b2/src_b2_1/photo.jpg?X-Amz-Signature=mock_head_sig"
 

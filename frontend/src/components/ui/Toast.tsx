@@ -4,19 +4,25 @@ import { clsx } from 'clsx';
 
 type ToastType = 'success' | 'error' | 'info' | 'warning';
 
+export interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
 interface ToastItem {
   id: string;
   type: ToastType;
   message: string;
   duration?: number;
+  action?: ToastAction;
 }
 
-interface ToastContextValue {
-  showToast: (message: string, type?: ToastType, duration?: number) => void;
-  success: (message: string, duration?: number) => void;
-  error: (message: string, duration?: number) => void;
-  info: (message: string, duration?: number) => void;
-  warning: (message: string, duration?: number) => void;
+export interface ToastContextValue {
+  showToast: (message: string, type?: ToastType, duration?: number, action?: ToastAction) => void;
+  success: (message: string, duration?: number, action?: ToastAction) => void;
+  error: (message: string, duration?: number, action?: ToastAction) => void;
+  info: (message: string, duration?: number, action?: ToastAction) => void;
+  warning: (message: string, duration?: number, action?: ToastAction) => void;
 }
 
 const ToastContext = createContext<ToastContextValue | undefined>(undefined);
@@ -29,12 +35,12 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const showToast = useCallback(
-    (message: string, type: ToastType = 'info', duration?: number) => {
+    (message: string, type: ToastType = 'info', duration?: number, action?: ToastAction) => {
       const id = Math.random().toString(36).substring(2, 9);
       const effectiveDuration =
         duration ?? (type === 'success' ? 3000 : type === 'error' ? 6000 : 4000);
 
-      setToasts((prev) => [...prev, { id, type, message, duration: effectiveDuration }]);
+      setToasts((prev) => [...prev, { id, type, message, duration: effectiveDuration, action }]);
 
       if (effectiveDuration > 0) {
         setTimeout(() => {
@@ -46,19 +52,19 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 
   const success = useCallback(
-    (msg: string, dur?: number) => showToast(msg, 'success', dur),
+    (msg: string, dur?: number, act?: ToastAction) => showToast(msg, 'success', dur, act),
     [showToast]
   );
   const error = useCallback(
-    (msg: string, dur?: number) => showToast(msg, 'error', dur),
+    (msg: string, dur?: number, act?: ToastAction) => showToast(msg, 'error', dur, act),
     [showToast]
   );
   const info = useCallback(
-    (msg: string, dur?: number) => showToast(msg, 'info', dur),
+    (msg: string, dur?: number, act?: ToastAction) => showToast(msg, 'info', dur, act),
     [showToast]
   );
   const warning = useCallback(
-    (msg: string, dur?: number) => showToast(msg, 'warning', dur),
+    (msg: string, dur?: number, act?: ToastAction) => showToast(msg, 'warning', dur, act),
     [showToast]
   );
 
@@ -102,6 +108,19 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             <div className="flex-1 text-xs leading-relaxed font-medium">
               {toast.message}
             </div>
+
+            {toast.action && (
+              <button
+                type="button"
+                onClick={() => {
+                  toast.action!.onClick();
+                  removeToast(toast.id);
+                }}
+                className="px-2 py-0.5 rounded text-xs font-semibold bg-brand-50 hover:bg-brand-100 text-brand-700 dark:bg-[#1DB954]/20 dark:hover:bg-[#1DB954]/30 dark:text-[#1DB954] border border-brand-200 dark:border-[#1DB954]/40 transition-colors shrink-0 cursor-pointer"
+              >
+                {toast.action.label}
+              </button>
+            )}
 
             <button
               onClick={() => removeToast(toast.id)}

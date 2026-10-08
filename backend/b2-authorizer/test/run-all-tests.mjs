@@ -1381,5 +1381,128 @@ test("Backblaze B2 Authorizer Shared Vault Test Suite", async (t) => {
     );
     assert.equal(res2.status, 400);
   });
+
+  // Section M: Upload Proxy Fallback Tests
+  await t.test("UploadProxy 1: Successfully proxies upload to B2 with buffered body and Content-Length", async () => {
+    let capturedB2Req = null;
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (input, init) => {
+      const url = input.toString();
+      if (url.includes("securetoken@system.gserviceaccount.com")) {
+        return new Response(JSON.stringify({ keys: [keyPair.publicKeyJwk] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+      if (url.includes("backblazeb2.com")) {
+        capturedB2Req = { url, init };
+        return new Response(null, { status: 200 });
+      }
+      return originalFetch ? originalFetch(input, init) : new Response("Not Found", { status: 404 });
+    };
+
+    try {
+      const env = {
+        FIREBASE_PROJECT_ID: projectId,
+        VAULT_ID: defaultVaultId,
+        B2_ENDPOINT: "https://s3.eu-central-003.backblazeb2.com",
+        B2_BUCKET: "BrightCloud"
+      };
+
+      const now = Math.floor(Date.now() / 1000);
+      const userToken = await createSignedTestFirebaseToken(
+        {
+          iss: `https://securetoken.google.com/${projectId}`,
+          aud: projectId,
+          sub: "user_upload_proxy_test",
+          firebase: { sign_in_provider: "google.com" },
+          exp: now + 3600,
+          auth_time: now
+        },
+        keyPair
+      );
+
+      const targetB2Url = "https://s3.eu-central-003.backblazeb2.com/BrightCloud/backups/default/WEB_UPLOADS/test.pdf?X-Amz-SignedHeaders=host";
+      const payloadBytes = new Uint8Array([1, 2, 3, 4, 5]);
+
+      const res = await worker.fetch(
+        new Request("https://b2-auth.local/b2/upload-proxy", {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+            "x-upload-url": targetB2Url,
+            "Content-Type": "application/pdf"
+          },
+          body: payloadBytes
+        }),
+        env,
+        {}
+      );
+
+      assert.equal(res.status, 200);
+      assert.ok(capturedB2Req !== null);
+      assert.equal(capturedB2Req.init.method, "PUT");
+      assert.equal(capturedB2Req.init.headers["Content-Length"], "5");
+      assert.equal(capturedB2Req.init.headers["Content-Type"], "application/pdf");
+      assert.ok(capturedB2Req.init.body instanceof ArrayBuffer || capturedB2Req.init.body instanceof Uint8Array);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  await t.test("UploadProxy 2: Normalizes double-slash path and rejects untrusted host", async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (input, init) => {
+      const url = input.toString();
+      if (url.includes("securetoken@system.gserviceaccount.com")) {
+        return new Response(JSON.stringify({ keys: [keyPair.publicKeyJwk] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+      return originalFetch ? originalFetch(input, init) : new Response("Not Found", { status: 404 });
+    };
+
+    try {
+      const env = {
+        FIREBASE_PROJECT_ID: projectId,
+        VAULT_ID: defaultVaultId
+      };
+
+      const now = Math.floor(Date.now() / 1000);
+      const userToken = await createSignedTestFirebaseToken(
+        {
+          iss: `https://securetoken.google.com/${projectId}`,
+          aud: projectId,
+          sub: "user_upload_proxy_test",
+          firebase: { sign_in_provider: "google.com" },
+          exp: now + 3600,
+          auth_time: now
+        },
+        keyPair
+      );
+
+      // Untrusted host should return 400 even with double slashes //b2/upload-proxy
+      const res = await worker.fetch(
+        new Request("https://b2-auth.local//b2/upload-proxy", {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+            "x-upload-url": "https://evil-attacker.com/steal-data",
+            "Content-Type": "application/pdf"
+          },
+          body: new Uint8Array([1, 2, 3])
+        }),
+        env,
+        {}
+      );
+
+      assert.equal(res.status, 400);
+      const json = await res.json();
+      assert.ok(json.message.includes("Untrusted target upload host"));
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
 });
 

@@ -47,7 +47,6 @@ class BackblazeB2StorageRepository(
 
         val contentLength = metadata["Content-Length"]?.toLongOrNull()
             ?: metadata["x-custom-file-size"]?.toLongOrNull()
-            ?: 0L
 
         Log.i(TAG, "Starting direct streaming Backblaze B2 S3 upload. objectKey=$cloudObjectPath, contentLength=$contentLength")
 
@@ -55,8 +54,9 @@ class BackblazeB2StorageRepository(
         val connection = (url.openConnection() as HttpURLConnection).apply {
             requestMethod = "PUT"
             doOutput = true
-            if (contentLength > 0L) {
+            if (contentLength != null && contentLength >= 0L) {
                 setFixedLengthStreamingMode(contentLength)
+                setRequestProperty("Content-Length", contentLength.toString())
             } else {
                 setChunkedStreamingMode(BUFFER_SIZE)
             }

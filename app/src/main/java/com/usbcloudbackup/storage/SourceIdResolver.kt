@@ -234,11 +234,73 @@ object SourceIdResolver {
                     registerDeviceMapping(hwId, sourceId)
                     return hwId
                 }
+            } else if (parsed.volumeUuid != null) {
+                val device = findMassStorageDevice(context)
+                if (device != null) {
+                    val hwId = computeHardwareId(device)
+                    registerDeviceMapping(hwId, sourceId)
+                    return hwId
+                }
             }
         }
 
         // 5. Fallback: preserve sourceId directly (safe fallback for tests/non-USB)
         return sourceId
+    }
+
+    /**
+     * Extracts the volume UUID component from a sourceId.
+     * - "1234-5678-8F12-3456" -> "8F12-3456"
+     * - "VOL-8F12-3456" -> "8F12-3456"
+     * - "8F12-3456" -> "8F12-3456"
+     * - "SN-..." or "DEV-..." -> null (non-volume fallbacks)
+     */
+    fun extractVolumeUuidFromSourceId(sourceId: String): String? {
+        val clean = sourceId.trim().uppercase(Locale.ROOT)
+        if (clean.startsWith("SN-") || clean.startsWith("DEV-") || clean == "UNKNOWN") {
+            return null
+        }
+        if (clean.startsWith("VOL-")) {
+            return clean.removePrefix("VOL-").trim().takeIf { it.isNotEmpty() }
+        }
+        val vidPidMatch = Regex("""^(\d+)-(\d+)-(.+)$""").matchEntire(clean)
+        if (vidPidMatch != null) {
+            val candidate = vidPidMatch.groupValues[3].trim()
+            return candidate.takeIf { it.isNotEmpty() }
+        }
+        return clean.takeIf { it.isNotEmpty() }
+    }
+
+    /**
+     * Determines if [sourceIdA] and [sourceIdB] refer to the exact same physical storage volume.
+     * Two source IDs are equivalent if they share the same non-null volume UUID.
+     */
+    fun isSamePhysicalVolume(sourceIdA: String?, sourceIdB: String?): Boolean {
+        if (sourceIdA.isNullOrBlank() || sourceIdB.isNullOrBlank()) return false
+        if (sourceIdA.equals(sourceIdB, ignoreCase = true)) return true
+        val uuidA = extractVolumeUuidFromSourceId(sourceIdA) ?: return false
+        val uuidB = extractVolumeUuidFromSourceId(sourceIdB) ?: return false
+        return uuidA.equals(uuidB, ignoreCase = true)
+    }
+
+    /**
+     * Chooses the more specific, descriptive source ID between [currentId] and [newCandidateId].
+     * If both refer to the same physical volume (matching volume UUID), preserves the one containing
+     * vendorId-productId hardware identity rather than downgrading to a bare "VOL-{uuid}".
+     */
+    fun preferSpecificSourceId(currentId: String, newCandidateId: String?): String {
+        if (newCandidateId.isNullOrBlank()) return currentId
+        if (currentId == newCandidateId) return currentId
+        if (!isSamePhysicalVolume(currentId, newCandidateId)) return newCandidateId
+
+        val currentHasVidPid = Regex("""^\d+-\d+-.+$""").matches(currentId)
+        val candidateHasVidPid = Regex("""^\d+-\d+-.+$""").matches(newCandidateId)
+
+        return when {
+            currentHasVidPid && !candidateHasVidPid -> currentId
+            !currentHasVidPid && candidateHasVidPid -> newCandidateId
+            else -> currentId
+        }
     }
 
     fun isRawHardwareId(sourceId: String): Boolean {
@@ -467,7 +529,8 @@ object SourceIdResolver {
 
             for (dir in candidateDirs) {
                 val name = dir.name.trim().uppercase(Locale.ROOT)
-                if (name.isNotEmpty() && name != "EMULATED" && name != "SELF" && name != "KNOX-EMULATED" && name != "SDCARD0" && dir.canRead()) {
+                val hasEntries = try { dir.listFiles()?.isNotEmpty() == true } catch (_: Throwable) { false }
+                if (name.isNotEmpty() && name != "EMULATED" && name != "SELF" && name != "KNOX-EMULATED" && name != "SDCARD0" && dir.canRead() && (testMountedStorageDirectoriesProvider != null || hasEntries)) {
                     return name
                 }
             }

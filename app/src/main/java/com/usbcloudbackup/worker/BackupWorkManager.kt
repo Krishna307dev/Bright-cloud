@@ -9,6 +9,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.usbcloudbackup.storage.SourceIdResolver
@@ -34,8 +35,8 @@ object BackupWorkManager {
             Log.d(TAG, "Storage volume is not mounted and readable. Skipping enqueue.")
             return false
         }
-        Log.i(TAG, "Storage volume ready (canonicalSourceId=$canonicalSourceId). Enqueueing unique backup work with KEEP policy.")
-        enqueueBackup(context, canonicalSourceId, hintDevice, ExistingWorkPolicy.KEEP)
+        Log.i(TAG, "Storage volume ready (canonicalSourceId=$canonicalSourceId). Enqueueing unique backup work with REPLACE policy.")
+        enqueueBackup(context, canonicalSourceId, hintDevice, ExistingWorkPolicy.REPLACE)
         return true
     }
 
@@ -43,7 +44,7 @@ object BackupWorkManager {
         context: Context,
         sourceId: String,
         hintDevice: UsbDevice? = null,
-        existingWorkPolicy: ExistingWorkPolicy = ExistingWorkPolicy.KEEP
+        existingWorkPolicy: ExistingWorkPolicy = ExistingWorkPolicy.REPLACE
     ) {
         val canonicalSourceId = SourceIdResolver.canonicalizeSourceId(context, sourceId, hintDevice) ?: sourceId
         val uniqueWorkName = getUniqueWorkName(context, canonicalSourceId, hintDevice)
@@ -61,6 +62,7 @@ object BackupWorkManager {
             .setInputData(inputData)
             .setConstraints(constraints)
             .addTag("backup_worker")
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .build()
 
         WorkManager.getInstance(context).enqueueUniqueWork(

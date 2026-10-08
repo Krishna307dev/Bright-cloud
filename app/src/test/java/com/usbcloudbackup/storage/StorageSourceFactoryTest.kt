@@ -9,12 +9,14 @@ import com.usbcloudbackup.setup.MainActivity
 import io.mockk.every
 import io.mockk.mockk
 import java.io.File
+import java.io.IOException
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -43,6 +45,11 @@ class StorageSourceFactoryTest {
         StorageSourceFactory.testStorageVolumesProvider = null
         StorageSourceFactory.testPersistedUriPermissionsProvider = null
         StorageSourceFactory.testMountedStorageDirectoriesProvider = null
+        StorageSourceFactory.testProcMountsProvider = null
+        StorageSourceFactory.testDirectoryListFilesOverride = null
+        StorageSourceFactory.testOemStaticCandidatePaths = null
+        StorageSourceFactory.testOemWildcardRoots = null
+        DirectFileStorageSource.testListFilesOverride = null
     }
 
     @After
@@ -52,6 +59,11 @@ class StorageSourceFactoryTest {
         StorageSourceFactory.testStorageVolumesProvider = null
         StorageSourceFactory.testPersistedUriPermissionsProvider = null
         StorageSourceFactory.testMountedStorageDirectoriesProvider = null
+        StorageSourceFactory.testProcMountsProvider = null
+        StorageSourceFactory.testDirectoryListFilesOverride = null
+        StorageSourceFactory.testOemStaticCandidatePaths = null
+        StorageSourceFactory.testOemWildcardRoots = null
+        DirectFileStorageSource.testListFilesOverride = null
     }
 
     @Test
@@ -272,5 +284,211 @@ class StorageSourceFactoryTest {
         StorageSourceFactory.testStorageVolumesProvider = { listOf(mockVolume) }
         val source3 = factory.createStorageSource(testSourceId)
         assertTrue(source3.isAvailable())
+    }
+
+    @Test
+    fun testCanonicalCandidateNullProceedsToNextCandidate() = runBlocking {
+        // Canonical directory exists, but direct enumeration fails (listFiles returns null)
+        val canonicalDir = File(tempRoot, "canonical_$testVolumeUuid").apply { mkdirs() }
+        // Fallback candidate directory exists and has files
+        val fallbackOemDir = File(tempRoot, "fallback_USB_DISK0").apply {
+            mkdirs()
+            File(this, "fallback_data.txt").writeText("oem fallback file")
+        }
+
+        val mockVolume = mockk<StorageVolume>(relaxed = true) {
+            every { isRemovable } returns true
+            every { isPrimary } returns false
+            every { uuid } returns testVolumeUuid
+            every { directory } returns canonicalDir
+        }
+
+        StorageSourceFactory.testStorageVolumesProvider = { listOf(mockVolume) }
+        StorageSourceFactory.testOemStaticCandidatePaths = listOf(fallbackOemDir)
+        // Simulate canonical dir listFiles() == null
+        StorageSourceFactory.testDirectoryListFilesOverride = { file ->
+            if (file.absolutePath == canonicalDir.absolutePath) null else file.listFiles()
+        }
+
+        val prefs = context.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putBoolean(MainActivity.KEY_DIRECT_FILE_MODE, true).commit()
+
+        val factory = StorageSourceFactory(context)
+        val source = factory.createStorageSource(testSourceId)
+
+        assertTrue("Should produce DirectFileStorageSource", source is DirectFileStorageSource)
+        assertTrue("Source should be available", source.isAvailable())
+
+        val files = source.discoverFiles()
+        assertEquals(1, files.size)
+        assertEquals("fallback_data.txt", files[0].originalName)
+    }
+
+    @Test
+    fun testEmptyDirectoryAcceptedAsStorageRoot() = runBlocking {
+        // Empty directory on disk (listFiles returns emptyArray)
+        val emptyDir = File(tempRoot, "empty_$testVolumeUuid").apply { mkdirs() }
+
+        val mockVolume = mockk<StorageVolume>(relaxed = true) {
+            every { isRemovable } returns true
+            every { isPrimary } returns false
+            every { uuid } returns testVolumeUuid
+            every { directory } returns emptyDir
+        }
+
+        StorageSourceFactory.testStorageVolumesProvider = { listOf(mockVolume) }
+
+        val prefs = context.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putBoolean(MainActivity.KEY_DIRECT_FILE_MODE, true).commit()
+
+        val factory = StorageSourceFactory(context)
+        val source = factory.createStorageSource(testSourceId)
+
+        assertTrue(source is DirectFileStorageSource)
+        assertTrue("Empty directory should still report isAvailable == true", source.isAvailable())
+
+        val files = source.discoverFiles()
+        assertEquals("Empty directory should discover 0 files", 0, files.size)
+    }
+
+    @Test
+    fun testDynamicMountDiscoveryFromProcMounts() = runBlocking {
+        val canonicalDir = File(tempRoot, "failing_canonical").apply { mkdirs() }
+        val dynamicMountDir = File(tempRoot, "dynamic_sda1").apply {
+            mkdirs()
+            File(this, "proc_mount_file.txt").writeText("dynamic mount")
+        }
+
+        val mockVolume = mockk<StorageVolume>(relaxed = true) {
+            every { isRemovable } returns true
+            every { isPrimary } returns false
+            every { uuid } returns testVolumeUuid
+            every { directory } returns canonicalDir
+        }
+
+        StorageSourceFactory.testStorageVolumesProvider = { listOf(mockVolume) }
+        StorageSourceFactory.testDirectoryListFilesOverride = { file ->
+            if (file.absolutePath == canonicalDir.absolutePath) null else file.listFiles()
+        }
+        // Mock /proc/mounts line
+        StorageSourceFactory.testProcMountsProvider = {
+            listOf(
+                "/dev/block/sda1 ${dynamicMountDir.absolutePath} vfat rw,nosuid 0 0"
+            )
+        }
+
+        val prefs = context.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putBoolean(MainActivity.KEY_DIRECT_FILE_MODE, true).commit()
+
+        val factory = StorageSourceFactory(context)
+        val source = factory.createStorageSource(testSourceId)
+
+        assertTrue(source is DirectFileStorageSource)
+        assertTrue(source.isAvailable())
+
+        val files = source.discoverFiles()
+        assertEquals(1, files.size)
+        assertEquals("proc_mount_file.txt", files[0].originalName)
+    }
+
+    @Test
+    fun testUnrelatedMountRejection() = runBlocking {
+        val targetVolumeUuid = "8F12-3456"
+        val unrelatedVolumeUuid = "9999-0000"
+
+        val unrelatedMountDir = File(tempRoot, "unrelated_$unrelatedVolumeUuid").apply {
+            mkdirs()
+            File(this, "unrelated_secret.txt").writeText("secret")
+        }
+
+        // Mock /proc/mounts containing an unrelated drive with different UUID
+        StorageSourceFactory.testProcMountsProvider = {
+            listOf(
+                "/dev/block/sdb1 ${unrelatedMountDir.absolutePath} vfat rw 0 0"
+            )
+        }
+
+        // Wildcard root also containing unrelated mount
+        val wildcardParent = File(tempRoot, "mnt_media_rw").apply { mkdirs() }
+        val unrelatedChild = File(wildcardParent, unrelatedVolumeUuid).apply {
+            mkdirs()
+            File(this, "other.txt").writeText("other")
+        }
+        StorageSourceFactory.testOemWildcardRoots = listOf(wildcardParent)
+
+        val prefs = context.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putBoolean(MainActivity.KEY_DIRECT_FILE_MODE, true).commit()
+
+        val factory = StorageSourceFactory(context)
+        // Request source for targetVolumeUuid
+        val source = factory.createStorageSource("1234-5678-$targetVolumeUuid")
+
+        assertNotNull(source)
+        assertFalse("Unrelated mount must be rejected and not selected", source.isAvailable())
+    }
+
+    @Test
+    fun testAllCandidatesNullNeverReportsCompletedGracefullyThrows() = runBlocking {
+        val failingRoot = File(tempRoot, "completely_failing_root").apply { mkdirs() }
+
+        DirectFileStorageSource.testListFilesOverride = { _ -> null }
+
+        val directSource = DirectFileStorageSource("test-src", "Failing Source", failingRoot)
+
+        assertFalse("When listFiles returns null, isAvailable must be false", directSource.isAvailable())
+
+        try {
+            directSource.discoverFiles()
+            fail("discoverFiles() should throw IOException when root enumeration fails")
+        } catch (e: IOException) {
+            assertTrue("Expected enumeration failure message", e.message?.contains("unavailable or unreadable") == true || e.message?.contains("Enumeration failure") == true)
+        }
+    }
+
+    @Test
+    fun testProcMountsExcludesLoopDevicesAndApexMounts() = runBlocking {
+        val targetVolumeUuid = "1A55-5F8C"
+        val fakeApexDir = File(tempRoot, "mnt_apex_tzdata").apply {
+            mkdirs()
+            File(this, "apex_manifest.pb").writeText("fake apex")
+            File(this, "tzdata").writeText("fake tz")
+        }
+
+        // Mock /proc/mounts containing APEX on loop device and system mounts
+        StorageSourceFactory.testProcMountsProvider = {
+            listOf(
+                "/dev/block/loop0 ${fakeApexDir.absolutePath} ext4 ro 0 0",
+                "/dev/block/loop1 /apex/com.android.tzdata ext4 ro 0 0",
+                "none /mnt/runtime/default/emulated tmpfs rw 0 0"
+            )
+        }
+
+        val prefs = context.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putBoolean(MainActivity.KEY_DIRECT_FILE_MODE, true).commit()
+
+        val factory = StorageSourceFactory(context)
+        val source = factory.createStorageSource("VOL-$targetVolumeUuid")
+
+        assertNotNull(source)
+        assertFalse("Loop device and APEX mount points must be rejected completely", source.isAvailable())
+    }
+
+    @Test
+    fun testPreferSpecificSourceIdPreservesHardwareIdentity() {
+        val specificId = "1008-8195-1A55-5F8C"
+        val genericId = "VOL-1A55-5F8C"
+        val differentVolumeId = "1008-8195-9999-0000"
+
+        // Same volume: prefer specific over generic
+        assertEquals(specificId, SourceIdResolver.preferSpecificSourceId(specificId, genericId))
+        assertEquals(specificId, SourceIdResolver.preferSpecificSourceId(genericId, specificId))
+
+        // Different volume: accepts candidate
+        assertEquals(differentVolumeId, SourceIdResolver.preferSpecificSourceId(specificId, differentVolumeId))
+
+        // Same physical volume verification
+        assertTrue(SourceIdResolver.isSamePhysicalVolume(specificId, genericId))
+        assertTrue(SourceIdResolver.isSamePhysicalVolume(genericId, specificId))
+        assertFalse(SourceIdResolver.isSamePhysicalVolume(specificId, differentVolumeId))
     }
 }

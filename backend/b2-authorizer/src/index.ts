@@ -126,7 +126,7 @@ function errorResponse(status: number, error: string, message: string): Response
 export default {
   async fetch(request: Request, env: Env, ctx?: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
-    const path = url.pathname;
+    const path = url.pathname.replace(/\/+/g, "/");
     const method = request.method;
     const projectId = env.FIREBASE_PROJECT_ID || "usbcloudbackup-placeholder";
     const serverVaultId = env.VAULT_ID || "default";
@@ -336,28 +336,53 @@ export default {
           throw new ValidationError(`Untrusted target upload host: '${targetUrlObj.hostname}'`);
         }
 
-        // Forward safe headers: content-type, content-length, and any signed x-amz-* metadata headers
+        // Limit web proxy payload to 80MB to fit within Cloudflare Worker memory limits
+        const rawContentLength = request.headers.get("content-length");
+        if (rawContentLength && parseInt(rawContentLength, 10) > 80 * 1024 * 1024) {
+          return errorResponse(413, "PayloadTooLarge", "Web upload proxy limit is 80MB. Use direct B2 upload for larger files.");
+        }
+
+        // Buffer payload to memory as ArrayBuffer.
+        // In Cloudflare Workers, passing a ReadableStream body causes fetch to strip Content-Length
+        // and stream the upload via chunked transfer encoding (Transfer-Encoding: chunked).
+        // Backblaze B2 S3 endpoint stalls on unsigned chunked PUT requests, causing Cloudflare
+        // edge timeout (HTTP 524 Gateway Timeout).
+        // Buffering the payload allows sending a non-chunked binary body with an exact Content-Length.
+        const fileBuffer = await request.arrayBuffer();
+        if (fileBuffer.byteLength > 80 * 1024 * 1024) {
+          return errorResponse(413, "PayloadTooLarge", "Web upload proxy limit is 80MB. Use direct B2 upload for larger files.");
+        }
+
+        // Parse target URL's X-Amz-SignedHeaders to determine which headers were signed
+        const signedHeadersParam =
+          targetUrlObj.searchParams.get("X-Amz-SignedHeaders") ||
+          targetUrlObj.searchParams.get("x-amz-signedheaders") ||
+          "";
+        const signedHeaderSet = new Set(
+          signedHeadersParam.toLowerCase().split(";").map((s) => s.trim())
+        );
+
         const forwardHeaders: Record<string, string> = {};
         const contentType = request.headers.get("content-type");
         if (contentType) {
           forwardHeaders["Content-Type"] = contentType;
         }
-        const contentLength = request.headers.get("content-length");
-        if (contentLength) {
-          forwardHeaders["Content-Length"] = contentLength;
-        }
+        forwardHeaders["Content-Length"] = fileBuffer.byteLength.toString();
+
+        // Forward x-amz-* metadata headers only if they were signed (or if no signed headers were specified)
         for (const [key, value] of request.headers.entries()) {
-          if (key.toLowerCase().startsWith("x-amz-")) {
-            forwardHeaders[key] = value;
+          const lowerKey = key.toLowerCase();
+          if (lowerKey.startsWith("x-amz-")) {
+            if (signedHeaderSet.size === 0 || signedHeaderSet.has(lowerKey)) {
+              forwardHeaders[key] = value;
+            }
           }
         }
 
         const b2Response = await fetch(targetUploadUrl, {
           method: "PUT",
           headers: forwardHeaders,
-          body: request.body,
-          // @ts-ignore
-          duplex: "half",
+          body: fileBuffer,
         });
 
         if (!b2Response.ok) {

@@ -64,7 +64,8 @@ class UsbEventReceiver : BroadcastReceiver() {
             Log.i(TAG, "ACTION_MEDIA_MOUNTED broadcast received. mountUri=$mountUri")
             val prefs = context.getSharedPreferences(com.usbcloudbackup.setup.MainActivity.PREFS_NAME, Context.MODE_PRIVATE)
             if (prefs.getBoolean(com.usbcloudbackup.setup.MainActivity.KEY_SETUP_COMPLETE, false)) {
-                val enqueued = BackupWorkManager.enqueueBackupIfReady(context)
+                val device = com.usbcloudbackup.storage.SourceIdResolver.findMassStorageDevice(context)
+                val enqueued = BackupWorkManager.enqueueBackupIfReady(context, device)
                 if (enqueued) {
                     Log.i(TAG, "ACTION_MEDIA_MOUNTED: Backup work successfully enqueued after volume mount.")
                 } else {

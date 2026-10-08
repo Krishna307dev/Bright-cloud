@@ -22,4 +22,4 @@ googleProvider.setCustomParameters({
 });
 
 export const VAULT_ID = import.meta.env.VITE_VAULT_ID || 'default';
-export const B2_AUTHORIZER_URL = import.meta.env.VITE_B2_AUTHORIZER_URL || 'http://localhost:8787';
+export const B2_AUTHORIZER_URL = (import.meta.env.VITE_B2_AUTHORIZER_URL || 'http://localhost:8787').replace(/\/+$/, '');

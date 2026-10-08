@@ -111,7 +111,7 @@ class BackupWorker(
             return Result.failure()
         }
         val canonicalSourceId = com.usbcloudbackup.storage.SourceIdResolver.resolveMountedCanonicalSourceId(applicationContext)
-        var sourceId: String = canonicalSourceId ?: rawSourceId
+        var sourceId: String = com.usbcloudbackup.storage.SourceIdResolver.preferSpecificSourceId(rawSourceId, canonicalSourceId)
         val vaultId = VaultConfig.DEFAULT_VAULT_ID
 
         Log.i(TAG, "Starting BackupWorker execution for vaultId=$vaultId, sourceId=$sourceId (rawSourceId=$rawSourceId), runAttemptCount=$runAttemptCount")
@@ -204,9 +204,7 @@ class BackupWorker(
                     if (isStopped) break
 
                     val mountedCanonical = com.usbcloudbackup.storage.SourceIdResolver.resolveMountedCanonicalSourceId(applicationContext)
-                    if (mountedCanonical != null && mountedCanonical != sourceId) {
-                        sourceId = mountedCanonical
-                    }
+                    sourceId = com.usbcloudbackup.storage.SourceIdResolver.preferSpecificSourceId(sourceId, mountedCanonical)
 
                     val candidate = testStorageSourceProvider?.invoke(sourceId)
                         ?: StorageSourceFactory(applicationContext).createStorageSource(sourceId)
@@ -454,6 +452,8 @@ class BackupWorker(
             }
         }
 
+        var activeStorageSource = storageSource
+
         // Step 4: Scan USB Source & Smart Backup Policy Classification (if fresh run or un-scanned)
         if (shouldScan) {
             val targetScanState = BackupJobState.SCANNING
@@ -462,8 +462,48 @@ class BackupWorker(
                 jobRepo.updateJobState(jobId, targetScanState)
             }
 
-            val discoveredFiles = scanner.scanSource(jobId, storageSource)
+            var discoveredFiles = scanner.scanSource(jobId, activeStorageSource)
             Log.i(TAG, "Discovery scan complete for jobId=$jobId. Found ${discoveredFiles.size} files.")
+
+            // Mount Settling & Delayed Discovery Wait:
+            // If 0 files were discovered, but a physical USB mass storage device is attached,
+            // the USB drive may still be in the process of being mounted by the OS volume daemon (vold).
+            // Await mount settling before concluding the drive is empty or finishing.
+            if (discoveredFiles.isEmpty() && com.usbcloudbackup.storage.SourceIdResolver.isPhysicalUsbAttached(applicationContext, sourceId)) {
+                val settlingBudgetMs = testMountWaitTimeoutMs ?: 15_000L
+                val settlingPollIntervalMs = testMountPollIntervalMs ?: 1_000L
+                val settlingStart = System.currentTimeMillis()
+
+                Log.i(TAG, "Discovered 0 files on physically attached USB drive $sourceId. Volume may still be mounting. Awaiting mount settling and contents (budget=${settlingBudgetMs}ms)...")
+
+                while (System.currentTimeMillis() - settlingStart < settlingBudgetMs && !isStopped && !isBudgetExpired()) {
+                    kotlinx.coroutines.delay(settlingPollIntervalMs)
+                    if (isStopped || isBudgetExpired()) break
+
+                    if (!com.usbcloudbackup.storage.SourceIdResolver.isPhysicalUsbAttached(applicationContext, sourceId)) {
+                        Log.w(TAG, "USB drive $sourceId detached during mount settling wait.")
+                        break
+                    }
+
+                    val recheckedStorage = testStorageSourceProvider?.invoke(sourceId)
+                        ?: StorageSourceFactory(applicationContext).createStorageSource(sourceId)
+
+                    if (recheckedStorage.isAvailable()) {
+                        try {
+                            val probeFiles = recheckedStorage.discoverFiles()
+                            if (probeFiles.isNotEmpty()) {
+                                Log.i(TAG, "Storage source $sourceId settled after delay. Discovered ${probeFiles.size} files.")
+                                activeStorageSource = recheckedStorage
+                                discoveredFiles = scanner.scanSource(jobId, activeStorageSource)
+                                break
+                            }
+                        } catch (e: Exception) {
+                            Log.d(TAG, "Transient error probing files during settling: ${e.message}")
+                        }
+                    }
+                }
+            }
+
             jobRepo.getJob(jobId)?.let { firestoreRepo.updateBackupJobState(vaultId, it) }
         } else {
             val fileCount = fileRepo.getFilesForJob(jobId).size
@@ -491,7 +531,7 @@ class BackupWorker(
         if (isStopped || isBudgetExpired()) return
 
         // Step 5: Streaming SHA-256 Hash Stage (Category A Automatic Backup)
-        val descriptorsMap = storageSource.discoverFiles().associateBy { "${it.relativePath}${it.originalName}" }
+        val descriptorsMap = activeStorageSource.discoverFiles().associateBy { "${it.relativePath}${it.originalName}" }
 
         val unhashedFiles = fileRepo.getFilesForJob(jobId).filter { file ->
             (file.status == FileStatus.DISCOVERED || file.status == FileStatus.HASHING) &&
@@ -613,7 +653,7 @@ class BackupWorker(
                     break
                 }
 
-                if (!storageSource.isAvailable()) {
+                if (!activeStorageSource.isAvailable()) {
                     Log.w(TAG, "Storage source detached during upload loop. Stopping.")
                     if (file.status != FileStatus.UPLOADED_NOT_INDEXED) {
                         fileRepo.updateFileStatus(file.id, FileStatus.SOURCE_UNAVAILABLE, "USB detached")
@@ -693,14 +733,17 @@ class BackupWorker(
                         inputStreamProvider = { descriptor?.openInputStream() ?: java.io.ByteArrayInputStream(ByteArray(0)) }
                     )
                 } catch (e: IOException) {
-                    if (!storageSource.isAvailable() || isStopped) {
+                    if (!activeStorageSource.isAvailable() || isStopped) {
                         Log.w(TAG, "Storage source detached during upload of ${file.originalName}")
                         if (fileRepo.getFile(file.id)?.status != FileStatus.UPLOADED_NOT_INDEXED) {
                             fileRepo.updateFileStatus(file.id, FileStatus.SOURCE_UNAVAILABLE, e.message)
                         }
                         break
                     }
-                    throw e
+                    Log.e(TAG, "Upload failure for file ${file.originalName}: ${e.message}. Marking FAILED to unblock backup queue.", e)
+                    fileRepo.updateFileStatus(file.id, FileStatus.FAILED, e.message)
+                    jobRepo.incrementError(jobId)
+                    continue
                 }
 
                 uploadProcessed++
@@ -787,6 +830,35 @@ class BackupWorker(
         }
     }
 
+    fun createForegroundInfo(): ForegroundInfo {
+        val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                "Bright Cloud",
+                NotificationManager.IMPORTANCE_LOW
+            )
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
+            .setContentTitle("Bright Cloud")
+            .setContentText("Backing up USB storage...")
+            .setSmallIcon(android.R.drawable.ic_menu_upload)
+            .setOngoing(true)
+            .build()
+
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ForegroundInfo(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        } else {
+            ForegroundInfo(NOTIFICATION_ID, notification)
+        }
+    }
+
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        return createForegroundInfo()
+    }
+
     @VisibleForTesting
     internal suspend fun promoteToForegroundIfPossible(): Boolean {
         try {
@@ -802,28 +874,7 @@ class BackupWorker(
                 }
             }
 
-            val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val channel = NotificationChannel(
-                    CHANNEL_ID,
-                    "Bright Cloud",
-                    NotificationManager.IMPORTANCE_LOW
-                )
-                notificationManager.createNotificationChannel(channel)
-            }
-
-            val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-                .setContentTitle("Bright Cloud")
-                .setContentText("Backing up USB storage...")
-                .setSmallIcon(android.R.drawable.ic_menu_upload)
-                .setOngoing(true)
-                .build()
-
-            val foregroundInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                ForegroundInfo(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-            } else {
-                ForegroundInfo(NOTIFICATION_ID, notification)
-            }
+            val foregroundInfo = createForegroundInfo()
             if (testSetForegroundOverride != null) {
                 testSetForegroundOverride!!.invoke(foregroundInfo)
             } else {

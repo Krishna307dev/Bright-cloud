@@ -1,6 +1,7 @@
 package com.usbcloudbackup.storage
 
 import android.util.Log
+import androidx.annotation.VisibleForTesting
 import com.usbcloudbackup.policy.BackupPolicyEngine
 import java.io.File
 import java.io.FileInputStream
@@ -14,10 +15,22 @@ class DirectFileStorageSource(
 
     companion object {
         private const val TAG = "DirectFileStorageSource"
+
+        @get:VisibleForTesting
+        @set:VisibleForTesting
+        var testListFilesOverride: ((File) -> Array<File>?)? = null
     }
 
     override suspend fun isAvailable(): Boolean {
-        return rootDirectory.exists() && rootDirectory.isDirectory && rootDirectory.canRead()
+        if (!rootDirectory.exists() || !rootDirectory.isDirectory || !rootDirectory.canRead()) {
+            return false
+        }
+        val files = if (testListFilesOverride != null) {
+            testListFilesOverride?.invoke(rootDirectory)
+        } else {
+            try { rootDirectory.listFiles() } catch (_: Throwable) { null }
+        }
+        return files != null
     }
 
     override suspend fun discoverFiles(): List<DiscoveredFileDescriptor> {
@@ -31,11 +44,18 @@ class DirectFileStorageSource(
     }
 
     private fun traverseDirectory(currentDir: File, currentRelativePath: String, outList: MutableList<DiscoveredFileDescriptor>) {
-        val files = try {
-            currentDir.listFiles()
-        } catch (e: Exception) {
-            null
-        } ?: return
+        val files = if (testListFilesOverride != null) {
+            testListFilesOverride?.invoke(currentDir)
+        } else {
+            try { currentDir.listFiles() } catch (e: Exception) { null }
+        } ?: run {
+            if (currentRelativePath.isEmpty()) {
+                Log.e(TAG, "Enumeration failure: listFiles() returned null for storage root: ${currentDir.absolutePath}")
+                throw IOException("Enumeration failure: listFiles() returned null for storage root: ${currentDir.absolutePath}")
+            }
+            Log.w(TAG, "Cannot list files in subdirectory: ${currentDir.absolutePath}")
+            return
+        }
 
         // Sort files for reproducible/deterministic traversal order
         val sortedFiles = files.sortedBy { it.name }
