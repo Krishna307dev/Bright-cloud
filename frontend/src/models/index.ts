@@ -5,3 +5,4 @@ export * from './folderRule';
 export * from './job';
 export * from './download';
 export * from './user';
+export * from './userActivity';

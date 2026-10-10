@@ -93,6 +93,27 @@ class StorageSourceFactory(private val context: Context) {
         )
 
         val VOLUME_UUID_REGEX = Regex("""(?i)(?:[^0-9a-z]|^)([0-9a-f]{4}-[0-9a-f]{4}|[0-9a-f]{16})(?:[^0-9a-z]|$)""")
+
+        @get:VisibleForTesting
+        @set:VisibleForTesting
+        var testStoragePermissionOverride: Boolean? = null
+
+        fun hasStoragePermission(context: Context): Boolean {
+            testStoragePermissionOverride?.let { return it }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                try {
+                    if (Environment.isExternalStorageManager()) return true
+                } catch (_: Throwable) {}
+            }
+            return try {
+                androidx.core.content.ContextCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.READ_EXTERNAL_STORAGE
+                ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            } catch (_: Throwable) {
+                false
+            }
+        }
     }
 
     fun createStorageSource(sourceId: String, customUri: Uri? = null): UsbStorageSource {
@@ -110,23 +131,13 @@ class StorageSourceFactory(private val context: Context) {
 
         val prefs = context.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE)
         val isDirectFileMode = prefs.getBoolean(MainActivity.KEY_DIRECT_FILE_MODE, false)
+        val hasPermission = hasStoragePermission(context)
 
-        // Check if MANAGE_EXTERNAL_STORAGE is active (API 30+)
-        val isExternalManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            try {
-                Environment.isExternalStorageManager()
-            } catch (t: Throwable) {
-                false
-            }
-        } else {
-            false
-        }
-
-        // 3. Direct File Mode with MANAGE_EXTERNAL_STORAGE or test environment
-        if (isDirectFileMode && isExternalManager) {
+        // 3. Direct File Mode with MANAGE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE, or directFileMode pref
+        if (hasPermission || isDirectFileMode) {
             val resolvedDirectory = resolveMountedVolumeDirectory(sourceId)
             if (resolvedDirectory != null && resolvedDirectory.exists() && resolvedDirectory.isDirectory && resolvedDirectory.canRead()) {
-                Log.i(TAG, "Resolved real mounted USB directory: ${resolvedDirectory.absolutePath} for sourceId=$sourceId")
+                Log.i(TAG, "Resolved real mounted USB directory: ${resolvedDirectory.absolutePath} for sourceId=$sourceId (hasPermission=$hasPermission, prefDirect=$isDirectFileMode)")
                 return DirectFileStorageSource(sourceId, "USB Drive $sourceId", resolvedDirectory)
             }
         }
@@ -236,6 +247,38 @@ class StorageSourceFactory(private val context: Context) {
             canonicalCandidates.add(File("/mnt/media_rw/$volumeUuid"))
         }
 
+        // 1c. Android Framework getExternalFilesDirs root extraction
+        if (testStorageVolumesProvider == null && testMountedStorageDirectoriesProvider == null) {
+            try {
+                val externalDirs = mutableListOf<File?>()
+                externalDirs.addAll(context.getExternalFilesDirs(null))
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    @Suppress("DEPRECATION")
+                    externalDirs.addAll(context.externalMediaDirs)
+                }
+                for (dir in externalDirs.filterNotNull()) {
+                    val path = dir.absolutePath
+                    if (!path.startsWith("/storage/emulated") && !path.startsWith("/data/")) {
+                        var current: File? = dir
+                        var reachedStorageRoot = false
+                        while (current != null && current.parentFile != null) {
+                            val parent = current.parentFile?.absolutePath
+                            if (parent == "/storage" || parent == "/mnt" || parent == "/mnt/media_rw") {
+                                reachedStorageRoot = true
+                                break
+                            }
+                            current = current.parentFile
+                        }
+                        if (reachedStorageRoot && current != null && current.exists() && current.isDirectory) {
+                            if (volumeUuid == null || current.name.equals(volumeUuid, ignoreCase = true) || sourceId.contains(current.name, ignoreCase = true)) {
+                                canonicalCandidates.add(current)
+                            }
+                        }
+                    }
+                }
+            } catch (_: Throwable) {}
+        }
+
         try {
             val volumes = testStorageVolumesProvider?.invoke(context) ?: run {
                 val sm = context.getSystemService(StorageManager::class.java)
@@ -273,7 +316,7 @@ class StorageSourceFactory(private val context: Context) {
         // Direct directory inspection under /storage
         try {
             val storageRoot = File("/storage")
-            if (storageRoot.exists() && storageRoot.isDirectory && storageRoot.canRead()) {
+            if (storageRoot.exists() && storageRoot.isDirectory) {
                 val children = storageRoot.listFiles()?.filter { f ->
                     f.isDirectory && f.canRead() &&
                     f.name != "emulated" && f.name != "self" && f.name != "knox-emulated" && f.name != "sdcard0"

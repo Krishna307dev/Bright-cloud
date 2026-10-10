@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
+import { ActivityService } from '../../services/firestore/activityService';
 import {
   Folder,
   Search,
@@ -61,6 +62,7 @@ export const FileExplorerPage: React.FC = () => {
   const { vaultId, isAdmin, user } = useAuth();
   const { sourceId: routeSourceId, '*': splatPath } = useParams<{ sourceId?: string; '*'?: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { downloadFile, isDownloading, errorModal, closeErrorModal } = useDownload();
   const toast = useToast();
 
@@ -356,6 +358,35 @@ export const FileExplorerPage: React.FC = () => {
       clearTimeout(clearTimer);
     };
   }, [highlightedFileId]);
+
+  // Check navigation state for cross-page highlight (e.g. from User Activity)
+  useEffect(() => {
+    const stateHighlight = (location.state as any)?.highlightFileId;
+    if (stateHighlight) {
+      setActiveTab('files');
+      setHighlightedFileId(stateHighlight);
+      try {
+        window.history.replaceState({}, document.title);
+      } catch {}
+    }
+  }, [location.state]);
+
+  const handleSelectAndOpenFile = useCallback((file: FileRecord) => {
+    setSelectedFile(file);
+    if (user?.uid && vaultId) {
+      ActivityService.logAccess({
+        userId: user.uid,
+        userDisplayName: user.displayName,
+        email: user.email,
+        vaultId,
+        sourceId: file.sourceId,
+        fileId: file.fileId,
+        fileName: file.storedName || file.originalName,
+        relativePath: file.relativePath || '',
+        action: 'open',
+      }).catch(() => {});
+    }
+  }, [user, vaultId]);
 
   const handleOpenInFolder = (file: FileRecord) => {
     setActiveTab('files');
@@ -1041,7 +1072,7 @@ export const FileExplorerPage: React.FC = () => {
                       } else if (!isRestricted) {
                         setPreviewFile(file);
                       } else {
-                        setSelectedFile(file);
+                        handleSelectAndOpenFile(file);
                       }
                     }}
                     className={`w-full min-h-[64px] py-3 px-3 rounded-xl border transition-colors flex items-center gap-3 cursor-pointer ${
@@ -1295,7 +1326,7 @@ export const FileExplorerPage: React.FC = () => {
                         key={file.fileId}
                         id={`file-row-${file.fileId}`}
                         {...dragProps}
-                        onClick={() => setSelectedFile(file)}
+                        onClick={() => handleSelectAndOpenFile(file)}
                         onDoubleClick={() => {
                           if (!isRestricted) setPreviewFile(file);
                         }}

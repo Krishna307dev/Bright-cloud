@@ -1,8 +1,11 @@
 import { useState, useCallback } from 'react';
 import { B2AuthorizerClient } from '../services/b2Authorizer';
 import { useToast } from '../components/ui/Toast';
+import { useAuth } from '../features/auth/AuthContext';
+import { ActivityService } from '../services/firestore/activityService';
 
 export function useDownload() {
+  const { user } = useAuth();
   const [downloadingFileId, setDownloadingFileId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [errorModal, setErrorModal] = useState<{ isOpen: boolean; title: string; message: string } | null>(null);
@@ -13,11 +16,26 @@ export function useDownload() {
   }, []);
 
   const downloadFile = useCallback(
-    async (vaultId: string, fileId: string, storedName: string) => {
+    async (vaultId: string, fileId: string, storedName: string, sourceId?: string, relativePath?: string) => {
       try {
         setDownloadingFileId(fileId);
         setError(null);
         toast.info(`Preparing secure download for ${storedName}...`);
+
+        // Fire-and-forget user activity log for download
+        if (user?.uid) {
+          ActivityService.logAccess({
+            userId: user.uid,
+            userDisplayName: user.displayName,
+            email: user.email,
+            vaultId,
+            sourceId: sourceId || '',
+            fileId,
+            fileName: storedName,
+            relativePath: relativePath || '',
+            action: 'download',
+          }).catch(() => {});
+        }
 
         await B2AuthorizerClient.triggerDownload(vaultId, fileId, storedName);
 

@@ -109,6 +109,19 @@ service cloud.firestore {
         allow delete: if isAdmin(vaultId);
       }
 
+      // 9. User Activity Access Logs:
+      // - Read: Admin only
+      // - Create: Admin or Authorized Friend logging own action
+      // - Update, Delete: Denied
+      match /userActivity/{activityId} {
+        allow read: if isAdmin(vaultId);
+        allow create: if (isAdmin(vaultId) || isAuthorizedFriend(vaultId)) &&
+                         isGoogleUser() &&
+                         request.resource.data.userId == request.auth.uid &&
+                         request.resource.data.action in ['preview', 'download', 'open'];
+        allow update, delete: if false;
+      }
+
     }
 
     // Approval Requests (top-level collection: approvalRequests/{userId})

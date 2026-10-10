@@ -56,7 +56,7 @@ export const FileInspector: React.FC<FileInspectorProps> = ({
 
   const handleDownload = () => {
     if (!vaultId || isRestrictedToUser) return;
-    downloadFile(vaultId, file.fileId, file.storedName);
+    downloadFile(vaultId, file.fileId, file.storedName, file.sourceId, file.relativePath);
   };
 
   // Close inspector on Escape key if no modal dialog is open on top

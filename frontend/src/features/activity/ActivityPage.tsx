@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   Activity,
   CheckCircle2,
@@ -19,11 +19,14 @@ import {
   ExternalLink,
   Layers,
   Database,
+  Users,
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { JobService } from '../../services/firestore/jobService';
 import { SourceService } from '../../services/firestore/sourceService';
-import type { BackupJob, ContentHashRecord, FileRecord, SourceEntity } from '../../models';
+import { VaultService } from '../../services/firestore/vaultService';
+import type { BackupJob, ContentHashRecord, FileRecord, SourceEntity, UserProfile } from '../../models';
+import { UserActivityTab } from './components/UserActivityTab';
 import { formatDate, formatBytes } from '../../utils/format';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
@@ -50,13 +53,40 @@ export const ActivityPage: React.FC = () => {
   const { vaultId, isAdmin } = useAuth();
   const toast = useToast();
 
+  // Page-level view mode: backup sessions vs user activity (admin-only)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const paramTab = searchParams.get('tab');
+  const [pageTab, setPageTab] = useState<'backup' | 'userActivity'>(
+    (paramTab === 'user' || paramTab === 'user-activity' || paramTab === 'userActivity') && isAdmin
+      ? 'userActivity'
+      : 'backup'
+  );
+
   const [jobs, setJobs] = useState<BackupJob[]>([]);
   const [sources, setSources] = useState<Map<string, SourceEntity>>(new Map());
   const [contentHashes, setContentHashes] = useState<ContentHashRecord[]>([]);
+  const [vaultUsers, setVaultUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dismissingId, setDismissingId] = useState<string | null>(null);
+
+  // Sync state if user loses admin privileges
+  useEffect(() => {
+    if (!isAdmin && pageTab === 'userActivity') {
+      setPageTab('backup');
+    }
+  }, [isAdmin, pageTab]);
+
+  const handleTabChange = (tab: 'backup' | 'userActivity') => {
+    if (tab === 'userActivity' && !isAdmin) return;
+    setPageTab(tab);
+    if (tab === 'userActivity') {
+      setSearchParams({ tab: 'user' });
+    } else {
+      setSearchParams({});
+    }
+  };
 
   // Filters & Search
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
@@ -85,6 +115,17 @@ export const ActivityPage: React.FC = () => {
     }
   }, [vaultId]);
 
+  // Load registered vault users for user activity dropdown and aggregation
+  const loadVaultUsers = useCallback(async () => {
+    if (!vaultId || !isAdmin) return;
+    try {
+      const list = await VaultService.listUsers(vaultId);
+      setVaultUsers(list);
+    } catch {
+      // Non-fatal fallback
+    }
+  }, [vaultId, isAdmin]);
+
   // Load content hashes
   const loadContentHashes = useCallback(async () => {
     if (!vaultId) return;
@@ -104,6 +145,9 @@ export const ActivityPage: React.FC = () => {
 
     loadSources();
     loadContentHashes();
+    if (isAdmin) {
+      loadVaultUsers();
+    }
 
     const unsubscribe = JobService.subscribeRecentJobs(
       vaultId,
@@ -120,13 +164,17 @@ export const ActivityPage: React.FC = () => {
     return () => {
       unsubscribe();
     };
-  }, [vaultId, loadSources, loadContentHashes]);
+  }, [vaultId, isAdmin, loadSources, loadContentHashes, loadVaultUsers]);
 
   const handleManualRefresh = async () => {
     if (!vaultId) return;
     try {
       setIsRefreshing(true);
-      await Promise.all([loadSources(), loadContentHashes()]);
+      await Promise.all([
+        loadSources(),
+        loadContentHashes(),
+        isAdmin ? loadVaultUsers() : Promise.resolve(),
+      ]);
       const list = await JobService.listRecentJobs(vaultId);
       setJobs(list);
       toast.success('Activity timeline updated');
@@ -348,20 +396,22 @@ export const ActivityPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#0A0A0A] p-4 sm:p-6 rounded-lg border border-slate-200 dark:border-[#242424]">
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 rounded-md bg-slate-100 dark:bg-[#181818] border border-slate-200 dark:border-[#242424] flex items-center justify-center text-slate-700 dark:text-[#E6E6E6] shrink-0">
-            <Activity className="w-5 h-5" />
+            {pageTab === 'userActivity' ? <Users className="w-5 h-5" /> : <Activity className="w-5 h-5" />}
           </div>
           <div>
             <h1 className="text-lg font-semibold text-slate-900 dark:text-[#E6E6E6] tracking-tight">
-              Ingest and backup timeline
+              {pageTab === 'userActivity' ? 'User access and audit log' : 'Ingest and backup timeline'}
             </h1>
             <p className="text-xs text-slate-500 dark:text-[#8A8A8A]">
-              Live telemetry and chronological history of backup jobs executed by daemon clients
+              {pageTab === 'userActivity'
+                ? 'Live audit records of file previews, downloads, and user access across all drives and collaborators'
+                : 'Live telemetry and chronological history of backup jobs executed by daemon clients'}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          {activeJobs.length > 0 && (
+          {pageTab === 'backup' && activeJobs.length > 0 && (
             <Badge variant="brand" size="sm" className="gap-1.5 border-sky-300 dark:border-sky-800 text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/30">
               <Loader2 className="w-3 h-3 animate-spin text-sky-600 dark:text-sky-400" />
               {activeJobs.length} active session{activeJobs.length > 1 ? 's' : ''}
@@ -382,7 +432,45 @@ export const ActivityPage: React.FC = () => {
         </div>
       </div>
 
-      {/* KPI Overview Metrics */}
+      {/* Top Navigation Tabs: Backup sessions vs User Activity (Admin Only) */}
+      {isAdmin && (
+        <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#111111] p-1 rounded-md border border-slate-200 dark:border-[#242424] w-fit">
+          <button
+            type="button"
+            onClick={() => handleTabChange('backup')}
+            className={`min-h-[36px] px-3.5 py-1.5 text-xs rounded font-medium flex items-center gap-2 transition-colors ${
+              pageTab === 'backup'
+                ? 'bg-white dark:bg-[#1F1F1F] text-slate-900 dark:text-[#E6E6E6] shadow-sm'
+                : 'text-slate-600 dark:text-[#8A8A8A] hover:text-slate-900 dark:hover:text-[#E6E6E6]'
+            }`}
+          >
+            <Activity className="w-3.5 h-3.5" />
+            <span>Backup sessions</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange('userActivity')}
+            className={`min-h-[36px] px-3.5 py-1.5 text-xs rounded font-medium flex items-center gap-2 transition-colors ${
+              pageTab === 'userActivity'
+                ? 'bg-white dark:bg-[#1F1F1F] text-slate-900 dark:text-[#E6E6E6] shadow-sm'
+                : 'text-slate-600 dark:text-[#8A8A8A] hover:text-slate-900 dark:hover:text-[#E6E6E6]'
+            }`}
+          >
+            <Users className="w-3.5 h-3.5" />
+            <span>User Activity</span>
+          </button>
+        </div>
+      )}
+
+      {pageTab === 'userActivity' && isAdmin ? (
+        <UserActivityTab
+          vaultId={vaultId || 'default'}
+          users={vaultUsers}
+          sources={sources}
+        />
+      ) : (
+        <>
+          {/* KPI Overview Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-[#0A0A0A] p-4 rounded-lg border border-slate-200 dark:border-[#242424]">
           <span className="text-xs text-slate-500 dark:text-[#8A8A8A] block font-medium">
@@ -914,6 +1002,8 @@ export const ActivityPage: React.FC = () => {
             );
           })}
         </div>
+      )}
+        </>
       )}
     </div>
   );

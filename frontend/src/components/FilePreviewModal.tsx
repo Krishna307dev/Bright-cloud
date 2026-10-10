@@ -6,6 +6,8 @@ import { getFileCategory, isTextual, type FileCategory } from '../utils/fileType
 import { formatBytes, formatDate } from '../utils/format';
 import { FileIcon } from './ui/FileIcon';
 import { Button } from './ui/Button';
+import { useAuth } from '../features/auth/AuthContext';
+import { ActivityService } from '../services/firestore/activityService';
 
 interface FilePreviewModalProps {
   isOpen: boolean;
@@ -20,6 +22,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   file,
   vaultId,
 }) => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +69,21 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
         const authData = await B2AuthorizerClient.requestDownloadAuthorization(vaultId, file.fileId);
         if (!isMounted) return;
         setPreviewUrl(authData.downloadUrl);
+
+        // Fire-and-forget user activity log for preview
+        if (user?.uid) {
+          ActivityService.logAccess({
+            userId: user.uid,
+            userDisplayName: user.displayName,
+            email: user.email,
+            vaultId,
+            sourceId: file.sourceId,
+            fileId: file.fileId,
+            fileName: file.storedName || file.originalName,
+            relativePath: file.relativePath || '',
+            action: 'preview',
+          }).catch(() => {});
+        }
 
         const category = getFileCategory(file.storedName || file.originalName, file.mimeType);
         if (isTextual(category, file.originalName)) {
@@ -296,6 +314,22 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   const handleDownload = async () => {
     try {
       setDownloading(true);
+
+      // Fire-and-forget user activity log for download
+      if (user?.uid) {
+        ActivityService.logAccess({
+          userId: user.uid,
+          userDisplayName: user.displayName,
+          email: user.email,
+          vaultId,
+          sourceId: file.sourceId,
+          fileId: file.fileId,
+          fileName: file.storedName || file.originalName,
+          relativePath: file.relativePath || '',
+          action: 'download',
+        }).catch(() => {});
+      }
+
       await B2AuthorizerClient.triggerDownload(
         vaultId,
         file.fileId,

@@ -515,16 +515,39 @@ object SourceIdResolver {
             Log.w(TAG, "Failed inspecting StorageVolumes: ${e.message}")
         }
 
-        // Direct directory inspection under /storage
+        // Direct directory inspection under /storage and framework external dirs
         try {
             val candidateDirs = testMountedStorageDirectoriesProvider?.invoke(context) ?: run {
+                val dirs = mutableListOf<File>()
                 val storageRoot = File("/storage")
-                if (storageRoot.exists() && storageRoot.isDirectory && storageRoot.canRead()) {
+                if (storageRoot.exists() && storageRoot.isDirectory) {
                     storageRoot.listFiles()?.filter { f ->
                         f.isDirectory && f.canRead() &&
                                 f.name != "emulated" && f.name != "self" && f.name != "knox-emulated" && f.name != "sdcard0"
-                    } ?: emptyList()
-                } else emptyList()
+                    }?.let { dirs.addAll(it) }
+                }
+                try {
+                    val externalDirs = context.getExternalFilesDirs(null)
+                    for (dir in externalDirs.filterNotNull()) {
+                        val path = dir.absolutePath
+                        if (!path.startsWith("/storage/emulated") && !path.startsWith("/data/")) {
+                            var current: File? = dir
+                            var reachedStorageRoot = false
+                            while (current != null && current.parentFile != null) {
+                                val parent = current.parentFile?.absolutePath
+                                if (parent == "/storage" || parent == "/mnt" || parent == "/mnt/media_rw") {
+                                    reachedStorageRoot = true
+                                    break
+                                }
+                                current = current.parentFile
+                            }
+                            if (reachedStorageRoot && current != null && current.exists() && current.isDirectory) {
+                                dirs.add(current)
+                            }
+                        }
+                    }
+                } catch (_: Throwable) {}
+                dirs
             }
 
             for (dir in candidateDirs) {
@@ -570,16 +593,39 @@ object SourceIdResolver {
             Log.w(TAG, "Failed inspecting StorageVolumes: ${e.message}")
         }
 
-        // Direct directory inspection under /storage
+        // Direct directory inspection under /storage and framework external dirs
         try {
             val candidateDirs = testMountedStorageDirectoriesProvider?.invoke(context) ?: run {
+                val dirs = mutableListOf<File>()
                 val storageRoot = File("/storage")
                 if (storageRoot.exists() && storageRoot.isDirectory) {
                     storageRoot.listFiles()?.filter { f ->
                         f.isDirectory &&
                                 f.name != "emulated" && f.name != "self" && f.name != "knox-emulated" && f.name != "sdcard0"
-                    } ?: emptyList()
-                } else emptyList()
+                    }?.let { dirs.addAll(it) }
+                }
+                try {
+                    val externalDirs = context.getExternalFilesDirs(null)
+                    for (dir in externalDirs.filterNotNull()) {
+                        val path = dir.absolutePath
+                        if (!path.startsWith("/storage/emulated") && !path.startsWith("/data/")) {
+                            var current: File? = dir
+                            var reachedStorageRoot = false
+                            while (current != null && current.parentFile != null) {
+                                val parent = current.parentFile?.absolutePath
+                                if (parent == "/storage" || parent == "/mnt" || parent == "/mnt/media_rw") {
+                                    reachedStorageRoot = true
+                                    break
+                                }
+                                current = current.parentFile
+                            }
+                            if (reachedStorageRoot && current != null && current.exists() && current.isDirectory) {
+                                dirs.add(current)
+                            }
+                        }
+                    }
+                } catch (_: Throwable) {}
+                dirs
             }
 
             for (dir in candidateDirs) {

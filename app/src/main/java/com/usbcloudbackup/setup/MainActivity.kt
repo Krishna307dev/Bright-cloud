@@ -260,7 +260,20 @@ class MainActivity : Activity() {
         val sourceIdFromIntent = resolveSourceIdFromIntent(intent)
 
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        if (prefs.getBoolean(KEY_SETUP_COMPLETE, false)) {
+        val isSetupComplete = prefs.getBoolean(KEY_SETUP_COMPLETE, false)
+
+        if (isSetupComplete) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                val isManager = isExternalStorageManager()
+                if (isManager && !prefs.getBoolean(KEY_DIRECT_FILE_MODE, false)) {
+                    prefs.edit()
+                        .putBoolean(KEY_DIRECT_FILE_MODE, true)
+                        .putString(KEY_STORAGE_MODE, "DIRECT_FILE")
+                        .apply()
+                    Log.i(TAG, "Upgraded existing setup to Direct File mode because MANAGE_EXTERNAL_STORAGE is active.")
+                }
+            }
+
             val attachedDevice = getUsbDeviceFromIntent(intent) ?: SourceIdResolver.findMassStorageDevice(this)
             if (isUsbAttach || isResume || attachedDevice != null) {
                 val resolvedSourceId = sourceIdFromIntent ?: SourceIdResolver.resolveMountedCanonicalSourceId(this, attachedDevice)
@@ -448,14 +461,35 @@ class MainActivity : Activity() {
             Log.i(TAG, "Notification permission result received.")
             checkStoragePermission()
             return
+        } else if (requestCode == REQUEST_CODE_STORAGE_SETTINGS) {
+            val isGranted = testStoragePermissionChecker?.invoke(this)
+                ?: (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+            Log.i(TAG, "Storage permission result received. isGranted=$isGranted")
+            if (isGranted) {
+                completeSetup(directFileMode = true)
+            } else {
+                showStoragePermissionPrompt()
+            }
+            return
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
+    private fun isExternalStorageManager(): Boolean {
+        testStoragePermissionChecker?.invoke(this)?.let { return it }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return try {
+                Environment.isExternalStorageManager()
+            } catch (_: Throwable) {
+                false
+            }
+        }
+        return false
+    }
+
     private fun checkStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val isManager = testStoragePermissionChecker?.invoke(this)
-                ?: Environment.isExternalStorageManager()
+            val isManager = isExternalStorageManager()
 
             if (isManager) {
                 Log.i(TAG, "MANAGE_EXTERNAL_STORAGE is granted. Enabling Direct File mode.")
@@ -464,8 +498,8 @@ class MainActivity : Activity() {
                 showStoragePermissionPrompt()
             }
         } else {
-            // Android 10 (API 29) uses SAF fallback mode
-            Log.i(TAG, "Android API 29 detected. Defaulting to SAF mode.")
+            // Android 10 (API 29) and below uses SAF fallback mode
+            Log.i(TAG, "Android API 29 or below detected. Defaulting to SAF mode.")
             completeSetup(directFileMode = false)
         }
     }
@@ -478,8 +512,8 @@ class MainActivity : Activity() {
     }
 
     private fun launchStorageSettings() {
+        isAwaitingStorageSettings = true
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            isAwaitingStorageSettings = true
             try {
                 val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
                     data = Uri.parse("package:$packageName")
@@ -491,27 +525,53 @@ class MainActivity : Activity() {
                     val fallbackIntent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
                     startActivityForResult(fallbackIntent, REQUEST_CODE_STORAGE_SETTINGS)
                 } catch (e2: Exception) {
-                    Log.e(TAG, "Failed to launch all-files settings: ${e2.message}", e2)
-                    showError("Could not open system settings. You can continue with SAF mode.")
-                    btnContinueSaf?.visibility = View.VISIBLE
+                    try {
+                        val appDetailsIntent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.parse("package:$packageName")
+                        }
+                        startActivityForResult(appDetailsIntent, REQUEST_CODE_STORAGE_SETTINGS)
+                    } catch (e3: Exception) {
+                        Log.e(TAG, "Failed to launch storage settings: ${e3.message}", e3)
+                        showError("Could not open system settings. You can continue with SAF mode.")
+                        btnContinueSaf?.visibility = View.VISIBLE
+                    }
                 }
             }
+        } else {
+            // Android <= 10 (API <= 29): Request standard runtime storage permissions directly
+            requestPermissions(
+                arrayOf(
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                ),
+                REQUEST_CODE_STORAGE_SETTINGS
+            )
         }
     }
 
     override fun onResume() {
         super.onResume()
-        if (isAwaitingStorageSettings && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            isAwaitingStorageSettings = false
-            val isManager = testStoragePermissionChecker?.invoke(this)
-                ?: Environment.isExternalStorageManager()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val isManager = isExternalStorageManager()
 
-            if (isManager) {
-                Log.i(TAG, "Returned from Settings: MANAGE_EXTERNAL_STORAGE granted.")
-                completeSetup(directFileMode = true)
-            } else {
-                Log.i(TAG, "Returned from Settings: MANAGE_EXTERNAL_STORAGE not granted.")
-                showStoragePermissionPrompt()
+            if (isAwaitingStorageSettings) {
+                isAwaitingStorageSettings = false
+                if (isManager) {
+                    Log.i(TAG, "Returned from Settings: MANAGE_EXTERNAL_STORAGE granted.")
+                    completeSetup(directFileMode = true)
+                } else {
+                    Log.i(TAG, "Returned from Settings: MANAGE_EXTERNAL_STORAGE not granted.")
+                    showStoragePermissionPrompt()
+                }
+            } else if (isManager) {
+                val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                if (!prefs.getBoolean(KEY_DIRECT_FILE_MODE, false)) {
+                    prefs.edit()
+                        .putBoolean(KEY_DIRECT_FILE_MODE, true)
+                        .putString(KEY_STORAGE_MODE, "DIRECT_FILE")
+                        .apply()
+                    Log.i(TAG, "onResume: MANAGE_EXTERNAL_STORAGE detected. Upgraded to Direct File mode.")
+                }
             }
         }
     }
@@ -520,8 +580,7 @@ class MainActivity : Activity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_CODE_STORAGE_SETTINGS && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             isAwaitingStorageSettings = false
-            val isManager = testStoragePermissionChecker?.invoke(this)
-                ?: Environment.isExternalStorageManager()
+            val isManager = isExternalStorageManager()
 
             if (isManager) {
                 Log.i(TAG, "onActivityResult: MANAGE_EXTERNAL_STORAGE granted.")
