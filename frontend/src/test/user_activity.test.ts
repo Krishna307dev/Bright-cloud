@@ -477,10 +477,16 @@ describe('User Activity Audit System', () => {
       },
       {
         uid: 'u-inactive',
-        displayName: 'Never Active User',
+        displayName: 'Historical Login User',
         email: 'inactive@vault.local',
         role: 'friend',
         lastLogin: new Date('2026-09-01T00:00:00Z'),
+      },
+      {
+        uid: 'u-never',
+        displayName: 'Never Logged In User',
+        email: 'never@vault.local',
+        role: 'friend',
       },
     ];
 
@@ -513,10 +519,10 @@ describe('User Activity Audit System', () => {
       },
     ];
 
-    it('merges all vault users and lists inactive users with 0 events and No activity yet state', () => {
+    it('merges all vault users and preserves historical lastLogin while listing 0 file actions', () => {
       const records = computeUserSummaries(vaultUsers, events);
 
-      expect(records).toHaveLength(2);
+      expect(records).toHaveLength(3);
 
       const activeRecord = records.find((r) => r.uid === 'u-active');
       expect(activeRecord).toBeDefined();
@@ -530,14 +536,22 @@ describe('User Activity Audit System', () => {
       expect(inactiveRecord!.totalCount).toBe(0);
       expect(inactiveRecord!.previewCount).toBe(0);
       expect(inactiveRecord!.downloadCount).toBe(0);
-      expect(inactiveRecord!.lastActive).toBeNull();
+      expect(inactiveRecord!.lastActive).toEqual(new Date('2026-09-01T00:00:00Z'));
+      expect(inactiveRecord!.lastLogin).toEqual(new Date('2026-09-01T00:00:00Z'));
       expect(inactiveRecord!.recentEvents).toHaveLength(0);
+
+      const neverRecord = records.find((r) => r.uid === 'u-never');
+      expect(neverRecord).toBeDefined();
+      expect(neverRecord!.totalCount).toBe(0);
+      expect(neverRecord!.lastActive).toBeNull();
+      expect(neverRecord!.lastLogin).toBeNull();
     });
 
-    it('sorts active users first, followed by inactive users', () => {
+    it('sorts active users first, followed by historical logins and users with no activity', () => {
       const records = computeUserSummaries(vaultUsers, events);
       expect(records[0].uid).toBe('u-active');
       expect(records[1].uid).toBe('u-inactive');
+      expect(records[2].uid).toBe('u-never');
     });
   });
 

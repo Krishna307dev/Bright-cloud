@@ -84,6 +84,10 @@ export const UserActivityTable: React.FC<UserActivityTableProps> = ({
   const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
 
   const handleOpenInFolder = (event: UserActivityEvent) => {
+    if (event.sourceId === 'system') {
+      navigate('/users');
+      return;
+    }
     const cleanPath = (event.relativePath || '').replace(/^\/+|\/+$/g, '');
     const driveRoute = event.sourceId ? `/files/${event.sourceId}/${cleanPath}` : '/files';
     navigate(driveRoute, {
@@ -128,7 +132,7 @@ export const UserActivityTable: React.FC<UserActivityTableProps> = ({
                 {dayGroup.events.map((event) => {
                   const isExpanded = expandedEventId === event.id;
                   const source = sourcesMap.get(event.sourceId);
-                  const driveName = source?.displayName || event.sourceId || 'Unknown Drive';
+                  const driveName = event.sourceId === 'system' ? 'System' : (source?.displayName || event.sourceId || 'Unknown Drive');
                   const initial = (event.userDisplayName || event.email || 'U')[0].toUpperCase();
 
                   return (
@@ -258,7 +262,7 @@ export const UserActivityTable: React.FC<UserActivityTableProps> = ({
                                   }}
                                   className="h-8 gap-1.5 text-xs text-slate-800 dark:text-[#E6E6E6]"
                                 >
-                                  <span>Open in folder</span>
+                                  <span>{event.sourceId === 'system' ? 'Manage user profile' : 'Open in folder'}</span>
                                   <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
                                 </Button>
                               </div>
@@ -278,7 +282,7 @@ export const UserActivityTable: React.FC<UserActivityTableProps> = ({
             {dayGroup.events.map((event) => {
               const isExpanded = expandedEventId === event.id;
               const source = sourcesMap.get(event.sourceId);
-              const driveName = source?.displayName || event.sourceId || 'Drive';
+              const driveName = event.sourceId === 'system' ? 'System' : (source?.displayName || event.sourceId || 'Drive');
               const initial = (event.userDisplayName || event.email || 'U')[0].toUpperCase();
 
               return (
@@ -354,7 +358,7 @@ export const UserActivityTable: React.FC<UserActivityTableProps> = ({
                           }}
                           className="w-full min-h-[44px] justify-center gap-1.5 text-xs text-slate-800 dark:text-[#E6E6E6]"
                         >
-                          <span>Open in folder</span>
+                          <span>{event.sourceId === 'system' ? 'Manage user profile' : 'Open in folder'}</span>
                           <ExternalLink className="w-4 h-4 text-slate-500" />
                         </Button>
                       </div>

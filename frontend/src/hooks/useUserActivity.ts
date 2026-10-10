@@ -130,8 +130,9 @@ export function computeActivitySummary(events: UserActivityEvent[]): UserActivit
 
   for (const e of events) {
     if (e.userId) activeUserSet.add(e.userId);
-    const key = e.fileName || e.fileId;
-    if (key) {
+    // Only count actual drive files for most accessed file stat (ignore system auth sessions)
+    if (e.sourceId !== 'system' && (e.fileName || e.fileId)) {
+      const key = e.fileName || e.fileId;
       fileCounts.set(key, (fileCounts.get(key) || 0) + 1);
     }
   }
@@ -156,7 +157,7 @@ export function computeUserSummaries(
 ): UserSummaryRecord[] {
   const userMap = new Map<string, UserSummaryRecord>();
 
-  // Initialize with all registered vault users
+  // Initialize with all registered vault users using their authentic profile timestamps
   for (const u of allUsers) {
     userMap.set(u.uid, {
       uid: u.uid,
@@ -164,7 +165,9 @@ export function computeUserSummaries(
       email: u.email || '',
       photoURL: u.photoURL,
       role: u.role,
-      lastActive: null,
+      lastActive: u.lastLogin || u.createdAt || null,
+      lastLogin: u.lastLogin || null,
+      createdAt: u.createdAt || null,
       previewCount: 0,
       downloadCount: 0,
       openCount: 0,
@@ -183,6 +186,8 @@ export function computeUserSummaries(
         displayName: e.userDisplayName || e.email?.split('@')[0] || 'User',
         email: e.email || '',
         lastActive: null,
+        lastLogin: null,
+        createdAt: null,
         previewCount: 0,
         downloadCount: 0,
         openCount: 0,
@@ -299,10 +304,62 @@ export function useUserActivity(vaultId: string | null, allVaultUsers: UserProfi
     setFilters((prev) => ({ ...prev, [key]: value }));
   }, []);
 
+  // Combine recorded Firestore userActivity events with historical user baseline events (sign-ins and registrations)
+  const combinedEvents = useMemo(() => {
+    const syntheticEvents: UserActivityEvent[] = [];
+    const recordedIds = new Set(events.map((e) => e.id));
+
+    // For each vault user, generate their baseline historical activity from user profile
+    for (const u of allVaultUsers) {
+      if (u.lastLogin) {
+        const loginId = `login-${u.uid}`;
+        if (!recordedIds.has(loginId)) {
+          syntheticEvents.push({
+            id: loginId,
+            userId: u.uid,
+            userDisplayName: u.displayName || u.email?.split('@')[0] || 'User',
+            email: u.email || '',
+            vaultId: vaultId || 'default',
+            sourceId: 'system',
+            fileId: `session-${u.uid}`,
+            fileName: 'Google Sign-in session',
+            relativePath: 'Authentication',
+            action: 'open',
+            createdAt: u.lastLogin,
+            device: 'Google Authenticated Client',
+          });
+        }
+      }
+
+      if (u.createdAt && (!u.lastLogin || Math.abs(u.createdAt.getTime() - u.lastLogin.getTime()) > 60000)) {
+        const joinId = `join-${u.uid}`;
+        if (!recordedIds.has(joinId)) {
+          syntheticEvents.push({
+            id: joinId,
+            userId: u.uid,
+            userDisplayName: u.displayName || u.email?.split('@')[0] || 'User',
+            email: u.email || '',
+            vaultId: vaultId || 'default',
+            sourceId: 'system',
+            fileId: `whitelist-${u.uid}`,
+            fileName: u.role === 'admin' ? 'Vault Administrator whitelisted' : 'Collaborator joined whitelist',
+            relativePath: 'Vault Membership',
+            action: 'open',
+            createdAt: u.createdAt,
+            device: 'Access Control Whitelist',
+          });
+        }
+      }
+    }
+
+    // Merge and sort newest first
+    return [...events, ...syntheticEvents].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }, [events, allVaultUsers, vaultId]);
+
   // Filtered list of events
   const filteredEvents = useMemo(() => {
-    return filterEvents(events, filters);
-  }, [events, filters]);
+    return filterEvents(combinedEvents, filters);
+  }, [combinedEvents, filters]);
 
   // Grouped by day
   const groupedEvents = useMemo(() => {
@@ -320,7 +377,7 @@ export function useUserActivity(vaultId: string | null, allVaultUsers: UserProfi
   }, [allVaultUsers, filteredEvents]);
 
   return {
-    events,
+    events: combinedEvents,
     filteredEvents,
     groupedEvents,
     summary,

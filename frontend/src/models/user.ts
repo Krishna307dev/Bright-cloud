@@ -5,7 +5,7 @@ export interface UserProfile {
   email: string;
   displayName: string;
   photoURL?: string;
-  lastLogin: Date;
+  lastLogin?: Date;
   role: UserRole;
   createdAt?: Date;
 }

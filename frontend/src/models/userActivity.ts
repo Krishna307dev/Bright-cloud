@@ -51,6 +51,8 @@ export interface UserSummaryRecord {
   photoURL?: string;
   role?: string;
   lastActive: Date | null;
+  lastLogin?: Date | null;
+  createdAt?: Date | null;
   previewCount: number;
   downloadCount: number;
   openCount: number;

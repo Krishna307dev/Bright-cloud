@@ -7,6 +7,7 @@ import {
 } from 'firebase/auth';
 import { auth, googleProvider, VAULT_ID } from '../../services/firebase';
 import { VaultService } from '../../services/firestore/vaultService';
+import { ActivityService } from '../../services/firestore/activityService';
 import { B2AuthorizerClient } from '../../services/b2Authorizer';
 import type { AuthStateCategory } from '../../utils/error';
 
@@ -51,6 +52,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         displayName: user.displayName || undefined,
         photoURL: user.photoURL || undefined,
       }).catch(() => {});
+
+      // Record sign-in session activity for authorized members
+      if (state === 'AUTHENTICATED_ADMIN' || state === 'AUTHENTICATED_FRIEND') {
+        ActivityService.logAccess({
+          vaultId: VAULT_ID,
+          userId: user.uid,
+          userDisplayName: user.displayName || user.email?.split('@')[0] || 'User',
+          email: user.email || '',
+          sourceId: 'system',
+          fileId: `session-${user.uid}`,
+          fileName: 'Google Sign-in session',
+          relativePath: 'Authentication',
+          action: 'open',
+        }).catch(() => {});
+      }
 
       startTransition(() => {
         setAuthState(state);
