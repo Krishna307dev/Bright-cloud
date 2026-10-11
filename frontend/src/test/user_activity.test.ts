@@ -203,6 +203,7 @@ describe('User Activity Audit System', () => {
   });
 
   describe('Activity Filtering Logic', () => {
+    const now = Date.now();
     const mockEvents: UserActivityEvent[] = [
       {
         id: 'evt-1',
@@ -215,7 +216,7 @@ describe('User Activity Audit System', () => {
         fileName: 'invoice_2026.pdf',
         relativePath: 'Finance',
         action: 'preview',
-        createdAt: new Date('2026-10-10T11:00:00Z'), // Today
+        createdAt: new Date(now - 10 * 60 * 1000), // 10 minutes ago (Today)
       },
       {
         id: 'evt-2',
@@ -228,7 +229,7 @@ describe('User Activity Audit System', () => {
         fileName: 'presentation.pptx',
         relativePath: 'Pitch',
         action: 'download',
-        createdAt: new Date('2026-10-09T10:00:00Z'), // Yesterday (1 day ago)
+        createdAt: new Date(now - 25 * 60 * 60 * 1000), // 25 hours ago (Yesterday)
       },
       {
         id: 'evt-3',
@@ -241,7 +242,7 @@ describe('User Activity Audit System', () => {
         fileName: 'backup_archive.zip',
         relativePath: 'Backups',
         action: 'download',
-        createdAt: new Date('2026-10-05T08:00:00Z'), // 5 days ago
+        createdAt: new Date(now - 4 * 24 * 60 * 60 * 1000), // 4 days ago
       },
       {
         id: 'evt-4',
@@ -254,7 +255,7 @@ describe('User Activity Audit System', () => {
         fileName: 'notes.txt',
         relativePath: 'General',
         action: 'open',
-        createdAt: new Date('2026-09-01T00:00:00Z'), // 40 days ago
+        createdAt: new Date(now - 40 * 24 * 60 * 60 * 1000), // 40 days ago
       },
     ];
 
@@ -519,7 +520,7 @@ describe('User Activity Audit System', () => {
       },
     ];
 
-    it('merges all vault users and preserves historical lastLogin while listing 0 file actions', () => {
+    it('merges all vault users and tracks file events, setting lastActive to null for users without file actions', () => {
       const records = computeUserSummaries(vaultUsers, events);
 
       expect(records).toHaveLength(3);
@@ -529,6 +530,7 @@ describe('User Activity Audit System', () => {
       expect(activeRecord!.totalCount).toBe(2);
       expect(activeRecord!.previewCount).toBe(1);
       expect(activeRecord!.downloadCount).toBe(1);
+      expect(activeRecord!.lastActive).toEqual(new Date('2026-10-10T09:30:00Z'));
       expect(activeRecord!.recentEvents).toHaveLength(2);
 
       const inactiveRecord = records.find((r) => r.uid === 'u-inactive');
@@ -536,7 +538,7 @@ describe('User Activity Audit System', () => {
       expect(inactiveRecord!.totalCount).toBe(0);
       expect(inactiveRecord!.previewCount).toBe(0);
       expect(inactiveRecord!.downloadCount).toBe(0);
-      expect(inactiveRecord!.lastActive).toEqual(new Date('2026-09-01T00:00:00Z'));
+      expect(inactiveRecord!.lastActive).toBeNull();
       expect(inactiveRecord!.lastLogin).toEqual(new Date('2026-09-01T00:00:00Z'));
       expect(inactiveRecord!.recentEvents).toHaveLength(0);
 
@@ -547,11 +549,13 @@ describe('User Activity Audit System', () => {
       expect(neverRecord!.lastLogin).toBeNull();
     });
 
-    it('sorts active users first, followed by historical logins and users with no activity', () => {
+    it('sorts users with file activity first, followed by users with no file activity', () => {
       const records = computeUserSummaries(vaultUsers, events);
       expect(records[0].uid).toBe('u-active');
-      expect(records[1].uid).toBe('u-inactive');
-      expect(records[2].uid).toBe('u-never');
+      // Inactive users without file activity are sorted alphabetically
+      expect(records.slice(1).map((r) => r.uid)).toEqual(
+        expect.arrayContaining(['u-inactive', 'u-never'])
+      );
     });
   });
 

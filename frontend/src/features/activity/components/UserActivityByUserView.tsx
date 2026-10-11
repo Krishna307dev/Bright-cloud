@@ -159,49 +159,20 @@ export const UserActivityByUserView: React.FC<UserActivityByUserViewProps> = ({
                     </td>
                   </tr>
 
-                  {/* Expandable Accordion with User's Historical Details & Recent Activity */}
+                  {/* Expandable Accordion with User's Recent File Activity */}
                   {isExpanded && (
                     <tr className="bg-slate-50/50 dark:bg-[#141414] border-b border-slate-200 dark:border-[#222222]">
                       <td colSpan={7} className="p-4">
                         <div className="space-y-3">
-                          {/* User Profile & Whitelist History */}
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 rounded-md bg-white dark:bg-[#0E0E0E] border border-slate-200 dark:border-[#222222] text-xs">
-                            <div>
-                              <span className="text-[10px] text-slate-400 dark:text-[#777777] block font-medium uppercase tracking-wider">
-                                Account Access
-                              </span>
-                              <span className="font-medium text-slate-800 dark:text-[#CCCCCC]">
-                                {record.role === 'admin' ? 'Vault Administrator' : 'Authorized Collaborator'}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-[10px] text-slate-400 dark:text-[#777777] block font-medium uppercase tracking-wider">
-                                Member Since
-                              </span>
-                              <span className="font-mono text-slate-800 dark:text-[#CCCCCC]">
-                                {record.createdAt ? record.createdAt.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Initial setup'}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-[10px] text-slate-400 dark:text-[#777777] block font-medium uppercase tracking-wider">
-                                Last Sign-in Session
-                              </span>
-                              <span className="font-mono text-slate-800 dark:text-[#CCCCCC]">
-                                {record.lastLogin ? `${formatRelativeTime(record.lastLogin)} (${record.lastLogin.toLocaleDateString()})` : 'Never'}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Recent Activity / File Access */}
                           {record.recentEvents.length > 0 ? (
                             <div className="space-y-2">
                               <span className="text-[11px] font-semibold text-slate-600 dark:text-[#AAAAAA] uppercase tracking-wider block">
-                                Activity History ({record.recentEvents.length})
+                                Recent Files Accessed ({record.recentEvents.length})
                               </span>
                               <div className="divide-y divide-slate-100 dark:divide-[#1F1F1F] rounded-md border border-slate-200 dark:border-[#222222] bg-white dark:bg-[#0C0C0C] overflow-hidden">
                                 {record.recentEvents.map((evt) => {
                                   const src = sourcesMap.get(evt.sourceId);
-                                  const driveName = evt.sourceId === 'system' ? 'System' : (src?.displayName || evt.sourceId || 'Drive');
+                                  const driveName = src?.displayName || evt.sourceId || 'Drive';
                                   return (
                                     <div
                                       key={evt.id}
@@ -234,17 +205,15 @@ export const UserActivityByUserView: React.FC<UserActivityByUserViewProps> = ({
                                         >
                                           {formatRelativeTime(evt.createdAt)}
                                         </span>
-                                        {evt.sourceId !== 'system' && (
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleOpenInFolder(evt)}
-                                            className="h-7 w-7 p-0 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-[#E6E6E6]"
-                                            title="Open in folder"
-                                          >
-                                            <ExternalLink className="w-3.5 h-3.5" />
-                                          </Button>
-                                        )}
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => handleOpenInFolder(evt)}
+                                          className="h-7 w-7 p-0 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-[#E6E6E6]"
+                                          title="Open in folder"
+                                        >
+                                          <ExternalLink className="w-3.5 h-3.5" />
+                                        </Button>
                                       </div>
                                     </div>
                                   );
@@ -253,7 +222,7 @@ export const UserActivityByUserView: React.FC<UserActivityByUserViewProps> = ({
                             </div>
                           ) : (
                             <div className="text-center py-3 text-xs text-slate-500 dark:text-[#777777]">
-                              No file preview or download records since access logging was enabled. User is verified and active in this vault.
+                              No file preview or download records yet. This user has not accessed files on the website.
                             </div>
                           )}
                         </div>
@@ -334,32 +303,10 @@ export const UserActivityByUserView: React.FC<UserActivityByUserViewProps> = ({
               {/* Mobile Expanded List */}
               {isExpanded && (
                 <div className="pt-3 mt-3 border-t border-slate-100 dark:border-[#1E1E1E] space-y-3 animate-fadeIn">
-                  {/* Profile & Whitelist History */}
-                  <div className="space-y-1.5 p-2.5 rounded bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-[#1E1E1E] text-xs">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[10px] text-slate-400 dark:text-[#777777] uppercase font-medium">Account Access</span>
-                      <span className="font-medium text-slate-800 dark:text-[#CCCCCC]">
-                        {record.role === 'admin' ? 'Vault Administrator' : 'Authorized Collaborator'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-[10px] text-slate-400 dark:text-[#777777] uppercase font-medium">Member Since</span>
-                      <span className="font-mono text-[11px] text-slate-800 dark:text-[#CCCCCC]">
-                        {record.createdAt ? record.createdAt.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Initial setup'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-[10px] text-slate-400 dark:text-[#777777] uppercase font-medium">Last Sign-in</span>
-                      <span className="font-mono text-[11px] text-slate-800 dark:text-[#CCCCCC]">
-                        {record.lastLogin ? `${formatRelativeTime(record.lastLogin)} (${record.lastLogin.toLocaleDateString()})` : 'Never'}
-                      </span>
-                    </div>
-                  </div>
-
                   {record.recentEvents.length > 0 ? (
                     <div className="space-y-2">
                       <span className="text-[11px] font-semibold text-slate-500 dark:text-[#888888] uppercase tracking-wider block">
-                        Recent Activity ({record.recentEvents.length})
+                        Recent Files ({record.recentEvents.length})
                       </span>
                       <div className="divide-y divide-slate-100 dark:divide-[#1C1C1C]">
                         {record.recentEvents.map((evt) => (
@@ -377,20 +324,18 @@ export const UserActivityByUserView: React.FC<UserActivityByUserViewProps> = ({
                             </div>
                             <div className="flex items-center gap-1.5 shrink-0">
                               <ActionBadge action={evt.action} />
-                              {evt.sourceId !== 'system' && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleOpenInFolder(evt);
-                                  }}
-                                  className="min-h-[44px] min-w-[44px] p-0 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-[#E6E6E6]"
-                                  title="Open in folder"
-                                >
-                                  <ExternalLink className="w-4 h-4" />
-                                </Button>
-                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenInFolder(evt);
+                                }}
+                                className="min-h-[44px] min-w-[44px] p-0 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-[#E6E6E6]"
+                                title="Open in folder"
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                              </Button>
                             </div>
                           </div>
                         ))}
@@ -398,7 +343,7 @@ export const UserActivityByUserView: React.FC<UserActivityByUserViewProps> = ({
                     </div>
                   ) : (
                     <div className="text-center py-2 text-xs text-slate-500 dark:text-[#777777]">
-                      No file preview or download records since access logging was enabled. User is verified and active in this vault.
+                      No file preview or download records yet. This user has not accessed files on the website.
                     </div>
                   )}
                 </div>

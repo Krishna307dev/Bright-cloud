@@ -129,9 +129,9 @@ export function computeActivitySummary(events: UserActivityEvent[]): UserActivit
   const fileCounts = new Map<string, number>();
 
   for (const e of events) {
+    if (e.sourceId === 'system') continue;
     if (e.userId) activeUserSet.add(e.userId);
-    // Only count actual drive files for most accessed file stat (ignore system auth sessions)
-    if (e.sourceId !== 'system' && (e.fileName || e.fileId)) {
+    if (e.fileName || e.fileId) {
       const key = e.fileName || e.fileId;
       fileCounts.set(key, (fileCounts.get(key) || 0) + 1);
     }
@@ -144,8 +144,9 @@ export function computeActivitySummary(events: UserActivityEvent[]): UserActivit
     }
   }
 
+  const validEvents = events.filter((e) => e.sourceId !== 'system');
   return {
-    totalEvents: events.length,
+    totalEvents: validEvents.length,
     activeUsersCount: activeUserSet.size,
     mostAccessedFile,
   };
@@ -157,7 +158,7 @@ export function computeUserSummaries(
 ): UserSummaryRecord[] {
   const userMap = new Map<string, UserSummaryRecord>();
 
-  // Initialize with all registered vault users using their authentic profile timestamps
+  // Initialize with all registered vault users
   for (const u of allUsers) {
     userMap.set(u.uid, {
       uid: u.uid,
@@ -165,7 +166,7 @@ export function computeUserSummaries(
       email: u.email || '',
       photoURL: u.photoURL,
       role: u.role,
-      lastActive: u.lastLogin || u.createdAt || null,
+      lastActive: null,
       lastLogin: u.lastLogin || null,
       createdAt: u.createdAt || null,
       previewCount: 0,
@@ -176,8 +177,9 @@ export function computeUserSummaries(
     });
   }
 
-  // Aggregate events
+  // Aggregate file events
   for (const e of events) {
+    if (e.sourceId === 'system') continue;
     let record = userMap.get(e.userId);
     if (!record) {
       // User might not be in the initial user list
@@ -209,7 +211,7 @@ export function computeUserSummaries(
     record.recentEvents.push(e);
   }
 
-  // Sort: active users (newest first) followed by users with zero activity (alphabetical by name)
+  // Sort: active users (newest file activity first) followed by users with zero activity (alphabetical by name)
   return Array.from(userMap.values()).sort((a, b) => {
     if (a.lastActive && b.lastActive) {
       return b.lastActive.getTime() - a.lastActive.getTime();
@@ -304,62 +306,15 @@ export function useUserActivity(vaultId: string | null, allVaultUsers: UserProfi
     setFilters((prev) => ({ ...prev, [key]: value }));
   }, []);
 
-  // Combine recorded Firestore userActivity events with historical user baseline events (sign-ins and registrations)
-  const combinedEvents = useMemo(() => {
-    const syntheticEvents: UserActivityEvent[] = [];
-    const recordedIds = new Set(events.map((e) => e.id));
-
-    // For each vault user, generate their baseline historical activity from user profile
-    for (const u of allVaultUsers) {
-      if (u.lastLogin) {
-        const loginId = `login-${u.uid}`;
-        if (!recordedIds.has(loginId)) {
-          syntheticEvents.push({
-            id: loginId,
-            userId: u.uid,
-            userDisplayName: u.displayName || u.email?.split('@')[0] || 'User',
-            email: u.email || '',
-            vaultId: vaultId || 'default',
-            sourceId: 'system',
-            fileId: `session-${u.uid}`,
-            fileName: 'Google Sign-in session',
-            relativePath: 'Authentication',
-            action: 'open',
-            createdAt: u.lastLogin,
-            device: 'Google Authenticated Client',
-          });
-        }
-      }
-
-      if (u.createdAt && (!u.lastLogin || Math.abs(u.createdAt.getTime() - u.lastLogin.getTime()) > 60000)) {
-        const joinId = `join-${u.uid}`;
-        if (!recordedIds.has(joinId)) {
-          syntheticEvents.push({
-            id: joinId,
-            userId: u.uid,
-            userDisplayName: u.displayName || u.email?.split('@')[0] || 'User',
-            email: u.email || '',
-            vaultId: vaultId || 'default',
-            sourceId: 'system',
-            fileId: `whitelist-${u.uid}`,
-            fileName: u.role === 'admin' ? 'Vault Administrator whitelisted' : 'Collaborator joined whitelist',
-            relativePath: 'Vault Membership',
-            action: 'open',
-            createdAt: u.createdAt,
-            device: 'Access Control Whitelist',
-          });
-        }
-      }
-    }
-
-    // Merge and sort newest first
-    return [...events, ...syntheticEvents].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-  }, [events, allVaultUsers, vaultId]);
+  // Pure file activity events (excluding any system/auth pseudo-events)
+  const fileEvents = useMemo(() => {
+    return events.filter((e) => e.sourceId !== 'system');
+  }, [events]);
 
   // Filtered list of events
   const filteredEvents = useMemo(() => {
-    return filterEvents(combinedEvents, filters);
-  }, [combinedEvents, filters]);
+    return filterEvents(fileEvents, filters);
+  }, [fileEvents, filters]);
 
   // Grouped by day
   const groupedEvents = useMemo(() => {
@@ -377,7 +332,7 @@ export function useUserActivity(vaultId: string | null, allVaultUsers: UserProfi
   }, [allVaultUsers, filteredEvents]);
 
   return {
-    events: combinedEvents,
+    events: fileEvents,
     filteredEvents,
     groupedEvents,
     summary,

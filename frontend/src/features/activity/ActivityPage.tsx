@@ -20,6 +20,7 @@ import {
   Layers,
   Database,
   Users,
+  LogIn,
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { JobService } from '../../services/firestore/jobService';
@@ -27,6 +28,7 @@ import { SourceService } from '../../services/firestore/sourceService';
 import { VaultService } from '../../services/firestore/vaultService';
 import type { BackupJob, ContentHashRecord, FileRecord, SourceEntity, UserProfile } from '../../models';
 import { UserActivityTab } from './components/UserActivityTab';
+import { SignInActivityTab } from './components/SignInActivityTab';
 import { formatDate, formatBytes } from '../../utils/format';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
@@ -53,12 +55,14 @@ export const ActivityPage: React.FC = () => {
   const { vaultId, isAdmin } = useAuth();
   const toast = useToast();
 
-  // Page-level view mode: backup sessions vs user activity (admin-only)
+  // Page-level view mode: backup sessions vs user activity vs sign-in activity (admin-only)
   const [searchParams, setSearchParams] = useSearchParams();
   const paramTab = searchParams.get('tab');
-  const [pageTab, setPageTab] = useState<'backup' | 'userActivity'>(
+  const [pageTab, setPageTab] = useState<'backup' | 'userActivity' | 'signIns'>(
     (paramTab === 'user' || paramTab === 'user-activity' || paramTab === 'userActivity') && isAdmin
       ? 'userActivity'
+      : (paramTab === 'signins' || paramTab === 'logins' || paramTab === 'sign-ins') && isAdmin
+      ? 'signIns'
       : 'backup'
   );
 
@@ -73,16 +77,18 @@ export const ActivityPage: React.FC = () => {
 
   // Sync state if user loses admin privileges
   useEffect(() => {
-    if (!isAdmin && pageTab === 'userActivity') {
+    if (!isAdmin && (pageTab === 'userActivity' || pageTab === 'signIns')) {
       setPageTab('backup');
     }
   }, [isAdmin, pageTab]);
 
-  const handleTabChange = (tab: 'backup' | 'userActivity') => {
-    if (tab === 'userActivity' && !isAdmin) return;
+  const handleTabChange = (tab: 'backup' | 'userActivity' | 'signIns') => {
+    if ((tab === 'userActivity' || tab === 'signIns') && !isAdmin) return;
     setPageTab(tab);
     if (tab === 'userActivity') {
       setSearchParams({ tab: 'user' });
+    } else if (tab === 'signIns') {
+      setSearchParams({ tab: 'signins' });
     } else {
       setSearchParams({});
     }
@@ -396,15 +402,27 @@ export const ActivityPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#0A0A0A] p-4 sm:p-6 rounded-lg border border-slate-200 dark:border-[#242424]">
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 rounded-md bg-slate-100 dark:bg-[#181818] border border-slate-200 dark:border-[#242424] flex items-center justify-center text-slate-700 dark:text-[#E6E6E6] shrink-0">
-            {pageTab === 'userActivity' ? <Users className="w-5 h-5" /> : <Activity className="w-5 h-5" />}
+            {pageTab === 'userActivity' ? (
+              <Users className="w-5 h-5" />
+            ) : pageTab === 'signIns' ? (
+              <LogIn className="w-5 h-5" />
+            ) : (
+              <Activity className="w-5 h-5" />
+            )}
           </div>
           <div>
             <h1 className="text-lg font-semibold text-slate-900 dark:text-[#E6E6E6] tracking-tight">
-              {pageTab === 'userActivity' ? 'User access and audit log' : 'Ingest and backup timeline'}
+              {pageTab === 'userActivity'
+                ? 'User access and audit log'
+                : pageTab === 'signIns'
+                ? 'Sign-in and session history'
+                : 'Ingest and backup timeline'}
             </h1>
             <p className="text-xs text-slate-500 dark:text-[#8A8A8A]">
               {pageTab === 'userActivity'
-                ? 'Live audit records of file previews, downloads, and user access across all drives and collaborators'
+                ? 'Live audit records of file previews, downloads, and user activity across all drives and collaborators'
+                : pageTab === 'signIns'
+                ? 'Chronological history of collaborator Google sign-in sessions and vault membership'
                 : 'Live telemetry and chronological history of backup jobs executed by daemon clients'}
             </p>
           </div>
@@ -432,7 +450,7 @@ export const ActivityPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Top Navigation Tabs: Backup sessions vs User Activity (Admin Only) */}
+      {/* Top Navigation Tabs: Backup sessions vs User Activity vs Sign-in Activity (Admin Only) */}
       {isAdmin && (
         <div className="flex items-center gap-1 bg-slate-100 dark:bg-[#111111] p-1 rounded-md border border-slate-200 dark:border-[#242424] w-fit">
           <button
@@ -459,6 +477,18 @@ export const ActivityPage: React.FC = () => {
             <Users className="w-3.5 h-3.5" />
             <span>User Activity</span>
           </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange('signIns')}
+            className={`min-h-[36px] px-3.5 py-1.5 text-xs rounded font-medium flex items-center gap-2 transition-colors ${
+              pageTab === 'signIns'
+                ? 'bg-white dark:bg-[#1F1F1F] text-slate-900 dark:text-[#E6E6E6] shadow-sm'
+                : 'text-slate-600 dark:text-[#8A8A8A] hover:text-slate-900 dark:hover:text-[#E6E6E6]'
+            }`}
+          >
+            <LogIn className="w-3.5 h-3.5" />
+            <span>Sign-in Activity</span>
+          </button>
         </div>
       )}
 
@@ -467,6 +497,11 @@ export const ActivityPage: React.FC = () => {
           vaultId={vaultId || 'default'}
           users={vaultUsers}
           sources={sources}
+        />
+      ) : pageTab === 'signIns' && isAdmin ? (
+        <SignInActivityTab
+          vaultId={vaultId || 'default'}
+          users={vaultUsers}
         />
       ) : (
         <>
