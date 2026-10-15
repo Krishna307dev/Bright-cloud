@@ -15,9 +15,9 @@ export const LoginPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  // If already authenticated with active role, redirect to dashboard
+  // If already authenticated with active role, redirect to Explorer
   if (!isLoading && user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/files" replace />;
   }
 
   const handleGoogleSignIn = async () => {
@@ -25,7 +25,7 @@ export const LoginPage: React.FC = () => {
       setAuthError(null);
       setIsSubmitting(true);
       await loginWithGoogle();
-      navigate('/');
+      navigate('/files');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Authentication failed with Google';
       setAuthError(msg);

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard,
   Folder,
   Share2,
   Activity,
@@ -26,22 +25,19 @@ export const MobileNav: React.FC = () => {
   const location = useLocation();
 
   const mainItems = [
-    { label: 'Dashboard', path: '/', icon: LayoutDashboard },
     { label: 'Explorer', path: '/files', icon: Folder },
     { label: 'Shared', path: '/shared', icon: Share2 },
+    { label: 'USB Sources', path: '/sources', icon: HardDrive },
     ...(isAdmin
       ? [{ label: 'Activity', path: '/activity', icon: Activity }]
-      : [{ label: 'USB Sources', path: '/sources', icon: HardDrive }]),
+      : []),
   ];
 
   const moreItems = [
-    ...(isAdmin ? [{ label: 'USB Sources', path: '/sources', icon: HardDrive }] : []),
+    ...(isAdmin ? [{ label: 'Manage Users', path: '/users', icon: Users }] : []),
     { label: 'Preferences', path: '/settings', icon: Settings },
     ...(isAdmin
-      ? [
-          { label: 'Manage Users', path: '/users', icon: Users },
-          { label: 'Vault Security', path: '/settings/vault', icon: ShieldCheck },
-        ]
+      ? [{ label: 'Vault Security', path: '/settings/vault', icon: ShieldCheck }]
       : []),
   ];
 
@@ -147,7 +143,10 @@ export const MobileNav: React.FC = () => {
       )}
 
       {/* Main Bottom Nav Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 min-h-[56px] pb-[env(safe-area-inset-bottom)] bg-white/95 dark:bg-[#0A0A0A]/95 backdrop-blur-md border-t border-slate-200 dark:border-[#242424] z-40 flex items-center justify-around px-1 shadow-lg select-none">
+      <nav
+        aria-label="Mobile navigation"
+        className="md:hidden fixed bottom-0 left-0 right-0 min-h-[56px] pb-[env(safe-area-inset-bottom)] bg-white/95 dark:bg-[#0A0A0A]/95 backdrop-blur-md border-t border-slate-200 dark:border-[#242424] z-40 flex items-center justify-around px-1 shadow-lg select-none"
+      >
         {mainItems.map((item) => (
           <NavLink
             key={item.path}

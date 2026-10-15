@@ -19,8 +19,31 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { B2AuthorizerClient } from '../b2Authorizer';
-import type { FileRecord } from '../../models';
+import type { FileRecord, SourceEntity } from '../../models';
 import { canonicalizePath, splitFilename } from '../../utils/path';
+
+export interface DriveActivitySummary {
+  sourceId: string;
+  hasVisibleFiles: boolean;
+  lastActivityDate?: Date;
+}
+
+export interface DriveResolutionResult {
+  defaultSourceId: string;
+  sortedSources: SourceEntity[];
+  emptySourceIds: Set<string>;
+}
+
+export function saveLastOpenedDrive(vaultId: string, userUid: string | undefined, sourceId: string): void {
+  try {
+    if (vaultId && sourceId) {
+      const storageKey = `brightcloud_last_drive_${vaultId}_${userUid || 'anon'}`;
+      localStorage.setItem(storageKey, sourceId);
+    }
+  } catch {
+    // Ignore localStorage failures
+  }
+}
 
 export interface DualStreamPaginationState {
   lastPublicDoc: DocumentSnapshot | null;
@@ -378,7 +401,7 @@ export class FileService {
   }
 
   /**
-   * Fetches unified stream of all files shared with or public to the user (used on /shared and Dashboard).
+   * Fetches unified stream of all files shared with or public to the user (used on /shared).
    * Automatically filters out internal .keep placeholders and system/hidden files.
    */
   static async fetchSharedFiles(
@@ -1008,6 +1031,194 @@ export class FileService {
       reservationsDeleted,
       jobsDeleted,
       rulesDeleted,
+    };
+  }
+
+  /**
+   * Resolves the smart default drive to show when opening Explorer, adhering strictly to:
+   * 1. Deep link (?drive=... or route param) always takes precedence if valid.
+   * 2. Last opened drive from localStorage (remembered per user, ignored if non-existent or empty).
+   * 3. Drive with the most recent file activity containing >= 1 file the user is allowed to see.
+   * 4. Any non-empty drive.
+   * 5. If all drives are empty, the first drive.
+   * Also orders sources such that empty drives are listed last in the drive switcher.
+   */
+  static async resolveSmartDefaultDrive(
+    vaultId: string,
+    sources: SourceEntity[],
+    userUid?: string,
+    isAdmin?: boolean,
+    deepLinkSourceId?: string
+  ): Promise<DriveResolutionResult> {
+    if (sources.length === 0) {
+      return {
+        defaultSourceId: '',
+        sortedSources: [],
+        emptySourceIds: new Set<string>(),
+      };
+    }
+
+    const activityMap = new Map<string, { hasVisibleFiles: boolean; lastActivityDate?: Date }>();
+
+    if (isAdmin) {
+      try {
+        const recentFiles = await this.listAdminRecentFiles(vaultId, 50);
+        for (const f of recentFiles) {
+          if (!activityMap.has(f.sourceId)) {
+            activityMap.set(f.sourceId, {
+              hasVisibleFiles: true,
+              lastActivityDate: f.uploadedAt,
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to query admin recent files for smart default resolution:', err);
+      }
+
+      for (const s of sources) {
+        if (!activityMap.has(s.sourceId)) {
+          if (s.totalFilesBackedUp > 0) {
+            activityMap.set(s.sourceId, {
+              hasVisibleFiles: true,
+              lastActivityDate: s.lastSeen,
+            });
+          } else {
+            activityMap.set(s.sourceId, {
+              hasVisibleFiles: false,
+            });
+          }
+        }
+      }
+    } else {
+      // Non-admin (Authorized Friend)
+      try {
+        const friendRecent = await this.fetchFriendRecentFiles(vaultId, userUid || '', 50);
+        for (const f of friendRecent) {
+          if (!activityMap.has(f.sourceId)) {
+            activityMap.set(f.sourceId, {
+              hasVisibleFiles: true,
+              lastActivityDate: f.uploadedAt,
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to query friend recent files for smart default resolution:', err);
+      }
+
+      for (const s of sources) {
+        if (!activityMap.has(s.sourceId)) {
+          try {
+            const publicQuery = query(
+              collection(db, 'vaults', vaultId, 'files'),
+              where('sourceId', '==', s.sourceId),
+              where('isPublicToFriends', '==', true),
+              limit(1)
+            );
+            const publicSnap = await getDocs(publicQuery);
+            if (!publicSnap.empty) {
+              activityMap.set(s.sourceId, {
+                hasVisibleFiles: true,
+                lastActivityDate: publicSnap.docs[0].data().uploadedAt?.toDate() || s.lastSeen,
+              });
+            } else if (userUid) {
+              const sharedQuery = query(
+                collection(db, 'vaults', vaultId, 'files'),
+                where('sourceId', '==', s.sourceId),
+                where('allowedFriends', 'array-contains', userUid),
+                limit(1)
+              );
+              const sharedSnap = await getDocs(sharedQuery);
+              if (!sharedSnap.empty) {
+                activityMap.set(s.sourceId, {
+                  hasVisibleFiles: true,
+                  lastActivityDate: sharedSnap.docs[0].data().uploadedAt?.toDate() || s.lastSeen,
+                });
+              } else {
+                activityMap.set(s.sourceId, { hasVisibleFiles: false });
+              }
+            } else {
+              activityMap.set(s.sourceId, { hasVisibleFiles: false });
+            }
+          } catch {
+            activityMap.set(s.sourceId, { hasVisibleFiles: false });
+          }
+        }
+      }
+    }
+
+    const emptySourceIds = new Set<string>();
+    for (const s of sources) {
+      const act = activityMap.get(s.sourceId);
+      if (!act || !act.hasVisibleFiles) {
+        emptySourceIds.add(s.sourceId);
+      }
+    }
+
+    // In the drive switcher, list empty drives last
+    const sortedSources = [...sources].sort((a, b) => {
+      const aEmpty = emptySourceIds.has(a.sourceId);
+      const bEmpty = emptySourceIds.has(b.sourceId);
+      if (aEmpty && !bEmpty) return 1;
+      if (!aEmpty && bEmpty) return -1;
+      return 0;
+    });
+
+    let defaultSourceId = '';
+
+    // Step 1: Deep links (?drive=... or route param) always win over the default logic
+    if (deepLinkSourceId && sources.some((s) => s.sourceId === deepLinkSourceId)) {
+      defaultSourceId = deepLinkSourceId;
+    }
+
+    // Step 2: a. Last drive the user opened (remember per user in localStorage; ignore if no longer exists or is empty)
+    if (!defaultSourceId) {
+      try {
+        const storageKey = `brightcloud_last_drive_${vaultId}_${userUid || 'anon'}`;
+        const rememberedDriveId = localStorage.getItem(storageKey);
+        if (
+          rememberedDriveId &&
+          sources.some((s) => s.sourceId === rememberedDriveId) &&
+          !emptySourceIds.has(rememberedDriveId)
+        ) {
+          defaultSourceId = rememberedDriveId;
+        }
+      } catch {
+        // Ignore localStorage error
+      }
+    }
+
+    // Step 3: b. Otherwise the drive with the most recent file activity that contains at least one file the user is allowed to see
+    if (!defaultSourceId) {
+      const nonEmptiesWithActivity = sources
+        .filter((s) => !emptySourceIds.has(s.sourceId) && activityMap.get(s.sourceId)?.lastActivityDate)
+        .sort((a, b) => {
+          const aDate = activityMap.get(a.sourceId)!.lastActivityDate!.getTime();
+          const bDate = activityMap.get(b.sourceId)!.lastActivityDate!.getTime();
+          return bDate - aDate;
+        });
+
+      if (nonEmptiesWithActivity.length > 0) {
+        defaultSourceId = nonEmptiesWithActivity[0].sourceId;
+      }
+    }
+
+    // Step 4: c. Otherwise any non-empty drive
+    if (!defaultSourceId) {
+      const anyNonEmpty = sources.find((s) => !emptySourceIds.has(s.sourceId));
+      if (anyNonEmpty) {
+        defaultSourceId = anyNonEmpty.sourceId;
+      }
+    }
+
+    // Step 5: d. Only if every drive is empty, select the first drive and show a proper empty state
+    if (!defaultSourceId) {
+      defaultSourceId = sources[0].sourceId;
+    }
+
+    return {
+      defaultSourceId,
+      sortedSources,
+      emptySourceIds,
     };
   }
 }

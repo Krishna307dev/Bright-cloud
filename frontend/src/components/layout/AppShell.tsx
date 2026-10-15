@@ -1,12 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { MobileNav } from './MobileNav';
 import { Footer } from './Footer';
+import { useAuth } from '../../features/auth/AuthContext';
+import { ReconciliationService } from '../../services/reconciliationService';
 
 export const AppShell: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const { vaultId, isAdmin } = useAuth();
+
+  useEffect(() => {
+    if (vaultId && isAdmin) {
+      ReconciliationService.reconcileStaleReservations(vaultId).catch((err) => {
+        console.warn('Background reconciliation notice:', err);
+      });
+    }
+  }, [vaultId, isAdmin]);
 
   return (
     <div className="flex min-h-screen h-screen supports-[height:100dvh]:h-dvh w-screen overflow-hidden overflow-x-hidden bg-slate-50 dark:bg-black font-sans antialiased text-slate-900 dark:text-[#E6E6E6] transition-colors duration-150">

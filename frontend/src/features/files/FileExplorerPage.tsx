@@ -28,7 +28,13 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { SourceService } from '../../services/firestore/sourceService';
-import { FileService, extractSubdirectories, isSystemFileOrFolder, type FolderItem } from '../../services/firestore/fileService';
+import {
+  FileService,
+  extractSubdirectories,
+  isSystemFileOrFolder,
+  saveLastOpenedDrive,
+  type FolderItem,
+} from '../../services/firestore/fileService';
 import { ZipService } from '../../services/zipService';
 import { UploadService } from '../../services/uploadService';
 import type { FileRecord, SourceEntity } from '../../models';
@@ -68,6 +74,8 @@ export const FileExplorerPage: React.FC = () => {
 
   // State
   const [sources, setSources] = useState<SourceEntity[]>([]);
+  const [emptySourceIds, setEmptySourceIds] = useState<Set<string>>(new Set());
+  const [isResolvingDefaultDrive, setIsResolvingDefaultDrive] = useState<boolean>(true);
   const [selectedSourceId, setSelectedSourceId] = useState<string>('');
   const [currentPath, setCurrentPath] = useState<string>('');
   const [allSourceFiles, setAllSourceFiles] = useState<FileRecord[]>([]);
@@ -149,26 +157,46 @@ export const FileExplorerPage: React.FC = () => {
     }
   }, [vaultId, isAdmin, isWipingStorage, handleWipeAllTestData]);
 
-  // Load Sources on Mount
+  // Load Sources on Mount & Resolve Smart Default Drive
   useEffect(() => {
     if (!vaultId) return;
     let isMounted = true;
 
+    const queryDrive = new URLSearchParams(location.search).get('drive') || undefined;
+    const deepLinkSourceId = routeSourceId || queryDrive;
+
     SourceService.listSourcesWithAuthoritativeCount(vaultId, isAdmin)
-      .then((srcList) => {
+      .then(async (srcList) => {
         if (!isMounted) return;
-        setSources(srcList);
-        if (routeSourceId) {
-          setSelectedSourceId(routeSourceId);
-        } else if (srcList.length > 0) {
-          setSelectedSourceId(srcList[0].sourceId);
-        } else {
+
+        if (srcList.length === 0) {
+          setSources([]);
+          setSelectedSourceId('');
+          setIsResolvingDefaultDrive(false);
           setIsLoading(false);
+          return;
         }
+
+        const resolution = await FileService.resolveSmartDefaultDrive(
+          vaultId,
+          srcList,
+          user?.uid,
+          isAdmin,
+          deepLinkSourceId
+        );
+
+        if (!isMounted) return;
+
+        setSources(resolution.sortedSources);
+        setEmptySourceIds(resolution.emptySourceIds);
+        setSelectedSourceId(resolution.defaultSourceId);
+        saveLastOpenedDrive(vaultId, user?.uid, resolution.defaultSourceId);
+        setIsResolvingDefaultDrive(false);
       })
       .catch((err) => {
         if (isMounted) {
-          setError(`Failed to load USB sources: ${err.message}`);
+          setError(`Failed to load storage sources: ${err.message}`);
+          setIsResolvingDefaultDrive(false);
           setIsLoading(false);
         }
       });
@@ -176,7 +204,7 @@ export const FileExplorerPage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [vaultId, routeSourceId, isAdmin]);
+  }, [vaultId, routeSourceId, location.search, isAdmin, user?.uid]);
 
   // Synchronize path from URL
   useEffect(() => {
@@ -219,14 +247,17 @@ export const FileExplorerPage: React.FC = () => {
 
   // Trigger load on source change
   useEffect(() => {
-    if (selectedSourceId) {
+    if (selectedSourceId && !isResolvingDefaultDrive) {
       loadFiles();
       setSelectedFileIds(new Set());
     }
-  }, [selectedSourceId]);
+  }, [selectedSourceId, isResolvingDefaultDrive]);
 
   // Handle Source Selection
   const handleSourceChange = (newSourceId: string) => {
+    if (vaultId) {
+      saveLastOpenedDrive(vaultId, user?.uid, newSourceId);
+    }
     setSelectedSourceId(newSourceId);
     navigate(`/files/${newSourceId}`);
   };
@@ -609,13 +640,17 @@ export const FileExplorerPage: React.FC = () => {
                 <select
                   value={selectedSourceId}
                   onChange={(e) => handleSourceChange(e.target.value)}
+                  aria-label="Select storage drive"
                   className="text-xs font-semibold text-slate-800 dark:text-[#E6E6E6] bg-transparent border-0 p-0 focus:outline-none focus:ring-0 cursor-pointer max-w-[125px] sm:max-w-xs truncate"
                 >
-                  {sources.map((s) => (
-                    <option key={s.sourceId} value={s.sourceId} className="bg-white dark:bg-[#111111] text-slate-800 dark:text-[#E6E6E6]">
-                      {s.displayName || s.sourceId} ({s.totalFilesBackedUp || 0})
-                    </option>
-                  ))}
+                  {sources.map((s) => {
+                    const isEmpty = emptySourceIds.has(s.sourceId);
+                    return (
+                      <option key={s.sourceId} value={s.sourceId} className="bg-white dark:bg-[#111111] text-slate-800 dark:text-[#E6E6E6]">
+                        {s.displayName || s.sourceId} ({isAdmin ? s.totalFilesBackedUp || 0 : isEmpty ? 0 : 'files'}){isEmpty ? ' — Empty' : ''}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
@@ -956,19 +991,19 @@ export const FileExplorerPage: React.FC = () => {
         </div>
 
         {/* Content Table / States */}
-        {isLoading ? (
-          <LoadingState message="Loading directory contents..." />
+        {isResolvingDefaultDrive || isLoading ? (
+          <LoadingState message={isResolvingDefaultDrive ? "Connecting to storage drives..." : "Loading directory contents..."} />
         ) : error ? (
           <ErrorState message={error} onRetry={() => loadFiles()} />
         ) : displayedFiles.length === 0 && subfolders.length === 0 ? (
           <EmptyState
-            title="No files or folders found"
+            title="No files in this drive"
             description={
               !selectedSourceId
-                ? 'No USB sources registered in this vault yet.'
+                ? 'No storage drives registered in this vault yet.'
                 : currentPath
-                ? 'This folder is empty. Create a folder or upload files to begin.'
-                : 'No files have been backed up from this USB source yet.'
+                ? 'This folder is empty.'
+                : 'No files have been backed up to this drive yet.'
             }
             action={
               isAdmin ? (
@@ -988,11 +1023,21 @@ export const FileExplorerPage: React.FC = () => {
                     onClick={() => setIsCreateFolderOpen(true)}
                     className="gap-1.5"
                   >
-                    <FolderPlus className="w-4 h-4 text-brand-600" />
+                    <FolderPlus className="w-4 h-4 text-brand-600 dark:text-[#1DB954]" />
                     New Folder
                   </Button>
                 </div>
-              ) : undefined
+              ) : (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => handleManualRefresh()}
+                  className="gap-1.5"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Refresh
+                </Button>
+              )
             }
           />
         ) : (

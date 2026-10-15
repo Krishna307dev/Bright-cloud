@@ -5,7 +5,6 @@ import { AppShell } from './components/layout/AppShell';
 // Pages
 import { LoginPage } from './features/auth/LoginPage';
 import { AccessDeniedPage } from './features/auth/AccessDeniedPage';
-import { DashboardPage } from './features/dashboard/DashboardPage';
 import { FileExplorerPage } from './features/files/FileExplorerPage';
 import { SourcesPage } from './features/sources/SourcesPage';
 import { SharedPage } from './features/permissions/SharedPage';
@@ -50,7 +49,11 @@ export const router = createBrowserRouter([
         children: [
           {
             path: '/',
-            element: <DashboardPage />,
+            element: <Navigate to="/files" replace />,
+          },
+          {
+            path: '/dashboard',
+            element: <Navigate to="/files" replace />,
           },
           {
             path: '/files',

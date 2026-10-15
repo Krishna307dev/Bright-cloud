@@ -21,7 +21,7 @@ describe('Layout Components', () => {
   });
 
   describe('NotFoundPage', () => {
-    it('renders 404 heading, message, and return to dashboard button', () => {
+    it('renders 404 heading, message, and return to explorer button', () => {
       render(
         <MemoryRouter>
           <NotFoundPage />
@@ -30,7 +30,7 @@ describe('Layout Components', () => {
 
       expect(screen.getByText('404')).toBeDefined();
       expect(screen.getByText(/page not found/i)).toBeDefined();
-      expect(screen.getByRole('button', { name: /dashboard/i })).toBeDefined();
+      expect(screen.getByRole('button', { name: /explorer/i })).toBeDefined();
     });
   });
 

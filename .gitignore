@@ -45,3 +45,4 @@ adb.ps1
 capture-logs.bat
 capture-logs.ps1
 android-app.logs
+capture-logs.sh

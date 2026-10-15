@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Home, ArrowLeft, Sun, Moon, Monitor } from 'lucide-react';
+import { Folder, ArrowLeft, Sun, Moon, Monitor } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Button } from '../../components/ui/Button';
 import { Footer } from '../../components/layout/Footer';
@@ -93,11 +93,11 @@ export const NotFoundPage: React.FC = () => {
             </Button>
             <Button
               variant="primary"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/files')}
               className="w-full sm:w-auto"
             >
-              <Home className="w-4 h-4 mr-2" />
-              Go to Dashboard
+              <Folder className="w-4 h-4 mr-2" />
+              Go to Explorer
             </Button>
           </div>
         </div>

@@ -1,7 +1,6 @@
 import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import {
-  LayoutDashboard,
   Folder,
   HardDrive,
   Share2,
@@ -26,7 +25,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
   const { user, role, isAdmin } = useAuth();
 
   const navItems = [
-    { label: 'Dashboard', path: '/', icon: LayoutDashboard },
     { label: 'Explorer', path: '/files', icon: Folder },
     { label: 'Shared', path: '/shared', icon: Share2 },
     { label: 'USB Sources', path: '/sources', icon: HardDrive },
@@ -44,6 +42,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
 
   return (
     <aside
+      aria-label="Main navigation"
       className={clsx(
         'hidden md:flex flex-col bg-white dark:bg-[#0A0A0A] border-r border-slate-200 dark:border-[#242424] transition-all duration-300 z-30 select-none shrink-0',
         collapsed ? 'w-20' : 'w-60'
@@ -51,7 +50,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
     >
       {/* Brand Header */}
       <div className="h-16 px-4 border-b border-slate-100 dark:border-[#242424] flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3 overflow-hidden group hover:opacity-90 transition-opacity">
+        <Link to="/files" className="flex items-center gap-3 overflow-hidden group hover:opacity-90 transition-opacity">
           <img src="/app-logo.png" alt="Bright Cloud" className="w-8 h-8 shrink-0 object-contain" />
           {!collapsed && (
             <div className="flex flex-col min-w-0">

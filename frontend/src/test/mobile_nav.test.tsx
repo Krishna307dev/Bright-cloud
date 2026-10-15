@@ -23,14 +23,15 @@ describe('MobileNav component', () => {
     };
 
     render(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={['/files']}>
         <MobileNav />
       </MemoryRouter>
     );
 
-    expect(screen.getByText('Dashboard')).toBeDefined();
+    expect(screen.queryByText('Dashboard')).toBeNull();
     expect(screen.getByText('Explorer')).toBeDefined();
     expect(screen.getByText('Shared')).toBeDefined();
+    expect(screen.getByText('USB Sources')).toBeDefined();
     expect(screen.getByText('Activity')).toBeDefined();
     expect(screen.getByText('More')).toBeDefined();
 
@@ -38,7 +39,6 @@ describe('MobileNav component', () => {
     fireEvent.click(screen.getByText('More'));
 
     // Verify more menu opens
-    expect(screen.getByText('USB Sources')).toBeDefined();
     expect(screen.getByText('Preferences')).toBeDefined();
     expect(screen.getByText('Manage Users')).toBeDefined();
     expect(screen.getByText('Vault Security')).toBeDefined();
@@ -52,12 +52,12 @@ describe('MobileNav component', () => {
     };
 
     render(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={['/files']}>
         <MobileNav />
       </MemoryRouter>
     );
 
-    expect(screen.getByText('Dashboard')).toBeDefined();
+    expect(screen.queryByText('Dashboard')).toBeNull();
     expect(screen.getByText('Explorer')).toBeDefined();
     expect(screen.getByText('Shared')).toBeDefined();
     expect(screen.getByText('USB Sources')).toBeDefined();

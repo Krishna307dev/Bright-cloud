@@ -130,6 +130,18 @@ export const SourcesPage: React.FC = () => {
             <p className="text-xs text-slate-500 dark:text-[#8A8A8A]">
               Verified physical USB storage drives paired with this Bright Cloud Vault
             </p>
+            {sources.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 dark:text-[#8A8A8A] bg-slate-100 dark:bg-[#111111] px-2.5 py-0.5 rounded-md border border-slate-200/80 dark:border-[#242424]">
+                  <span className="font-semibold text-slate-800 dark:text-[#E6E6E6]">{sources.length}</span> {sources.length === 1 ? 'source' : 'sources'}
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 dark:text-[#8A8A8A] bg-slate-100 dark:bg-[#111111] px-2.5 py-0.5 rounded-md border border-slate-200/80 dark:border-[#242424]">
+                  <span className="font-semibold text-slate-800 dark:text-[#E6E6E6]">
+                    {sources.reduce((acc, s) => acc + (s.totalFilesBackedUp || 0), 0).toLocaleString()}
+                  </span> files backed up
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
