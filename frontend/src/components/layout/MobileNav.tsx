@@ -13,29 +13,37 @@ import {
   Sun,
   Moon,
   Monitor,
+  LayoutDashboard,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useAuth } from '../../features/auth/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useWebCustomization } from '../../contexts/WebCustomizationContext';
 
 export const MobileNav: React.FC = () => {
   const { isAdmin } = useAuth();
+  const { resolvedSettings } = useWebCustomization();
   const { mode, setMode, isDark } = useTheme();
   const [showMore, setShowMore] = useState(false);
   const location = useLocation();
 
+  const userTabs = resolvedSettings.visibleTabs;
+
   const mainItems = [
-    { label: 'Explorer', path: '/files', icon: Folder },
-    { label: 'Shared', path: '/shared', icon: Share2 },
-    { label: 'USB Sources', path: '/sources', icon: HardDrive },
+    ...(isAdmin || userTabs.explorer ? [{ label: 'Explorer', path: '/files', icon: Folder }] : []),
+    ...(isAdmin || userTabs.shared ? [{ label: 'Shared', path: '/shared', icon: Share2 }] : []),
+    ...(isAdmin || userTabs.sources ? [{ label: 'USB Sources', path: '/sources', icon: HardDrive }] : []),
     ...(isAdmin
+      ? [{ label: 'Activity', path: '/activity', icon: Activity }]
+      : userTabs.activity
       ? [{ label: 'Activity', path: '/activity', icon: Activity }]
       : []),
   ];
 
   const moreItems = [
+    ...(isAdmin ? [{ label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard }] : []),
     ...(isAdmin ? [{ label: 'Manage Users', path: '/users', icon: Users }] : []),
-    { label: 'Preferences', path: '/settings', icon: Settings },
+    ...(isAdmin || userTabs.preferences ? [{ label: 'Preferences', path: '/settings', icon: Settings }] : []),
     ...(isAdmin
       ? [{ label: 'Vault Security', path: '/settings/vault', icon: ShieldCheck }]
       : []),

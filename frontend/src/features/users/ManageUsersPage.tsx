@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Users,
   UserPlus,
@@ -13,7 +14,8 @@ import {
   Shield,
   CheckCircle2,
   AlertCircle,
-  FileText
+  FileText,
+  X,
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { VaultService } from '../../services/firestore/vaultService';
@@ -35,11 +37,20 @@ export const ManageUsersPage: React.FC = () => {
   usePageTitle('Manage Users');
   const { vaultId, isAdmin, user } = useAuth();
   const toast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const userParam = searchParams.get('user');
+  const filterParam = searchParams.get('filter');
 
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(userParam || '');
+
+  useEffect(() => {
+    if (userParam) {
+      setSearchQuery(userParam);
+    }
+  }, [userParam]);
 
   // Add Pre-authorization Dialog State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -191,8 +202,12 @@ export const ManageUsersPage: React.FC = () => {
     }
   };
 
-  // Filter users by search query
+  // Filter users by search query and url filter
   const filteredUsers = users.filter((u) => {
+    if (filterParam === 'pending') {
+      const isPending = u.role === 'pending' || requestsMap.has(u.uid);
+      if (!isPending) return false;
+    }
     const q = searchQuery.toLowerCase().trim();
     if (!q) return true;
     return (
@@ -309,6 +324,31 @@ export const ManageUsersPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Active URL Filter Indicator */}
+      {(userParam || filterParam) && (
+        <div className="flex items-center justify-between p-2.5 rounded-lg bg-brand-50 dark:bg-[#1DB954]/10 border border-brand-200/60 dark:border-[#1DB954]/25 text-xs text-brand-900 dark:text-[#E6E6E6]">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold">Filtered View:</span>
+            <span>
+              {filterParam === 'pending'
+                ? 'Showing pending access requests'
+                : `Showing user matching UID/query: "${userParam}"`}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setSearchParams({});
+              setSearchQuery('');
+            }}
+            className="text-xs font-semibold hover:underline flex items-center gap-1 text-brand-600 dark:text-[#1DB954]"
+          >
+            <X className="w-3.5 h-3.5" />
+            Clear Filter
+          </button>
+        </div>
+      )}
 
       {/* Search Toolbar */}
       <div className="flex items-center justify-between gap-3 bg-white dark:bg-[#0A0A0A] p-3 rounded-xl border border-slate-200/90 dark:border-[#242424] shadow-xs">

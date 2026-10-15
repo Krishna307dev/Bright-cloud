@@ -6,3 +6,4 @@ export * from './job';
 export * from './download';
 export * from './user';
 export * from './userActivity';
+export * from './webCustomization';

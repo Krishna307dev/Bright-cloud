@@ -40,6 +40,7 @@ import { UploadService } from '../../services/uploadService';
 import type { FileRecord, SourceEntity } from '../../models';
 import { canonicalizePath, getParentPath } from '../../utils/path';
 import { formatBytes, formatDate } from '../../utils/format';
+import { useWebCustomization } from '../../contexts/WebCustomizationContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
@@ -71,6 +72,7 @@ export const FileExplorerPage: React.FC = () => {
   const location = useLocation();
   const { downloadFile, isDownloading, errorModal, closeErrorModal } = useDownload();
   const toast = useToast();
+  const { resolvedSettings } = useWebCustomization();
 
   // State
   const [sources, setSources] = useState<SourceEntity[]>([]);
@@ -169,7 +171,11 @@ export const FileExplorerPage: React.FC = () => {
       .then(async (srcList) => {
         if (!isMounted) return;
 
-        if (srcList.length === 0) {
+        const effectiveSrcList = (!isAdmin && resolvedSettings.allowedDrives && resolvedSettings.allowedDrives.length > 0)
+          ? srcList.filter((s) => resolvedSettings.allowedDrives!.includes(s.sourceId))
+          : srcList;
+
+        if (effectiveSrcList.length === 0) {
           setSources([]);
           setSelectedSourceId('');
           setIsResolvingDefaultDrive(false);
@@ -179,7 +185,7 @@ export const FileExplorerPage: React.FC = () => {
 
         const resolution = await FileService.resolveSmartDefaultDrive(
           vaultId,
-          srcList,
+          effectiveSrcList,
           user?.uid,
           isAdmin,
           deepLinkSourceId
@@ -204,7 +210,7 @@ export const FileExplorerPage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [vaultId, routeSourceId, location.search, isAdmin, user?.uid]);
+  }, [vaultId, routeSourceId, location.search, isAdmin, user?.uid, resolvedSettings.allowedDrives]);
 
   // Synchronize path from URL
   useEffect(() => {
@@ -301,6 +307,15 @@ export const FileExplorerPage: React.FC = () => {
   const privateFiles = useMemo(() => {
     return filterPrivateFiles(allSourceFiles);
   }, [allSourceFiles]);
+
+  // Drives accessible to the user (filtered by allowedDrives override if set)
+  const displayedSources = useMemo(() => {
+    if (isAdmin || !resolvedSettings.allowedDrives || resolvedSettings.allowedDrives.length === 0) {
+      return sources;
+    }
+    const allowedSet = new Set(resolvedSettings.allowedDrives);
+    return sources.filter((s) => allowedSet.has(s.sourceId));
+  }, [sources, isAdmin, resolvedSettings.allowedDrives]);
 
   // Filtered & Sorted Files in current folder
   const displayedFiles = useMemo(() => {
@@ -496,6 +511,11 @@ export const FileExplorerPage: React.FC = () => {
   const handleDownloadZip = async () => {
     if (selectedFileIds.size === 0 || !vaultId) return;
 
+    if (!isAdmin && !resolvedSettings.canDownload) {
+      alert('File downloads have been disabled by the administrator.');
+      return;
+    }
+
     // Filter files and exclude restricted files for friends
     const accessibleFiles = displayedFiles.filter((f) => {
       if (!selectedFileIds.has(f.fileId)) return false;
@@ -643,7 +663,7 @@ export const FileExplorerPage: React.FC = () => {
                   aria-label="Select storage drive"
                   className="text-xs font-semibold text-slate-800 dark:text-[#E6E6E6] bg-transparent border-0 p-0 focus:outline-none focus:ring-0 cursor-pointer max-w-[125px] sm:max-w-xs truncate"
                 >
-                  {sources.map((s) => {
+                  {displayedSources.map((s) => {
                     const isEmpty = emptySourceIds.has(s.sourceId);
                     return (
                       <option key={s.sourceId} value={s.sourceId} className="bg-white dark:bg-[#111111] text-slate-800 dark:text-[#E6E6E6]">
@@ -733,30 +753,30 @@ export const FileExplorerPage: React.FC = () => {
           {/* Row 2: Action Buttons & Management Tools */}
           <div className="flex flex-wrap items-center justify-between gap-2.5">
             <div className="flex flex-wrap items-center gap-2">
-              {isAdmin && (
-                <>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => setIsUploadOpen(true)}
-                    className="gap-1.5"
-                    title="Upload file directly to vault"
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                    Upload
-                  </Button>
+              {(isAdmin || resolvedSettings.canUpload) && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setIsUploadOpen(true)}
+                  className="gap-1.5"
+                  title="Upload file directly to vault"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  Upload
+                </Button>
+              )}
 
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setIsCreateFolderOpen(true)}
-                    className="gap-1.5"
-                    title="Create a new folder in this directory"
-                  >
-                    <FolderPlus className="w-3.5 h-3.5 text-brand-600" />
-                    New Folder
-                  </Button>
-                </>
+              {isAdmin && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setIsCreateFolderOpen(true)}
+                  className="gap-1.5"
+                  title="Create a new folder in this directory"
+                >
+                  <FolderPlus className="w-3.5 h-3.5 text-brand-600" />
+                  New Folder
+                </Button>
               )}
 
               {isAdmin && selectedSourceId && (

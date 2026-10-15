@@ -11,9 +11,11 @@ import {
   UserCheck,
   ChevronLeft,
   ChevronRight,
+  LayoutDashboard,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useAuth } from '../../features/auth/AuthContext';
+import { useWebCustomization } from '../../contexts/WebCustomizationContext';
 import { Badge } from '../ui/Badge';
 
 interface SidebarProps {
@@ -23,18 +25,24 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse }) => {
   const { user, role, isAdmin } = useAuth();
+  const { resolvedSettings } = useWebCustomization();
+
+  const userTabs = resolvedSettings.visibleTabs;
 
   const navItems = [
-    { label: 'Explorer', path: '/files', icon: Folder },
-    { label: 'Shared', path: '/shared', icon: Share2 },
-    { label: 'USB Sources', path: '/sources', icon: HardDrive },
+    ...(isAdmin || userTabs.explorer ? [{ label: 'Explorer', path: '/files', icon: Folder }] : []),
+    ...(isAdmin || userTabs.shared ? [{ label: 'Shared', path: '/shared', icon: Share2 }] : []),
+    ...(isAdmin || userTabs.sources ? [{ label: 'USB Sources', path: '/sources', icon: HardDrive }] : []),
     ...(isAdmin
       ? [
+          { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
           { label: 'Activity', path: '/activity', icon: Activity },
           { label: 'Manage Users', path: '/users', icon: Users },
         ]
+      : userTabs.activity
+      ? [{ label: 'Activity', path: '/activity', icon: Activity }]
       : []),
-    { label: 'Preferences', path: '/settings', icon: Settings },
+    ...(isAdmin || userTabs.preferences ? [{ label: 'Preferences', path: '/settings', icon: Settings }] : []),
     ...(isAdmin
       ? [{ label: 'Vault Security', path: '/settings/vault', icon: ShieldCheck }]
       : []),
@@ -51,11 +59,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggleCollapse })
       {/* Brand Header */}
       <div className="h-16 px-4 border-b border-slate-100 dark:border-[#242424] flex items-center justify-between">
         <Link to="/files" className="flex items-center gap-3 overflow-hidden group hover:opacity-90 transition-opacity">
-          <img src="/app-logo.png" alt="Bright Cloud" className="w-8 h-8 shrink-0 object-contain" />
+          <img
+            src={resolvedSettings.logoUrl || '/app-logo.png'}
+            alt={resolvedSettings.siteName || 'Bright Cloud'}
+            className="w-8 h-8 shrink-0 object-contain"
+          />
           {!collapsed && (
             <div className="flex flex-col min-w-0">
               <span className="font-bold text-sm text-slate-900 dark:text-[#E6E6E6] tracking-tight truncate group-hover:text-brand-500 dark:group-hover:text-[#1DB954] transition-colors">
-                Bright Cloud
+                {resolvedSettings.siteName || 'Bright Cloud'}
               </span>
               <span className="text-[10px] text-slate-400 dark:text-[#8A8A8A] font-medium truncate uppercase tracking-wider">
                 Web Viewer

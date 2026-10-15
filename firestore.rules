@@ -38,7 +38,13 @@ service cloud.firestore {
     // --- Shared Vault Namespace: vaults/{vaultId} ---
     match /vaults/{vaultId} {
 
-      // 1. Settings: Google Admins ONLY; Daemons & Friends: DENIED
+      // 1. Settings:
+      // - webConfig: Read: Admin & Authorized Friends (for live website customization, theme, banner, maintenance mode); Write: Admin only
+      // - Other settings: Google Admins ONLY
+      match /settings/webConfig {
+        allow read: if isAdmin(vaultId) || isAuthorizedFriend(vaultId);
+        allow write: if isAdmin(vaultId);
+      }
       match /settings/{docId} {
         allow read, write: if isAdmin(vaultId);
       }
@@ -122,6 +128,11 @@ service cloud.firestore {
         allow update, delete: if false;
       }
 
+      // 10. Admin Audit Logs:
+      // - Read, Write: Admin only
+      match /adminAudit/{auditId} {
+        allow read, write: if isAdmin(vaultId);
+      }
     }
 
     // Approval Requests (top-level collection: approvalRequests/{userId})

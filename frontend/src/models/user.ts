@@ -8,6 +8,7 @@ export interface UserProfile {
   lastLogin?: Date;
   role: UserRole;
   createdAt?: Date;
+  customSettings?: import('./webCustomization').UserCustomSettings;
 }
 
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected';

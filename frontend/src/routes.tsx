@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { ProtectedRoute, AdminRoute, PublicOnlyRoute } from './features/auth/RouteGuards';
 import { AppShell } from './components/layout/AppShell';
@@ -13,6 +14,9 @@ import { ActivityPage } from './features/activity/ActivityPage';
 import { UserSettingsPage } from './features/settings/UserSettingsPage';
 import { AdminVaultSettingsPage } from './features/settings/AdminVaultSettingsPage';
 import { NotFoundPage } from './features/errors/NotFoundPage';
+import { LoadingState } from './components/feedback/LoadingState';
+
+const AdminDashboardPage = lazy(() => import('./features/dashboard/AdminDashboardPage'));
 
 import { ContactDeveloperPage } from './features/contact/ContactDeveloperPage';
 
@@ -52,10 +56,6 @@ export const router = createBrowserRouter([
             element: <Navigate to="/files" replace />,
           },
           {
-            path: '/dashboard',
-            element: <Navigate to="/files" replace />,
-          },
-          {
             path: '/files',
             element: <FileExplorerPage />,
           },
@@ -84,6 +84,14 @@ export const router = createBrowserRouter([
           {
             element: <AdminRoute />,
             children: [
+              {
+                path: '/dashboard',
+                element: (
+                  <Suspense fallback={<LoadingState message="Loading control center..." />}>
+                    <AdminDashboardPage />
+                  </Suspense>
+                ),
+              },
               {
                 path: '/activity',
                 element: <ActivityPage />,
