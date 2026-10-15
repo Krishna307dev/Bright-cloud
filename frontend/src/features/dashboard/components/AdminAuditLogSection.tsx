@@ -79,13 +79,13 @@ export const AdminAuditLogSection: React.FC<AdminAuditLogSectionProps> = ({
         </div>
       ) : (
         <div className="overflow-x-auto -mx-4 sm:mx-0">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full text-left text-xs border-collapse min-w-[640px]">
             <thead>
               <tr className="border-b border-slate-100 dark:border-[#202020] text-[11px] text-slate-400 dark:text-[#8A8A8A] font-semibold uppercase tracking-wider">
-                <th className="py-2 px-3">Timestamp</th>
-                <th className="py-2 px-3">Admin</th>
-                <th className="py-2 px-3">Action</th>
-                <th className="py-2 px-3">Details</th>
+                <th className="py-2.5 px-3 w-44">Timestamp</th>
+                <th className="py-2.5 px-3 w-52">Admin</th>
+                <th className="py-2.5 px-3 w-44">Action</th>
+                <th className="py-2.5 px-3">Details</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-[#181818]">

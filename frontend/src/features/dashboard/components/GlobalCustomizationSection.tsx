@@ -293,10 +293,13 @@ export const GlobalCustomizationSection: React.FC<GlobalCustomizationSectionProp
                   }`}
                 />
               </button>
-              <span className={`text-[11px] font-semibold ${form.maintenanceMode ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400'}`}>
-                {form.maintenanceMode ? 'Active (Users locked to maintenance screen)' : 'Inactive (Normal access)'}
+              <span className={`text-[11px] font-semibold truncate ${form.maintenanceMode ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-[#8A8A8A]'}`}>
+                {form.maintenanceMode ? 'Active (Lockout enabled)' : 'Inactive'}
               </span>
             </div>
+            <p className="text-[10px] text-slate-400 dark:text-[#666666] mt-1">
+              Lockout non-admins with a calm maintenance notice.
+            </p>
           </div>
         </div>
 

@@ -120,7 +120,7 @@ export const UsersQuickTableSection: React.FC<UsersQuickTableSectionProps> = ({
   return (
     <div className="bg-white dark:bg-[#0A0A0A] rounded-xl border border-slate-200/80 dark:border-[#242424] p-4 sm:p-5 shadow-2xs">
       {/* Header and Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-[#242424] mb-3">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-[#242424] mb-3">
         <div className="flex items-center gap-2">
           <Users className="w-4 h-4 text-brand-600 dark:text-[#1DB954]" />
           <h2 className="text-sm font-bold text-slate-900 dark:text-[#E6E6E6] tracking-tight">
@@ -131,7 +131,7 @@ export const UsersQuickTableSection: React.FC<UsersQuickTableSectionProps> = ({
           </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
           {/* Search Box */}
           <div className="relative">
             <Search className="w-3.5 h-3.5 text-slate-400 dark:text-[#8A8A8A] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -140,18 +140,18 @@ export const UsersQuickTableSection: React.FC<UsersQuickTableSectionProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search users..."
-              className="text-xs pl-8 pr-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-[#282828] text-slate-800 dark:text-[#E6E6E6] placeholder-slate-400 dark:placeholder-[#666666] focus:outline-none focus:ring-1 focus:ring-brand-500 w-36 sm:w-44"
+              className="text-xs pl-8 pr-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-[#282828] text-slate-800 dark:text-[#E6E6E6] placeholder-slate-400 dark:placeholder-[#666666] focus:outline-none focus:ring-1 focus:ring-brand-500 w-full sm:w-56"
             />
           </div>
 
           {/* Role Filter Segmented Control */}
-          <div className="flex items-center bg-slate-100 dark:bg-[#141414] p-0.5 rounded-lg border border-slate-200/80 dark:border-[#282828]">
+          <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-[#141414] p-0.5 rounded-lg border border-slate-200/80 dark:border-[#282828] overflow-x-auto shrink-0">
             {(['all', 'admin', 'friend', 'pending', 'suspended'] as const).map((r) => (
               <button
                 key={r}
                 type="button"
                 onClick={() => setRoleFilter(r)}
-                className={`text-[11px] capitalize px-2 py-1 rounded-md font-medium transition-colors ${
+                className={`text-[11px] capitalize px-2.5 py-1 rounded-md font-medium transition-colors whitespace-nowrap ${
                   roleFilter === r
                     ? 'bg-white dark:bg-[#202020] text-slate-900 dark:text-[#E6E6E6] shadow-2xs font-semibold'
                     : 'text-slate-500 dark:text-[#8A8A8A] hover:text-slate-800 dark:hover:text-[#E6E6E6]'
@@ -175,13 +175,13 @@ export const UsersQuickTableSection: React.FC<UsersQuickTableSectionProps> = ({
         </div>
       ) : (
         <div className="overflow-x-auto -mx-4 sm:mx-0">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full text-left text-xs border-collapse min-w-[720px]">
             <thead>
               <tr className="border-b border-slate-100 dark:border-[#202020] text-[11px] text-slate-400 dark:text-[#8A8A8A] font-semibold uppercase tracking-wider">
-                <th className="py-2 px-3">User</th>
-                <th className="py-2 px-3">Role & Status</th>
-                <th className="py-2 px-3 hidden sm:table-cell">Last Login</th>
-                <th className="py-2 px-3 text-right">Quick Actions</th>
+                <th className="py-2.5 px-3 w-72">User</th>
+                <th className="py-2.5 px-3 w-44">Role & Status</th>
+                <th className="py-2.5 px-3 w-36 hidden sm:table-cell">Last Login</th>
+                <th className="py-2.5 px-3 text-right w-64">Quick Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-[#181818]">
@@ -245,13 +245,13 @@ export const UsersQuickTableSection: React.FC<UsersQuickTableSectionProps> = ({
 
                     {/* Actions */}
                     <td className="py-2.5 px-3 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                      <div className="flex items-center justify-end gap-1.5 shrink-0">
                         {/* Open individual customization drawer */}
                         <Button
                           size="sm"
                           variant="secondary"
                           onClick={() => onOpenCustomize(u)}
-                          className="h-7 text-xs px-2 gap-1"
+                          className="h-7 text-xs px-2 gap-1 shrink-0 whitespace-nowrap"
                           title="Open user customization overrides panel"
                         >
                           <Sliders className="w-3 h-3 text-brand-600 dark:text-[#1DB954]" />

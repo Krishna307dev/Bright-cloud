@@ -1,7 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   LayoutDashboard,
   RefreshCw,
+  Layers,
+  Activity,
+  Users,
+  Palette,
+  ShieldAlert,
 } from 'lucide-react';
 import {
   collection,
@@ -252,6 +258,25 @@ export const AdminDashboardPage: React.FC = () => {
     }
   };
 
+  // Active Domain Tab
+  const [searchParams, setSearchParams] = useSearchParams();
+  const rawTab = searchParams.get('tab');
+  const validTabs = ['all', 'overview', 'users', 'customization', 'audit'] as const;
+  type DashboardTab = (typeof validTabs)[number];
+  const initialTab: DashboardTab = validTabs.includes(rawTab as any) ? (rawTab as DashboardTab) : 'all';
+  const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab);
+
+  const handleTabChange = (tab: DashboardTab) => {
+    setActiveTab(tab);
+    const next = new URLSearchParams(searchParams);
+    if (tab === 'all') {
+      next.delete('tab');
+    } else {
+      next.set('tab', tab);
+    }
+    setSearchParams(next, { replace: true });
+  };
+
   const availableDrivesList = useMemo(() => {
     return sources.map((s) => ({
       sourceId: s.sourceId,
@@ -260,7 +285,7 @@ export const AdminDashboardPage: React.FC = () => {
   }, [sources]);
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto p-4 sm:p-6 animate-fadeIn pb-16">
+    <div className="space-y-6 max-w-7xl mx-auto animate-fadeIn pb-16">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-[#242424] pb-4">
         <div className="flex items-center gap-3">
@@ -300,11 +325,81 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Domain Navigation Tabs */}
+      <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 dark:bg-[#111111] p-1 rounded-lg border border-slate-200 dark:border-[#242424] w-fit">
+        <button
+          type="button"
+          onClick={() => handleTabChange('all')}
+          className={`min-h-[34px] px-3.5 py-1.5 text-xs rounded-md font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
+            activeTab === 'all'
+              ? 'bg-white dark:bg-[#1F1F1F] text-slate-900 dark:text-[#E6E6E6] shadow-2xs font-semibold'
+              : 'text-slate-600 dark:text-[#8A8A8A] hover:text-slate-900 dark:hover:text-[#E6E6E6]'
+          }`}
+        >
+          <Layers className="w-3.5 h-3.5" />
+          <span>All Sections</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleTabChange('overview')}
+          className={`min-h-[34px] px-3.5 py-1.5 text-xs rounded-md font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
+            activeTab === 'overview'
+              ? 'bg-white dark:bg-[#1F1F1F] text-slate-900 dark:text-[#E6E6E6] shadow-2xs font-semibold'
+              : 'text-slate-600 dark:text-[#8A8A8A] hover:text-slate-900 dark:hover:text-[#E6E6E6]'
+          }`}
+        >
+          <Activity className="w-3.5 h-3.5" />
+          <span>Overview & Telemetry</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleTabChange('users')}
+          className={`min-h-[34px] px-3.5 py-1.5 text-xs rounded-md font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
+            activeTab === 'users'
+              ? 'bg-white dark:bg-[#1F1F1F] text-slate-900 dark:text-[#E6E6E6] shadow-2xs font-semibold'
+              : 'text-slate-600 dark:text-[#8A8A8A] hover:text-slate-900 dark:hover:text-[#E6E6E6]'
+          }`}
+        >
+          <Users className="w-3.5 h-3.5" />
+          <span>Users & Overrides</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleTabChange('customization')}
+          className={`min-h-[34px] px-3.5 py-1.5 text-xs rounded-md font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
+            activeTab === 'customization'
+              ? 'bg-white dark:bg-[#1F1F1F] text-slate-900 dark:text-[#E6E6E6] shadow-2xs font-semibold'
+              : 'text-slate-600 dark:text-[#8A8A8A] hover:text-slate-900 dark:hover:text-[#E6E6E6]'
+          }`}
+        >
+          <Palette className="w-3.5 h-3.5" />
+          <span>Website Customization</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleTabChange('audit')}
+          className={`min-h-[34px] px-3.5 py-1.5 text-xs rounded-md font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
+            activeTab === 'audit'
+              ? 'bg-white dark:bg-[#1F1F1F] text-slate-900 dark:text-[#E6E6E6] shadow-2xs font-semibold'
+              : 'text-slate-600 dark:text-[#8A8A8A] hover:text-slate-900 dark:hover:text-[#E6E6E6]'
+          }`}
+        >
+          <ShieldAlert className="w-3.5 h-3.5" />
+          <span>Audit Log</span>
+        </button>
+      </div>
+
       {/* Section A: Overview Metrics Strip */}
-      <DashboardOverviewStrip metrics={metrics} />
+      {(activeTab === 'all' || activeTab === 'overview') && (
+        <DashboardOverviewStrip metrics={metrics} />
+      )}
 
       {/* Section B: Pending Approvals (Rendered if requests exist) */}
-      {pendingRequests.length > 0 && (
+      {(activeTab === 'all' || activeTab === 'overview' || activeTab === 'users') && pendingRequests.length > 0 && (
         <PendingApprovalsSection
           requests={pendingRequests}
           onApprove={handleApproveRequest}
@@ -312,17 +407,24 @@ export const AdminDashboardPage: React.FC = () => {
         />
       )}
 
-      {/* Main Grid: Telemetry, Users & Website Governance */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column (7 cols): Activity Feed & Users Quick Control */}
-        <div className="lg:col-span-7 space-y-6">
-          {/* Section C: Recent Activity Feed */}
+      {/* Section C & G: Recent Activity Feed & Drives Storage Overview side-by-side */}
+      {(activeTab === 'all' || activeTab === 'overview') && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           <RecentActivitySection
             events={recentEvents}
             isLoading={isLoading}
           />
+          <DrivesStorageSection
+            drives={drivesTelemetry}
+            totalVaultBytes={storageBytes}
+            isLoading={isLoading}
+          />
+        </div>
+      )}
 
-          {/* Section D: Users Quick Control Table */}
+      {/* Section D: Users Quick Control Table (FULL WIDTH) */}
+      {(activeTab === 'all' || activeTab === 'users') && (
+        <div className="w-full">
           <UsersQuickTableSection
             users={users}
             isLoading={isLoading}
@@ -330,32 +432,30 @@ export const AdminDashboardPage: React.FC = () => {
             onToggleSuspend={handleToggleSuspend}
             onOpenCustomize={(u) => setCustomizingUser(u)}
           />
-
-          {/* Section G: Drives & Storage Overview */}
-          <DrivesStorageSection
-            drives={drivesTelemetry}
-            totalVaultBytes={storageBytes}
-            isLoading={isLoading}
-          />
         </div>
+      )}
 
-        {/* Right Column (5 cols): Global Website Customization & Audit Log */}
-        <div className="lg:col-span-5 space-y-6">
-          {/* Section E: Website Customization (Global) */}
+      {/* Section E: Website Customization (Global) (FULL WIDTH) */}
+      {(activeTab === 'all' || activeTab === 'customization') && (
+        <div className="w-full">
           <GlobalCustomizationSection
             config={globalConfig}
             onSave={updateGlobalConfig}
             onReset={resetGlobalConfig}
             availableDrives={availableDrivesList}
           />
+        </div>
+      )}
 
-          {/* Section H: Admin Action Audit Log */}
+      {/* Section H: Admin Action Audit Log (FULL WIDTH) */}
+      {(activeTab === 'all' || activeTab === 'audit') && (
+        <div className="w-full">
           <AdminAuditLogSection
             logs={auditLogs}
             isLoading={isLoading}
           />
         </div>
-      </div>
+      )}
 
       {/* Section F: Individual User Customization Drawer */}
       <UserCustomizationDrawer

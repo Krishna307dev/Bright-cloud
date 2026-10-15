@@ -94,28 +94,30 @@ export const DashboardOverviewStrip: React.FC<DashboardOverviewStripProps> = ({ 
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5">
       {cards.map((c) => (
         <button
           key={c.label}
           type="button"
           onClick={c.onClick}
-          className={`group text-left bg-white dark:bg-[#0A0A0A] p-3.5 rounded-xl border border-slate-200/80 dark:border-[#242424] transition-all duration-150 shadow-2xs hover:shadow-sm ${c.border} cursor-pointer focus:outline-none focus:ring-1 focus:ring-brand-500`}
+          className={`group text-left bg-white dark:bg-[#0A0A0A] p-3.5 sm:p-4 rounded-xl border border-slate-200/80 dark:border-[#242424] transition-all duration-150 shadow-2xs hover:shadow-sm ${c.border} cursor-pointer focus:outline-none focus:ring-1 focus:ring-brand-500 min-w-0 flex flex-col justify-between`}
         >
-          <div className="flex items-center justify-between gap-1 mb-2">
-            <div className={`w-7 h-7 rounded-lg ${c.bg} flex items-center justify-center ${c.color}`}>
-              <c.icon className="w-3.5 h-3.5" />
+          <div>
+            <div className="flex items-center justify-between gap-1 mb-2">
+              <div className={`w-7 h-7 rounded-lg ${c.bg} flex items-center justify-center ${c.color} shrink-0`}>
+                <c.icon className="w-3.5 h-3.5" />
+              </div>
+              <ArrowUpRight className="w-3.5 h-3.5 text-slate-300 dark:text-[#444444] group-hover:text-slate-600 dark:group-hover:text-[#E6E6E6] transition-colors shrink-0" />
             </div>
-            <ArrowUpRight className="w-3.5 h-3.5 text-slate-300 dark:text-[#444444] group-hover:text-slate-600 dark:group-hover:text-[#E6E6E6] transition-colors" />
-          </div>
 
-          <p className="text-[11px] font-medium text-slate-500 dark:text-[#8A8A8A] truncate">
-            {c.label}
-          </p>
-          <p className="text-lg font-bold text-slate-900 dark:text-[#E6E6E6] tracking-tight mt-0.5">
-            {c.value}
-          </p>
-          <p className="text-[10px] text-slate-400 dark:text-[#666666] truncate mt-1">
+            <p className="text-[11px] font-semibold text-slate-500 dark:text-[#8A8A8A] truncate" title={c.label}>
+              {c.label}
+            </p>
+            <p className="text-xl font-bold text-slate-900 dark:text-[#E6E6E6] tracking-tight mt-1 truncate">
+              {c.value}
+            </p>
+          </div>
+          <p className="text-[11px] text-slate-400 dark:text-[#666666] truncate mt-2">
             {c.subtext}
           </p>
         </button>
