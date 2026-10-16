@@ -278,10 +278,14 @@ export const AdminDashboardPage: React.FC = () => {
   };
 
   const availableDrivesList = useMemo(() => {
-    return sources.map((s) => ({
+    const list = sources.map((s) => ({
       sourceId: s.sourceId,
-      displayName: s.displayName || s.sourceId,
+      displayName: s.sourceId === 'WEB_UPLOADS' ? 'Web Uploads' : (s.displayName || s.sourceId),
     }));
+    if (!list.some((d) => d.sourceId === 'WEB_UPLOADS')) {
+      list.unshift({ sourceId: 'WEB_UPLOADS', displayName: 'Web Uploads' });
+    }
+    return list;
   }, [sources]);
 
   return (

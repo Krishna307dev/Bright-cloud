@@ -25,11 +25,11 @@ export class SourceService {
     const q = query(sourcesRef, orderBy('lastSeen', 'desc'));
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map(d => {
+    const result: SourceEntity[] = snapshot.docs.map(d => {
       const data = d.data();
       return {
         sourceId: data.sourceId || d.id,
-        displayName: data.displayName || 'USB Storage Drive',
+        displayName: data.displayName || (d.id === 'WEB_UPLOADS' ? 'Web Uploads' : 'USB Storage Drive'),
         volumeUuid: data.volumeUuid || undefined,
         usbVendorId: data.usbVendorId || 0,
         usbProductId: data.usbProductId || 0,
@@ -42,6 +42,25 @@ export class SourceService {
         deletionExecuteAt: data.deletionExecuteAt?.toDate ? data.deletionExecuteAt.toDate() : undefined,
       };
     });
+
+    if (!result.some((s) => s.sourceId === 'WEB_UPLOADS')) {
+      result.unshift({
+        sourceId: 'WEB_UPLOADS',
+        displayName: 'Web Uploads',
+        volumeUuid: undefined,
+        usbVendorId: 0,
+        usbProductId: 0,
+        serialNumber: undefined,
+        firstSeen: new Date(),
+        lastSeen: new Date(),
+        totalFilesBackedUp: 0,
+        rulesGeneration: 0,
+        status: 'ACTIVE',
+        deletionExecuteAt: undefined,
+      });
+    }
+
+    return result;
   }
 
   /**

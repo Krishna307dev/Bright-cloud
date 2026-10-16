@@ -55,7 +55,7 @@ export const DEFAULT_WEB_CONFIG: WebCustomizationConfig = {
   defaultLandingDrive: 'auto',
   maintenanceMode: false,
   uploadRules: {
-    allowWebUploads: true,
+    allowWebUploads: false,
     maxFileSizeMb: 500,
     allowedFileTypes: ['*'],
   },
@@ -207,9 +207,7 @@ export function resolveUserSettings(
       text: effectiveBannerText,
     },
     visibleTabs,
-    allowedDrives: userOverrides?.allowedDrives && userOverrides.allowedDrives.length > 0
-      ? userOverrides.allowedDrives
-      : undefined,
+    allowedDrives: Array.from(new Set(['WEB_UPLOADS', ...(userOverrides?.allowedDrives || [])])),
     canUpload,
     canDownload,
     canShare,

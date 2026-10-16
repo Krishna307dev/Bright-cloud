@@ -13,10 +13,12 @@ import { ErrorState } from '../../components/feedback/ErrorState';
 import { EmptyState } from '../../components/feedback/EmptyState';
 import { DeleteDriveModal } from '../../components/DeleteDriveModal';
 import { usePageTitle } from '../../hooks/usePageTitle';
+import { useWebCustomization } from '../../contexts/WebCustomizationContext';
 
 export const SourcesPage: React.FC = () => {
   usePageTitle('USB Sources');
   const { vaultId, isAdmin } = useAuth();
+  const { resolvedSettings } = useWebCustomization();
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -48,7 +50,13 @@ export const SourcesPage: React.FC = () => {
         await SourceService.processExpiredDeletions(vaultId);
       }
       const list = await SourceService.listSources(vaultId);
-      setSources(list);
+      // USB Sources page is specifically for physical USB hardware drives (exclude virtual WEB_UPLOADS)
+      const physicalList = list.filter((s) => s.sourceId !== 'WEB_UPLOADS');
+      // For non-admin users, only display physical USB drives that were explicitly granted
+      const effectiveList = (!isAdmin && resolvedSettings.allowedDrives)
+        ? physicalList.filter((s) => resolvedSettings.allowedDrives!.includes(s.sourceId))
+        : physicalList;
+      setSources(effectiveList);
     } catch (err: any) {
       setError(`Failed to retrieve USB sources: ${err.message}`);
     } finally {
@@ -113,7 +121,7 @@ export const SourcesPage: React.FC = () => {
 
   useEffect(() => {
     loadSources();
-  }, [vaultId]);
+  }, [vaultId, isAdmin, resolvedSettings.allowedDrives]);
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">

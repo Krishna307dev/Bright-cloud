@@ -73,6 +73,7 @@ export const UserCustomizationDrawer: React.FC<UserCustomizationDrawerProps> = (
   };
 
   const handleToggleDrive = (sourceId: string) => {
+    if (sourceId === 'WEB_UPLOADS') return;
     setForm((prev) => {
       const currentAllowed = prev.allowedDrives || [];
       const exists = currentAllowed.includes(sourceId);
@@ -207,46 +208,101 @@ export const UserCustomizationDrawer: React.FC<UserCustomizationDrawerProps> = (
             </div>
           </div>
 
-          {/* Section 2: Allowed Drives (Drive Whitelist) */}
+          {/* Section 2: Allowed Storage Drives */}
           <div className="pt-3 border-t border-slate-100 dark:border-[#1E1E1E]">
             <div className="flex items-center justify-between mb-1.5">
               <span className="font-semibold text-slate-800 dark:text-[#E6E6E6] flex items-center gap-1.5">
                 <HardDrive className="w-3.5 h-3.5 text-brand-600 dark:text-[#1DB954]" />
                 Allowed Storage Drives
               </span>
-              <span className="text-[10px] text-slate-400">
-                {form.allowedDrives ? `${form.allowedDrives.length} drives selected` : 'All drives allowed'}
+              <span className="text-[10px] text-slate-400 font-mono">
+                {form.allowedDrives?.filter((id) => id !== 'WEB_UPLOADS').length
+                  ? `${form.allowedDrives.filter((id) => id !== 'WEB_UPLOADS').length} USB drive(s) granted`
+                  : 'Web Uploads only'}
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 dark:text-[#8A8A8A] mb-2">
-              Leave all unselected to grant access to all non-restricted drives.
-            </p>
 
+            {/* Permanent Web Uploads Virtual Drive */}
+            <div className="p-2.5 rounded-lg bg-emerald-50/70 dark:bg-[#121212] border border-emerald-200/80 dark:border-[#242424] mb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={true}
+                    disabled={true}
+                    className="rounded border-slate-300 text-brand-600 opacity-80 cursor-not-allowed"
+                  />
+                  <span className="font-semibold text-slate-900 dark:text-[#E6E6E6]">
+                    Web Uploads Drive
+                  </span>
+                </div>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  Always Allowed
+                </span>
+              </div>
+              <p className="text-[10px] text-slate-500 dark:text-[#8A8A8A] mt-1 pl-6">
+                Virtual web upload drive is accessible to all authorized vault members.
+              </p>
+            </div>
+
+            {/* Physical USB & Pendrive Storage Drives */}
             <div className="space-y-1.5">
-              {availableDrives.map((d) => {
-                const isChecked = form.allowedDrives ? form.allowedDrives.includes(d.sourceId) : false;
-                return (
-                  <label
-                    key={d.sourceId}
-                    className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-[#121212] border border-slate-200/80 dark:border-[#242424] cursor-pointer hover:bg-slate-100 dark:hover:bg-[#181818]"
-                  >
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => handleToggleDrive(d.sourceId)}
-                        className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-                      />
-                      <span className="font-medium text-slate-700 dark:text-[#E6E6E6]">
-                        {d.displayName}
-                      </span>
-                    </div>
-                    <span className="text-[10px] font-mono text-slate-400">
-                      {d.sourceId}
-                    </span>
-                  </label>
-                );
-              })}
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] font-semibold text-slate-700 dark:text-[#CCCCCC]">
+                  Physical USB & Pendrive Storage Drives
+                </span>
+              </div>
+              <p className="text-[10px] text-slate-400 dark:text-[#8A8A8A] mb-2">
+                USB pendrive sources are restricted by default. Check a drive below to grant access to this user. Any new pendrive connected in the future will only be accessible to users you grant permission to here.
+              </p>
+
+              {availableDrives.filter((d) => d.sourceId !== 'WEB_UPLOADS').length === 0 ? (
+                <div className="p-3 bg-slate-50 dark:bg-[#121212] rounded-lg border border-slate-200/80 dark:border-[#242424] text-[11px] text-slate-500 dark:text-[#8A8A8A] text-center">
+                  No physical USB pendrives registered yet. When a pendrive is backed up from the Android app, it will appear here so you can grant access.
+                </div>
+              ) : (
+                availableDrives
+                  .filter((d) => d.sourceId !== 'WEB_UPLOADS')
+                  .map((d) => {
+                    const isChecked = form.allowedDrives ? form.allowedDrives.includes(d.sourceId) : false;
+                    return (
+                      <label
+                        key={d.sourceId}
+                        className={`flex items-center justify-between p-2 rounded-lg border cursor-pointer transition-colors ${
+                          isChecked
+                            ? 'bg-brand-50/50 dark:bg-[#141414] border-brand-200 dark:border-[#1DB954]/40'
+                            : 'bg-slate-50 dark:bg-[#121212] border-slate-200/80 dark:border-[#242424] hover:bg-slate-100 dark:hover:bg-[#181818]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => handleToggleDrive(d.sourceId)}
+                            className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                          />
+                          <div>
+                            <span className="font-medium text-slate-800 dark:text-[#E6E6E6] block">
+                              {d.displayName}
+                            </span>
+                            <span className="text-[10px] font-mono text-slate-400">
+                              ID: {d.sourceId}
+                            </span>
+                          </div>
+                        </div>
+                        <span
+                          className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${
+                            isChecked
+                              ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                              : 'bg-slate-100 dark:bg-[#1C1C1C] text-slate-500 dark:text-[#8A8A8A]'
+                          }`}
+                        >
+                          {isChecked ? 'Access Granted' : 'Restricted (Default)'}
+                        </span>
+                      </label>
+                    );
+                  })
+              )}
             </div>
           </div>
 
@@ -274,7 +330,9 @@ export const UserCustomizationDrawer: React.FC<UserCustomizationDrawerProps> = (
                   </span>
                 </label>
                 <span className="text-[9px] text-slate-400 block font-mono">
-                  {form.canUpload !== undefined ? 'User override' : 'Inheriting global'}
+                  {form.canUpload !== undefined
+                    ? (form.canUpload ? 'User override (Granted)' : 'User override (Denied)')
+                    : (globalConfig.uploadRules.allowWebUploads ? 'Inheriting global (Allowed)' : 'Default (Denied)')}
                 </span>
               </div>
 

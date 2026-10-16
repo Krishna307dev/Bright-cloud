@@ -259,6 +259,19 @@ export const FileExplorerPage: React.FC = () => {
     }
   }, [selectedSourceId, isResolvingDefaultDrive]);
 
+  // Enforce drive permissions: non-admin users must not remain on or access forbidden drives
+  useEffect(() => {
+    if (!isAdmin && selectedSourceId && resolvedSettings.allowedDrives && resolvedSettings.allowedDrives.length > 0) {
+      if (!resolvedSettings.allowedDrives.includes(selectedSourceId)) {
+        const fallback = resolvedSettings.allowedDrives.includes('WEB_UPLOADS')
+          ? 'WEB_UPLOADS'
+          : resolvedSettings.allowedDrives[0];
+        setSelectedSourceId(fallback);
+        navigate(`/files/${fallback}`, { replace: true });
+      }
+    }
+  }, [isAdmin, selectedSourceId, resolvedSettings.allowedDrives, navigate]);
+
   // Handle Source Selection
   const handleSourceChange = (newSourceId: string) => {
     if (vaultId) {

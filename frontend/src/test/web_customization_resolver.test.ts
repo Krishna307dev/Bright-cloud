@@ -14,7 +14,8 @@ describe('Web Customization - resolveUserSettings', () => {
     expect(res.theme).toBe(DEFAULT_WEB_CONFIG.defaultTheme);
     expect(res.banner.enabled).toBe(false);
     expect(res.visibleTabs).toEqual(DEFAULT_WEB_CONFIG.visibleTabs);
-    expect(res.canUpload).toBe(DEFAULT_WEB_CONFIG.uploadRules.allowWebUploads);
+    expect(res.canUpload).toBe(false);
+    expect(res.allowedDrives).toEqual(['WEB_UPLOADS']);
     expect(res.canDownload).toBe(DEFAULT_WEB_CONFIG.downloadRules.allowDownloads);
     expect(res.canShare).toBe(DEFAULT_WEB_CONFIG.downloadRules.allowShareLinks);
     expect(res.maintenanceMode).toBe(false);
@@ -146,9 +147,26 @@ describe('Web Customization - resolveUserSettings', () => {
       expect(res.visibleTabs.shared).toBe(true);
       expect(res.visibleTabs.sources).toBe(false);
       expect(res.canUpload).toBe(true);
-      expect(res.allowedDrives).toEqual(['drive-1', 'drive-2']);
+      expect(res.allowedDrives).toEqual(['WEB_UPLOADS', 'drive-1', 'drive-2']);
       expect(res.storageLimitMb).toBe(500);
       expect(res.theme).toBe('light');
+    });
+
+    it('ensures normal users only have WEB_UPLOADS by default, and USB drives require explicit grant', () => {
+      // User with no overrides
+      const defaultUser = resolveUserSettings(null, null, false);
+      expect(defaultUser.canUpload).toBe(false);
+      expect(defaultUser.allowedDrives).toEqual(['WEB_UPLOADS']);
+
+      // User with one USB drive explicitly granted
+      const grantedUser = resolveUserSettings(null, { allowedDrives: ['kingston-usb-1'] }, false);
+      expect(grantedUser.canUpload).toBe(false);
+      expect(grantedUser.allowedDrives).toEqual(['WEB_UPLOADS', 'kingston-usb-1']);
+
+      // User with upload permission explicitly granted
+      const uploadUser = resolveUserSettings(null, { canUpload: true }, false);
+      expect(uploadUser.canUpload).toBe(true);
+      expect(uploadUser.allowedDrives).toEqual(['WEB_UPLOADS']);
     });
 
     it('handles banner expiration correctly', () => {
